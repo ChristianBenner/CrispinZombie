@@ -560,7 +560,7 @@ public class AStarDemo extends Scene {
             models[startX][startZ].setColour(new Colour(1.0f, 0.5f, 1.0f));
             models[targetZ][targetX].setColour(new Colour(0.5f, 0.5f, 1.0f));
 
-            playSound(context, R.raw.ding, 0);
+            //playSound(context, R.raw.ding, 0);
         }
     }
 

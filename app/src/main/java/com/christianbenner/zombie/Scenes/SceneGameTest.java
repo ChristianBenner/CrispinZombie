@@ -264,7 +264,7 @@ public class SceneGameTest extends Scene{
         textureButtonUp = TextureHelper.loadTexture(context, R.drawable.button_up);
         textureButtonDown = TextureHelper.loadTexture(context, R.drawable.button_down);
         repeatedGrassTexture = TextureHelper.loadTexture(context, R.drawable.grass_tile);
-        cubetexTexture = TextureHelper.loadTexture(context, R.drawable.cubetex);
+     //   cubetexTexture = TextureHelper.loadTexture(context, R.drawable.cubetex);
         stone = TextureHelper.loadTexture(context, R.drawable.stone_tile);
 
         // Setup UI
@@ -388,7 +388,7 @@ public class SceneGameTest extends Scene{
 
        // playMusic(context, R.raw.epilogue);
 
-        texture_ship = TextureHelper.loadTexture(context, R.drawable.sh3);
+      //  texture_ship = TextureHelper.loadTexture(context, R.drawable.sh3);
         texture_box = TextureHelper.loadTexture(context, R.drawable.box);
         texture_grass = TextureHelper.loadTexture(context, R.drawable.grass_tile);
 

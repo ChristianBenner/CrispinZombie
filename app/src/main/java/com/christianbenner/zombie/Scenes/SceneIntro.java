@@ -83,7 +83,7 @@ public class SceneIntro extends Scene {
         version.setColour(new Colour(1.0f, 0.0f, 0.0f));
 
         // Play a tune
-        playSound(context, R.raw.introcrispin, 0);
+        playSound(context, R.raw.crispingintropiano, 0);
     }
 
     // MATRIX

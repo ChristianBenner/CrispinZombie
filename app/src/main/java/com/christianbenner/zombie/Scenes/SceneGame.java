@@ -79,7 +79,7 @@ public class SceneGame extends Scene {
     private Light TEST_LIGHT2;
     private RendererModel box;
     private Human humanoid;
-    private RendererModel sniper;
+    //private RendererModel sniper;
 
     private ArrayList<Zombie> zombies;
 
@@ -159,9 +159,9 @@ public class SceneGame extends Scene {
         });
 
         // Init renderer and create objects
-        sniper = new RendererModel(context, R.raw.sniper, TextureHelper.loadTexture(context, R.drawable.sniper, true));
-        sniper.setPosition(new Geometry.Point(2.0f, 1.0f, 5.0f));
-        sniper.setScale(0.1f);
+     //   sniper = new RendererModel(context, R.raw.sniper, TextureHelper.loadTexture(context, R.drawable.sniper, true));
+       // sniper.setPosition(new Geometry.Point(2.0f, 1.0f, 5.0f));
+      //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
         humanoid = new Human(context,
@@ -184,7 +184,7 @@ public class SceneGame extends Scene {
 
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
-        renderer.addModel(sniper);
+    //    renderer.addModel(sniper);
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
@@ -360,10 +360,10 @@ public class SceneGame extends Scene {
       //  sniper.setPosition(new Geometry.Point(humanoid.getPosition().x, 1.0f, 1.0f));
 
         angleS += 2f * deltaTime;
-        sniper.newIdentity();
-        sniper.setPosition(new Geometry.Point(3.0f, 0.1f, 4.0f));
-        sniper.setScale(0.1f);
-        sniper.rotate(angleS, 0.0f, 1.0f, 0.0f);
+   //     sniper.newIdentity();
+    //    sniper.setPosition(new Geometry.Point(3.0f, 0.1f, 4.0f));
+    //    sniper.setScale(0.1f);
+    //    sniper.rotate(angleS, 0.0f, 1.0f, 0.0f);
         camera.setPosition(new Geometry.Point(humanoid.getPosition().x, CAMERA_START_POSITION.y, humanoid.getPosition().z));
 
         boxRotationAngle += 1f * deltaTime;

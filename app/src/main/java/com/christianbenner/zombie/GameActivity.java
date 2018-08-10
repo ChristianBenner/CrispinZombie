@@ -54,57 +54,6 @@ public class GameActivity extends Activity
                 }
             });
 
-          //  glSurfaceView.dispatchTouchEvent(event);
- /*           glSurfaceView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(final View v, final MotionEvent event) {
-                    if(event!=null) {
-
-                        glSurfaceView.queueEvent(new Runnable() {
-                            @Override
-                            public void run() {
-                                renderer.motionEvent(v, event);
-                            }
-                        });
-
-
-                        return true;
-                    }
-
-                    return false;
-
-
-
-
-                   // return true;
-*//*
-                    if(event != null)
-                    {
-                        int action = MotionEventCompat.getActionMasked(event);
-                        int index = MotionEventCompat.getActionIndex(event);
-                        int xPos = -1;
-                        int yPos = -1;
-                        if(event.getPointerCount() > 1)
-                        {
-                            System.err.print("Multi Touch: ");
-                            xPos = (int)MotionEventCompat.getX(event, index);
-                            yPos = (int)MotionEventCompat.getY(event, index);
-                            System.err.printf("Pointer[%d], x: %d, y: %d\n", index, xPos, yPos);
-                        }
-                        else
-                        {
-                            System.err.print("Single Touch: ");
-                            xPos = (int)MotionEventCompat.getX(event, index);
-                            yPos = (int)MotionEventCompat.getY(event, index);
-                            System.err.printf("Pointer[%d], x: %d, y: %d\n", index, xPos, yPos);
-                        }
-
-                        return true;*//*
-
-
-                }
-            });
-*/
             setContentView(glSurfaceView);
         }
         else
