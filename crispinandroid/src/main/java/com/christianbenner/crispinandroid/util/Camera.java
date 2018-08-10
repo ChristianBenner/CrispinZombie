@@ -130,11 +130,10 @@ public class Camera implements Interactive {
         touchFocus = true;
 
         // Send touch event
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.CLICK);
-        for(TouchListener bl : touchListeners)
+        final TouchEvent CLICK_EVENT = new TouchEvent(this, TouchEvent.Event.CLICK, position);
+        for(final TouchListener touchListener : touchListeners)
         {
-            bl.touchEvent(be, position);
+            touchListener.touchEvent(CLICK_EVENT);
         }
     }
 
@@ -144,11 +143,10 @@ public class Camera implements Interactive {
         if(touchFocus)
         {
             // Send release event
-            TouchEvent be = new TouchEvent(this);
-            be.setEvent(TouchEvent.Event.RELEASE);
-            for(TouchListener bl : touchListeners)
+            final TouchEvent RELEASE_EVENT = new TouchEvent(this, TouchEvent.Event.RELEASE, position);
+            for(final TouchListener touchListener : touchListeners)
             {
-                bl.touchEvent(be, position);
+                touchListener.touchEvent(RELEASE_EVENT);
             }
 
             touchFocus = false;
@@ -159,11 +157,10 @@ public class Camera implements Interactive {
     public void drag(PointF position)
     {
         // Send the drag touch event
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.DOWN);
-        for(TouchListener bl : touchListeners)
+        final TouchEvent DOWN_EVENT = new TouchEvent(this, TouchEvent.Event.DOWN, position);
+        for(final TouchListener touchListener : touchListeners)
         {
-            bl.touchEvent(be, position);
+            touchListener.touchEvent(DOWN_EVENT);
         }
     }
 

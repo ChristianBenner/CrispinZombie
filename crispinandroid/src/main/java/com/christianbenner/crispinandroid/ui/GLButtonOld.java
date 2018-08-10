@@ -199,8 +199,8 @@ public class GLButtonOld extends UIBaseOld {
         // If buttonDown, send buttonDown listeners
         if(buttonDown)
         {
-            TouchEvent be = new TouchEvent(this);
-            be.setEvent(TouchEvent.Event.DOWN);
+           // TouchEvent be = new TouchEvent(this);
+          //  be.setEvent(TouchEvent.Event.DOWN);
             for(TouchListener bl : buttonListeners)
             {
          //       bl.touchEvent(be);
@@ -243,8 +243,8 @@ public class GLButtonOld extends UIBaseOld {
                 getBlueValue() + defaultClickDiscolour);
         clickTransitioning = true;
 
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.CLICK);
+       // TouchEvent be = new TouchEvent(this);
+       // be.setEvent(TouchEvent.Event.CLICK);
         for(TouchListener bl : buttonListeners)
         {
           //  bl.touchEvent(be);

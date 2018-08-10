@@ -1,7 +1,6 @@
 package com.christianbenner.zombie.Scenes;
 
 import android.content.Context;
-import android.graphics.PointF;
 import android.support.v4.view.MotionEventCompat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -272,8 +271,8 @@ public class SceneGameTest extends Scene{
         uiButtonLeft.setTexture(textureButtonLeft);
         uiButtonLeft.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(-BUTTON_MOVEMENT, Camera.Direction.RIGHT);
@@ -289,8 +288,8 @@ public class SceneGameTest extends Scene{
         uiButtonRight.setTexture(textureButtonRight);
         uiButtonRight.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(BUTTON_MOVEMENT, Camera.Direction.RIGHT);
@@ -306,8 +305,8 @@ public class SceneGameTest extends Scene{
         uiButtonUp.setTexture(textureButtonUp);
         uiButtonUp.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(BUTTON_MOVEMENT, Camera.Direction.UP);
@@ -323,8 +322,8 @@ public class SceneGameTest extends Scene{
         uiButtonDown.setTexture(textureButtonDown);
         uiButtonDown.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(-BUTTON_MOVEMENT, Camera.Direction.UP);
@@ -340,8 +339,8 @@ public class SceneGameTest extends Scene{
         uiButtonZoomIn.setTexture(textureButtonUp);
         uiButtonZoomIn.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(BUTTON_MOVEMENT, Camera.Direction.FORWARD);
@@ -357,8 +356,8 @@ public class SceneGameTest extends Scene{
         uiButtonZoomOut.setTexture(textureButtonDown);
         uiButtonZoomOut.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         camera.translate(-BUTTON_MOVEMENT, Camera.Direction.FORWARD);

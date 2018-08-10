@@ -1,5 +1,7 @@
 package com.christianbenner.crispinandroid.ui;
 
+import android.graphics.PointF;
+
 import java.util.EventObject;
 
 /**
@@ -7,10 +9,6 @@ import java.util.EventObject;
  */
 
 public class TouchEvent extends EventObject {
-    public TouchEvent(Object source) {
-        super(source);
-    }
-
     public enum Event
     {
         CLICK,
@@ -18,11 +16,19 @@ public class TouchEvent extends EventObject {
         RELEASE
     }
 
-    public Event event;
+    private Event event;
+    private PointF position;
 
-    public void setEvent(Event e)
+    public TouchEvent(Object source, Event event, PointF position)
     {
-        this.event = e;
+        super(source);
+        this.event = event;
+        this.position = position;
+    }
+
+    public PointF getPosition()
+    {
+        return this.position;
     }
 
     public Event getEvent()

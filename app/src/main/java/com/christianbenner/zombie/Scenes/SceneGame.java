@@ -131,12 +131,12 @@ public class SceneGame extends Scene {
         debugCamera.setPosition(DEBUG_CAMERA_START_POSITION);
         debugCamera.addTouchListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch(e.event)
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
                 {
                     case DOWN:
-                        float normalizedX = (position.x / (float) viewWidth) * 2 - 1;
-                        float normalizedY = ((position.y / (float) viewHeight) * 2 - 1);
+                        float normalizedX = (e.getPosition().x / (float) viewWidth) * 2 - 1;
+                        float normalizedY = ((e.getPosition().y / (float) viewHeight) * 2 - 1);
 
                         if(doneYet == false)
                         {
@@ -508,8 +508,8 @@ public class SceneGame extends Scene {
         // Setup UI
         moveController.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
@@ -539,8 +539,8 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.button_wave));
         wave_button.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch(e.event)
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
@@ -556,8 +556,8 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.button_camera));
         switch_camera_button.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch(e.event)
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
@@ -600,8 +600,8 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.button_up));
         debug_camera_button_up.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         debugCamera.translate(MOVE_SPEED, Camera.Direction.UP);
@@ -619,8 +619,8 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.button_down));
         debug_camera_button_down.addButtonListener(new TouchListener() {
             @Override
-            public void touchEvent(TouchEvent e, PointF position) {
-                switch (e.event)
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
                 {
                     case DOWN:
                         debugCamera.translate(-MOVE_SPEED, Camera.Direction.UP);

@@ -32,14 +32,14 @@ public class GLButton extends UIBase implements Interactive {
 
     private VertexArray vertexArray;
     private int vertexCount;
-    protected Pointer pointer;
+    private PointF lastPointerPosition;
 
     public GLButton(UIDimension dimensions, Colour colour, Texture texture)
     {
         this.dimensions = dimensions;
         this.colour = colour;
         this.texture = texture;
-        this.pointer = null;
+        this.lastPointerPosition = new PointF(0.0f, 0.0f);
     }
 
     public GLButton(UIDimension dimensions)
@@ -106,79 +106,24 @@ public class GLButton extends UIBase implements Interactive {
         return false;
     }
 
-
-
-    public boolean sendClick(Pointer pointer)
-    {
-        PointF pos = pointer.getPosition();
-
-        // Stops other UI from being clicked by the same pointer
-        if(pointer != null && !pointer.isInUse() &&
-                pos.x > dimensions.x && pos.x < dimensions.x + getWidth() &&
-                pos.y < dimensions.y + getHeight() && pos.y > dimensions.y)
-        {
-            pointer.setInUse(true);
-
-            // Store so that we can release it later
-            this.pointer = pointer;
-
-          //  clickedOn();
-            buttonDown = true;
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean sendRelease(Pointer pointer)
-    {
-        if(buttonDown && this.pointer == pointer)
-        {
-            buttonDown = false;
-           // sendReleaseEvent();
-            return true;
-        }
-
-        return false;
-    }
-
     public void forceRelease()
     {
         buttonDown = false;
         sendReleaseEvent(new PointF(0.0f, 0.0f));
     }
 
-    public boolean sendDrag(Pointer pointer)
+    public boolean isButtonDown()
     {
-        PointF pos = pointer.getPosition();
-
-        if(buttonDown) {
-            if (!(pos.x > dimensions.x && pos.x < dimensions.x + getWidth() &&
-                    pos.y < dimensions.y + getHeight() && pos.y > dimensions.y)) {
-                if(pointer == this.pointer)
-                {
-                    buttonDown = false;
-                  //  sendReleaseEvent();
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return this.buttonDown;
     }
 
     public void update(float deltaTime)
     {
         // If buttonDown, send buttonDown listeners
-       /* if(buttonDown)
+        if(buttonDown)
         {
-            TouchEvent be = new TouchEvent(this);
-            be.setEvent(TouchEvent.Event.DOWN);
-            for(TouchListener bl : buttonListeners)
-            {
-                bl.touchEvent(be);
-            }
-        }*/
+            sendDownEvent(this.lastPointerPosition);
+        }
 
         if(clickTransitioning)
         {
@@ -193,16 +138,11 @@ public class GLButton extends UIBase implements Interactive {
                 clickTransitioning = false;
             }
         }
-
-    }
-
-    public boolean isButtonDown()
-    {
-        return this.buttonDown;
     }
 
     protected void sendClickEvent(PointF position)
     {
+        // While the click
         if(clickTransitioning)
         {
             setColour(clickColour);
@@ -215,45 +155,45 @@ public class GLButton extends UIBase implements Interactive {
                 colour.b + defaultClickDiscolour));
         clickTransitioning = true;
 
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.CLICK);
-        for(TouchListener bl : buttonListeners)
+        final TouchEvent CLICK_EVENT = new TouchEvent(this, TouchEvent.Event.CLICK, position);
+        for(final TouchListener buttonListener : buttonListeners)
         {
-            bl.touchEvent(be, position);
+            buttonListener.touchEvent(CLICK_EVENT);
         }
     }
 
     protected void sendReleaseEvent(PointF position)
     {
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.RELEASE);
-        for(TouchListener bl : buttonListeners)
+        final TouchEvent RELEASE_EVENT = new TouchEvent(this, TouchEvent.Event.RELEASE, position);
+        for(final TouchListener buttonListener : buttonListeners)
         {
-            bl.touchEvent(be, position);
+            buttonListener.touchEvent(RELEASE_EVENT);
         }
     }
 
-    protected void sendDragEvent(PointF position)
+    protected void sendDownEvent(PointF position)
     {
         // Send the drag touch event
-        TouchEvent be = new TouchEvent(this);
-        be.setEvent(TouchEvent.Event.DOWN);
-        for(TouchListener bl : buttonListeners)
+        final TouchEvent DOWN_EVENT = new TouchEvent(this, TouchEvent.Event.DOWN, position);
+        for(final TouchListener buttonListener : buttonListeners)
         {
-            bl.touchEvent(be, position);
+            buttonListener.touchEvent(DOWN_EVENT);
         }
     }
 
     @Override
     public void click(PointF position)
     {
+        // Set the button as down and send a click event
         buttonDown = true;
+        this.lastPointerPosition = position;
         sendClickEvent(position);
     }
 
     @Override
     public void release(PointF position)
     {
+        // If the button is down then send a release event
         if(buttonDown)
         {
             sendReleaseEvent(position);
@@ -264,6 +204,8 @@ public class GLButton extends UIBase implements Interactive {
     @Override
     public void drag(PointF position)
     {
-        sendDragEvent(position);
+        // Don't send a down event here because one should be send every update, instead update
+        // the last position
+        this.lastPointerPosition = position;
     }
 }
