@@ -71,7 +71,6 @@ fastlane/readme.md
 /build
 /captures
 .externalNativeBuild
-/crispinandroid
 /gradle
 /idea
 /.gradle
