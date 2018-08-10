@@ -21,7 +21,8 @@ public class GLButton extends UIBase implements Interactive {
     public void addButtonListener(TouchListener listener) { buttonListeners.add(listener); }
     public void removeButtonListener(TouchListener listener) { buttonListeners.remove(listener); }
 
-    protected Boolean buttonDown = false;
+    protected boolean buttonDown = false;
+
     private boolean clickTransitioning = false;
     private Colour clickColour = new Colour(0.0f, 0.0f, 0.0f);
 
@@ -57,7 +58,7 @@ public class GLButton extends UIBase implements Interactive {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), texture);
     }
 
-    private float[] vertexData = {
+    private final float[] vertexData = {
             // XYST Triangles
             0f, 1f, 0f, 0f,
             0f, 0f, 0f, 1f,

@@ -6,6 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
+import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.ui.GLFont;
 import com.christianbenner.crispinandroid.ui.GLText;
@@ -34,7 +35,6 @@ import static android.opengl.Matrix.translateM;
  */
 
 public class SceneStarWarsTest extends Scene {
-    private Context context;
 
     // Data
     private GLText coolText;
@@ -51,11 +51,11 @@ public class SceneStarWarsTest extends Scene {
 
     public SceneStarWarsTest(Context context)
     {
-        this.context = context;
+        super(context);
     }
 
     @Override
-    public void surfaceCreated() {
+    protected void surfaceCreated() {
         font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
 
         // Create some text
@@ -175,6 +175,11 @@ public class SceneStarWarsTest extends Scene {
     @Override
     public void motionEvent(View view, MotionEvent event)
     {
+
+    }
+
+    @Override
+    public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
 
     }
 }

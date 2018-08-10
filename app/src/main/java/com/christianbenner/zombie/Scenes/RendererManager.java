@@ -31,7 +31,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
     public RendererManager(Context context)
     {
         this.context = context;
-       // scene = new SceneIntro(context);
+     //   scene = new SceneIntro(context);
        // addRenderer(RendererIDConstants.INTRO_ID, scene, true);
      //   scene = new SceneGameTest(context);
      //   addRenderer(RendererIDConstants.GAME_TEST_ID, scene, true);
@@ -47,7 +47,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
 
         if(currentRenderer)
         {
-            currentRendererInit = renderers.get(id).isInit();
+            currentRendererInit = renderer.isInit();
         }
     }
 
@@ -82,8 +82,8 @@ public class RendererManager implements GLSurfaceView.Renderer {
 
         if(currentRendererInit == false)
         {
+            renderers.get(currentRendererID).surfaceCreatedCall();
             renderers.get(currentRendererID).surfaceChanged(width, height);
-            renderers.get(currentRendererID).surfaceCreated();
             renderers.get(currentRendererID).setInit(true);
             currentRendererInit = true;
         }
@@ -110,11 +110,6 @@ public class RendererManager implements GLSurfaceView.Renderer {
                 System.out.println("Switching to test bench renderer");
                 scene = new SceneStarWarsTest(context);
                 addRenderer(RendererIDConstants.START_WARS_TEST_ID, scene, true);
-                break;
-            case RendererIDConstants.GAME_TEST_ID:
-                System.out.println("Switching to game test scene");
-                scene = new SceneGameTest(context);
-                addRenderer(RendererIDConstants.GAME_TEST_ID, scene, true);
                 break;
             case RendererIDConstants.A_STAR_DEMO:
                 System.out.println("Switching to a star demo scene");

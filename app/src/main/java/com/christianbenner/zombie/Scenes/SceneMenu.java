@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Audio;
 import com.christianbenner.crispinandroid.util.Scene;
 
@@ -20,14 +21,13 @@ public class SceneMenu extends Scene {
     private Audio audio;
     private static int audioPos = 0;
 
-    Context context;
     public SceneMenu(Context context)
     {
-        this.context = context;
+       super(context);
     }
 
     @Override
-    public void surfaceCreated() {
+    protected void surfaceCreated() {
         // Create audio
         audio = new Audio();
         audio.initMusicChannel(context);
@@ -134,6 +134,11 @@ public class SceneMenu extends Scene {
 
     @Override
     public void motionEvent(View view, MotionEvent event) {
+
+    }
+
+    @Override
+    public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
 
     }
 }

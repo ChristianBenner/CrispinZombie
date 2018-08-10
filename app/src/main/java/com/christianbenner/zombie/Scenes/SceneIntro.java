@@ -11,6 +11,7 @@ import com.christianbenner.crispinandroid.data.objects.FlexibleSquare;
 import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
 import com.christianbenner.crispinandroid.ui.GLFont;
 import com.christianbenner.crispinandroid.ui.GLText;
+import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.util.TextureHelper;
 import com.christianbenner.zombie.Constants;
@@ -33,7 +34,6 @@ import static android.opengl.GLES20.glViewport;
  */
 
 public class SceneIntro extends Scene {
-    private Context context;
 
     // Objects
     private FlexibleSquare backgroundObject;
@@ -61,11 +61,11 @@ public class SceneIntro extends Scene {
 
     public SceneIntro(Context context)
     {
-        this.context = context;
+        super(context);
     }
 
     @Override
-    public void surfaceCreated()
+    protected void surfaceCreated()
     {
         // Setup shader
         textureShader = new TextureShaderProgram(context);
@@ -173,7 +173,8 @@ public class SceneIntro extends Scene {
             // Scene is over, switch to the next one
             if(timePassed >= 300.0f)
             {
-                gotoScene(RendererIDConstants.GAME_TEST_ID);
+                timePassed = 0.0f;
+                gotoScene(RendererIDConstants.GAME_ID);
             }
         }
     }
@@ -205,5 +206,10 @@ public class SceneIntro extends Scene {
 
     @Override
     public void motionEvent(View view, MotionEvent event) {
+    }
+
+    @Override
+    public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
+
     }
 }

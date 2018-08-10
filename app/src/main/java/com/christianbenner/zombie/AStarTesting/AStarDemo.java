@@ -8,6 +8,7 @@ import android.view.View;
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.data.objects.RendererModel;
 import com.christianbenner.crispinandroid.programs.PerFragMultiLightingShader;
+import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Camera;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Renderer;
@@ -51,7 +52,6 @@ public class AStarDemo extends Scene {
     private LegacyCell[][] cells;
     private RendererModel[][] models;
 
-    private Context context;
     private Camera camera;
     private Renderer renderer;
     private ShaderProgram shader;
@@ -68,7 +68,7 @@ public class AStarDemo extends Scene {
 
     public AStarDemo(Context context)
     {
-        this.context = context;
+        super(context);
 
         camera = new Camera();
         camera.setAngles(3.141592f, -(3.141592f/2.0f));
@@ -453,7 +453,7 @@ public class AStarDemo extends Scene {
     }
 
     @Override
-    public void surfaceCreated() {
+    protected void surfaceCreated() {
         TextureHelper.updateAll(context);
     }
 
@@ -586,6 +586,11 @@ public class AStarDemo extends Scene {
 
     @Override
     public void motionEvent(View view, MotionEvent event) {
+
+    }
+
+    @Override
+    public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
 
     }
 

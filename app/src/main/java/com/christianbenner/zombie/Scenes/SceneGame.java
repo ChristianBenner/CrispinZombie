@@ -1,9 +1,6 @@
 package com.christianbenner.zombie.Scenes;
 
 import android.content.Context;
-import android.graphics.PointF;
-import android.util.SparseArray;
-import android.view.MotionEvent;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
@@ -68,9 +65,10 @@ public class SceneGame extends Scene {
             new Geometry.Point(4.0f, 8.0f, 0.0f);
     private final Geometry.Point DEBUG_CAMERA_START_POSITION =
             new Geometry.Point(0.0f, 1.0f, 0.0f);
+    private final Geometry.Point PLAYER_START_POSITION =
+            new Geometry.Point(5.0f, 0.0f, 5.0f);
 
     // Android Context
-    private Context context;
     private int viewWidth;
     private int viewHeight;
 
@@ -81,13 +79,20 @@ public class SceneGame extends Scene {
     private Human humanoid;
     //private RendererModel sniper;
 
+    // Hold all the zombies
     private ArrayList<Zombie> zombies;
 
     // Cameras and Rendering
     private Camera camera;
     private Camera debugCamera;
-    private float cameraX = 0.0f;
+
+    // Some of these probably aren't necessary - investigate
+    private float cameraX = 3.141592f;
     private float cameraY = 0.0f;
+    private float previousX = 0.0f;
+    private float previousY = 0.0f;
+    private boolean doneYet = false;
+
     private Renderer renderer;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
@@ -112,28 +117,33 @@ public class SceneGame extends Scene {
     private int[] musicQueue = new int[TRACKS];
     private int musicQueueIndex = 0;
 
-    private Map map;
+    private Map demoMap;
 
     public SceneGame(Context context) {
-        this.context = context;
+        super(context);
 
-        map = new Map(context, R.raw.demo_map3);
-        map.printMap();
+        // Create the demo map
+        demoMap = new Map(context, R.raw.demo_map3);
 
-        this.debugView = STARTUP_ON_DEBUG_VIEW;
+        // Sets up whether or not we start on the debug camera
+        debugView = STARTUP_ON_DEBUG_VIEW;
 
         // Create the camera
         camera = new Camera();
         camera.setAngles(3.141592f, -(3.141592f/2.0f));
         camera.setPosition(CAMERA_START_POSITION);
 
+        // Create the debug camera
         debugCamera = new Camera();
         debugCamera.setPosition(DEBUG_CAMERA_START_POSITION);
+
+        // Add a touch listener so that we can pick up touches on the camera and handle them
         debugCamera.addTouchListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
                 switch(e.getEvent())
                 {
+                    // Allows for the user to look around by dragging there finger
                     case DOWN:
                         float normalizedX = (e.getPosition().x / (float) viewWidth) * 2 - 1;
                         float normalizedY = ((e.getPosition().y / (float) viewHeight) * 2 - 1);
@@ -149,7 +159,7 @@ public class SceneGame extends Scene {
                         cameraY -= previousY - normalizedY;
                         previousX = normalizedX;
                         previousY = normalizedY;
-                        debugCamera.setAngles(3.14159265f - cameraX, cameraY);
+                        debugCamera.setAngles(-cameraX, cameraY);
                         break;
                     case RELEASE:
                         doneYet = false;
@@ -166,25 +176,24 @@ public class SceneGame extends Scene {
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
         humanoid = new Human(context,
                 TextureHelper.loadTexture(context, R.drawable.player, true), MOVE_SPEED);
+        humanoid.setPosition(PLAYER_START_POSITION);
 
         zombies = new ArrayList<>();
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 2.0f, humanoid,
-                new Geometry.Point(4.0f, 0.0f, 0.0f), map));
+                new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
 
         TEST_LIGHT = new Light();
         TEST_LIGHT2 = new Light();
         TEST_LIGHT.setColour(new Colour(0.89f, 0.89f, 0.89f));
-      //  TEST_LIGHT.setAmbienceIntensity(0.02f);
-       // TEST_LIGHT.setAttenuation(2.0f);
         TEST_LIGHT2.setColour(new Colour(1.0f, 1.0f, 0.0f));
         TEST_LIGHT2.setAmbienceIntensity(0.3f);
         TEST_LIGHT.setAttenuation(0.001f);
 
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
-    //    renderer.addModel(sniper);
+        //renderer.addModel(sniper);
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
@@ -195,7 +204,7 @@ public class SceneGame extends Scene {
             zombies.get(i).addToRenderer(renderer);
         }
 
-        map.addToRenderer(renderer);
+        demoMap.addToRenderer(renderer);
 
         uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         debugViewUIGroup = new UIRendererGroup(uiRenderer, debugView);
@@ -205,23 +214,10 @@ public class SceneGame extends Scene {
     }
 
     @Override
-    public void surfaceCreated()
+    protected void surfaceCreated()
     {
-        // Camera Text
-        GLFont font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
-        if(debugView)
-        {
-            cameraText = new GLText(context, "Debug Camera", 2, font, 1.0f, 1920f, 1080f, true);
-        }
-        else
-        {
-            cameraText = new GLText(context, "Birds Eye Camera", 2, font, 1.0f, 1920f,1080f, true);
-        }
-       // uiRenderer.addUI(cameraText);
         cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
         cameraText.setPosition(-1.0f, -1.0f);
-
-        TextureHelper.updateAll(context);
 
        // playMusic(context, R.raw.zombies);
         //playSound(context, R.raw.scarysounds, -1);
@@ -251,6 +247,18 @@ public class SceneGame extends Scene {
         uiRenderer.setShader(uiShader);
 
         // If Debug Enabled
+        // Camera Text
+        GLFont font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        if(debugView)
+        {
+            cameraText = new GLText(context, "Debug Camera", 2, font, 1.0f, 1920f, 1080f, true);
+        }
+        else
+        {
+            cameraText = new GLText(context, "Birds Eye Camera", 2, font, 1.0f, 1920f,1080f, true);
+        }
+        //uiRenderer.addUI(cameraText);
+
         initUI();
 
         shader = new PerFragMultiLightingShader(context);
@@ -376,94 +384,28 @@ public class SceneGame extends Scene {
                 mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
     }
 
-    private float previousX = 0.0f;
-    private float previousY = 0.0f;
-    private boolean doneYet = false;
-    private boolean draggingScreen = false;
-    private Pointer screenDragPointer = null;
-
-    private int eventId = 0;
-  //  private int mActivePointerId = MotionEvent.INVALID_POINTER_ID;
- //   private SparseArray<PointF> mActivePointers = new SparseArray<>();
-
-    private SparseArray<Pointer> mActivePointers = new SparseArray<>();
-
     // Process touch
     @Override
-    public void motionEvent(View view, MotionEvent event)
+    public void motion(View view, Pointer pointer, PointerMotionEvent event)
     {
-        // The index of the pointer in the event object
-        final int POINTER_INDEX = event.getActionIndex();
+        switch(event){
+            case CLICK:
+                // Look through the UI and check if the pointer interacts with them
+                if(handlePointerControl(switch_camera_button, pointer)) { return; }
+                if(handlePointerControl(wave_button, pointer)) { return; }
+                if(handlePointerControl(moveController, pointer)) { return; }
+                if(debugView)
+                {
+                    if(handlePointerControl(debug_camera_button_up, pointer)) { return; }
+                    if(handlePointerControl(debug_camera_button_down, pointer)) { return; }
 
-        // The identifier of the pointer
-        final int POINTER_ID = event.getPointerId(POINTER_INDEX);
-
-        // The action of the motion event (masked means it can pick up pointers)
-        final int ACTION_MASKED = event.getActionMasked();
-
-        // See what the action is
-        switch(ACTION_MASKED)
-        {
-            // The first finger down is not registered the same as the others, this gets all
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_POINTER_DOWN:
-                // Create a pointer object that keeps track of what UI is being interacted with
-                final Pointer POINTER = new Pointer(POINTER_ID,
-                        new PointF(event.getX(POINTER_INDEX),
-                                view.getHeight() - event.getY(POINTER_INDEX)));
-
-                // Check if the object doesn't exist in the pointer array
-                if (mActivePointers.get(POINTER_ID) == null) {
-                    // Add the pointer to the array
-                    mActivePointers.put(POINTER_ID, POINTER);
-
-                    // Handle UI touch press
-                    actionDown(POINTER);
-                }
-                break;
-            case MotionEvent.ACTION_MOVE: {
-                // A pointer moved, so update all the pointer positions
-                for (int i = 0; i < event.getPointerCount(); i++) {
-                    if (mActivePointers.get(event.getPointerId(i)) != null) {
-                        mActivePointers.get(event.getPointerId(i)).
-                                setPosition(new PointF(event.getX(i),
-                                        view.getHeight()-event.getY(i)));
+                    if(!debugCamera.hasTouchFocus())
+                    {
+                        pointer.setControlOver(debugCamera);
                     }
                 }
                 break;
-            }
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_POINTER_UP:
-            case MotionEvent.ACTION_CANCEL: {
-                // Check if the pointer still exists in the array
-                if(mActivePointers.get(POINTER_ID) != null)
-                {
-                    // Tell the UI that the pointer has been released
-                    mActivePointers.get(POINTER_ID).releaseControl();
-
-                    // Remove the Pointer from the array as it is no longer in use
-                    mActivePointers.remove(POINTER_ID);
-                }
-
-                break;
-            }
         }
-
-        // Check if there was drag in this event
-        if(ACTION_MASKED == MotionEvent.ACTION_MOVE)
-        {
-            // Iterate through the pointers
-            for(int i = 0; i < mActivePointers.size(); i++)
-            {
-                // Tell the pointer to handle drag
-                if(mActivePointers.valueAt(i) != null)
-                {
-                    mActivePointers.valueAt(i).handleDrag();
-                }
-            }
-        }
-
-        view.invalidate();
     }
 
     private boolean handlePointerControl(GLButton button, Pointer pointer)
@@ -475,24 +417,6 @@ public class SceneGame extends Scene {
         }
 
         return false;
-    }
-
-    private void actionDown(Pointer pointer)
-    {
-        // Look through the UI and check if the pointer interacts with them
-        if(handlePointerControl(switch_camera_button, pointer)) { return; }
-        if(handlePointerControl(wave_button, pointer)) { return; }
-        if(handlePointerControl(moveController, pointer)) { return; }
-        if(debugView)
-        {
-            if(handlePointerControl(debug_camera_button_up, pointer)) { return; }
-            if(handlePointerControl(debug_camera_button_down, pointer)) { return; }
-
-            if(!debugCamera.hasTouchFocus())
-            {
-                pointer.setControlOver(debugCamera);
-            }
-        }
     }
 
     private void initUI()
@@ -564,10 +488,6 @@ public class SceneGame extends Scene {
                         debug_camera_button_up.forceRelease();
                         debug_camera_button_down.forceRelease();
                         debugView = !debugView;
-                        if(screenDragPointer != null)
-                        {
-                            screenDragPointer.setInUse(false);
-                        }
                         cameraTextTimer = 1.0f;
                         if(debugView)
                         {

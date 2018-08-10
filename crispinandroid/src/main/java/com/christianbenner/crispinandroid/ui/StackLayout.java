@@ -1,5 +1,7 @@
 package com.christianbenner.crispinandroid.ui;
 
+import com.christianbenner.crispinandroid.util.Geometry;
+
 import java.util.Vector;
 
 /**
@@ -7,7 +9,7 @@ import java.util.Vector;
  */
 
 public class StackLayout {
-    Vector<UIBaseOld> uiElements = new Vector<>();
+    Vector<UIBase> uiElements = new Vector<>();
 
     private float posX = 0.0f;
     private float posY = 0.0f;
@@ -52,9 +54,9 @@ public class StackLayout {
     }
 
     // Returns X, Y NDC
-    public void add(UIBaseOld element)
+    public void add(UIBase element)
     {
-        element.setPosition(horizontalBuildup, verticalBuildup);
+        element.setPosition(new Geometry.Point(horizontalBuildup, verticalBuildup, 0.0f));
 
         if(horizontal)
         {
@@ -68,11 +70,11 @@ public class StackLayout {
         uiElements.add(element);
     }
 
-    public void render()
+    public void draw()
     {
-        for(UIBaseOld ui : uiElements)
+        for(UIBase ui : uiElements)
         {
-            ui.render();
+            ui.draw();
         }
     }
 }
