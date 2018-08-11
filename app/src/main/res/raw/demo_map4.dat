@@ -1,7 +1,7 @@
 // TYPE(X,Y,Z)
 WEAPONS{
-SNIPER(0.0,0.0,0.0);
-PISTOL(2.0,1.0,3.0);
+SNIPER(6.0,0.1,2.0);
+PISTOL(3.0,0.1,4.0);
 }
 // TYPE(R,G,B,X,Y,Z)
 LIGHTS{

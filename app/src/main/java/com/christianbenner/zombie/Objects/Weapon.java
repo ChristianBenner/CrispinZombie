@@ -49,10 +49,10 @@ public class Weapon {
         switch (type)
         {
             case PISTOL:
-
+                textureId = R.drawable.pistol;
                 break;
             case SNIPER:
-
+                textureId = R.drawable.sniper_hotbar;
                 break;
             case SHOTGUN:
 
@@ -73,10 +73,16 @@ public class Weapon {
 
         // Setup the model
         model = new RendererModel(context, objectResourceId,
-            TextureHelper.loadTexture(context, textureId, true),
+                TextureHelper.loadTexture(context, textureId, true),
                 Model.AllowedData.VERTEX_TEXEL_NORMAL);
         model.newIdentity();
         model.setPosition(startPos);
+        model.setScale(0.3f);
+    }
+
+    public RendererModel getModel()
+    {
+        return this.model;
     }
 
     @Override

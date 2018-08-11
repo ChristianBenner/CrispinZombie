@@ -223,6 +223,14 @@ public class Map
             renderGroupsExist = true;
         }
 
+        // Needs improvement
+        RendererGroup rWeapons = new RendererGroup(RendererGroupType.SAME_BIND);
+        for(Weapon weapon : weapons)
+        {
+            rWeapons.addModel(weapon.getModel());
+        }
+        renderer.addGroup(rWeapons);
+
         // Add all the renderer groups to the renderer
         for(RendererGroup group : renderGroups.values())
         {
