@@ -1,10 +1,12 @@
 package com.christianbenner.crispinandroid.ui;
 
 import android.content.Context;
+import android.opengl.Matrix;
 
 import com.christianbenner.crispinandroid.data.TextMesh;
 import com.christianbenner.crispinandroid.data.VertexArray;
 import com.christianbenner.crispinandroid.programs.FontShaderProgram;
+import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
 import com.christianbenner.crispinandroid.util.ShaderProgram;
 
 import static android.opengl.GLES20.GL_TRIANGLES;
@@ -111,10 +113,35 @@ public class GLText extends UIBase {
                 TEXTURE_STRIDE);
     }
 
+    // If you wish to seperately call the bind
+    public void bindData() {
+        vertexArray.setVertexAttribPointer(
+                0,
+                fontShaderProgram.getPositionAttributeLocation(),
+                POSITION_COMPONENT_COUNT,
+                POSITION_STRIDE);
+
+        textureArray.setVertexAttribPointer(
+                0,
+                fontShaderProgram.getTextureCoordinatesAttributeLocation(),
+                TEXTURE_COORDINATES_COMPONENT_COUNT,
+                TEXTURE_STRIDE);
+    }
+
     // If you wish to seperately set the uniforms
     public void setUniforms()
     {
-        fontShaderProgram.setUniforms(defaultMatrix, font.getTextureAtlas().getTextureId(),
+        float[] v = new float[16];
+        Matrix.translateM(v, 0, defaultMatrix, 0, -0.5f, 0.0f, 0.0f);
+        fontShaderProgram.setUniforms(v, font.getTextureAtlas().getTextureId(),
+                colour.r, colour.g, colour.b, colour.a);
+    }
+
+    public void setUniforms(TextureShaderProgram textureShaderProgram)
+    {
+        float[] v = new float[16];
+        Matrix.translateM(v, 0, defaultMatrix, 0, -1.0f, 0.0f, 0.0f);
+        textureShaderProgram.setUniforms(v, font.getTextureAtlas().getTextureId(),
                 colour.r, colour.g, colour.b, colour.a);
     }
 

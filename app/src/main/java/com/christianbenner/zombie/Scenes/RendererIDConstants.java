@@ -12,5 +12,6 @@ public class RendererIDConstants {
     public static final int START_WARS_TEST_ID = 3;
     public static final int A_STAR_DEMO = 5;
     public static final int GAME_ID = 6;
+    public static final int RENDERER_TEST_ID = 7;
     Scene renderedScene;
 }

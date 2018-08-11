@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.AStarTesting.AStarDemo;
+import com.christianbenner.zombie.RendererTest;
 
 import java.util.HashMap;
 
@@ -37,6 +38,8 @@ public class RendererManager implements GLSurfaceView.Renderer {
      //   addRenderer(RendererIDConstants.GAME_TEST_ID, scene, true);
         scene = new SceneGame(context);
         addRenderer(RendererIDConstants.GAME_ID, scene, true);
+     //   scene = new RendererTest(context);
+     //   addRenderer(RendererIDConstants.RENDERER_TEST_ID, scene, true);
     }
 
     private void addRenderer(int id, Scene renderer, boolean currentRenderer)
@@ -120,6 +123,11 @@ public class RendererManager implements GLSurfaceView.Renderer {
                 System.out.println("Switching to game scene");
                 scene = new SceneGame(context);
                 addRenderer(RendererIDConstants.GAME_ID, scene, true);
+                break;
+            case RendererIDConstants.RENDERER_TEST_ID:
+                System.out.println("Switching to game scene");
+                scene = new RendererTest(context);
+                addRenderer(RendererIDConstants.RENDERER_TEST_ID, scene, true);
                 break;
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.opengl.Matrix;
 
 import com.christianbenner.crispinandroid.ui.GLText;
+import com.christianbenner.crispinandroid.ui.GLText2;
 import com.christianbenner.crispinandroid.ui.UIBase;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class UIRenderer {
     private float width;
     private float height;
     private float[] orthoMatrix = null;
+    private float[] textOrthoMatrix = null;
     private ArrayList<UIBase> uiElements;
     private ArrayList<UIRendererGroup> groups;
 
@@ -50,9 +52,17 @@ public class UIRenderer {
             orthoMatrix = new float[16];
         }
 
+        if(textOrthoMatrix == null)
+        {
+            textOrthoMatrix = new float[16];
+        }
+
         // Create the ortho matrix with the width and height
         Matrix.orthoM(orthoMatrix, 0, 0, width,
                 0.0f, height, 1f, -1f);
+
+        // The text ortho is slightly different because of the way text verticies are generated
+        Matrix.orthoM(textOrthoMatrix, 0, 0.0f, width, 0.0f, height, 0f, 1f);
 
         // Pass in ortho dimension data to text (to
         for(UIBase uiElement : uiElements)
@@ -107,23 +117,20 @@ public class UIRenderer {
         for(UIBase ui : uiElements)
         {
             ui.bindData(shader);
-
             Matrix.setIdentityM(modelMatrix, 0);
-
-            // UI x,y
             Matrix.translateM(modelMatrix, 0, ui.getPosition().x, ui.getPosition().y, 0.0f);
 
-            // UI Width and height
-            if(ui instanceof GLText)
+            if(ui instanceof GLText2)
             {
-                Matrix.scaleM(modelMatrix, 0, width/2.0f, height/2.0f, 0.0f);
+                Matrix.scaleM(modelMatrix, 0, width/2f, height/2f, 1.0f);
+                Matrix.multiplyMM(transformation, 0, textOrthoMatrix, 0, modelMatrix, 0);
             }
             else
             {
-                Matrix.scaleM(modelMatrix, 0, ui.getDimensions().w, ui.getDimensions().h, 0.0f);
-            }
 
-            Matrix.multiplyMM(transformation, 0, orthoMatrix, 0, modelMatrix, 0);
+                Matrix.scaleM(modelMatrix, 0, ui.getDimensions().w, ui.getDimensions().h, 0.0f);
+                Matrix.multiplyMM(transformation, 0, orthoMatrix, 0, modelMatrix, 0);
+            }
 
             shader.setTextureUniforms(ui.getTexture().getTextureId());
             shader.setMatrix(transformation);

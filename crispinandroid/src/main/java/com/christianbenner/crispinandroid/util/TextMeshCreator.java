@@ -8,6 +8,7 @@ import com.christianbenner.crispinandroid.data.TextMesh;
 import com.christianbenner.crispinandroid.data.TextMetaFile;
 import com.christianbenner.crispinandroid.data.Word;
 import com.christianbenner.crispinandroid.ui.GLText;
+import com.christianbenner.crispinandroid.ui.GLText2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,42 @@ public class TextMeshCreator
         return createQuadVertices(text, createStructure(text));
     }
 
+    public TextMesh createTextMesh(GLText2 text)
+    {
+        return createQuadVertices(text, createStructure(text));
+    }
+
     private List<TextLine> createStructure(GLText text)
+    {
+        List<TextLine> lines = new ArrayList<TextLine>();
+        TextLine currentLine = new TextLine(metaData.getSpaceWidth(),
+                text.getFontSize(), text.getMaxLineSize());
+        Word currentWord = new Word(text.getFontSize());
+        for(char c : text.getTextString().toCharArray())
+        {
+            int ascii = (int)c;
+            if(ascii == SPACE_ASCII)
+            {
+                boolean added = currentLine.addWord(currentWord);
+                if(!added)
+                {
+                    lines.add(currentLine);
+                    currentLine = new TextLine(metaData.getSpaceWidth(), text.getFontSize(),
+                            text.getMaxLineSize());
+
+                    currentLine.addWord(currentWord);
+                }
+                currentWord = new Word(text.getFontSize());
+                continue;
+            }
+            currentWord.addCharacter(metaData.getCharacter(ascii));
+        }
+
+        completeStructure(lines, currentLine, currentWord, text);
+        return lines;
+    }
+
+    private List<TextLine> createStructure(GLText2 text)
     {
         List<TextLine> lines = new ArrayList<TextLine>();
         TextLine currentLine = new TextLine(metaData.getSpaceWidth(),
@@ -87,6 +123,20 @@ public class TextMeshCreator
         lines.add(currentLine);
     }
 
+    private void completeStructure(List<TextLine> lines, TextLine currentLine,
+                                     Word currentWord, GLText2 text)
+{
+    boolean added = currentLine.addWord(currentWord);
+    if(!added)
+    {
+        lines.add(currentLine);
+        currentLine = new TextLine(metaData.getSpaceWidth(),
+                text.getFontSize(), text.getMaxLineSize());
+        currentLine.addWord(currentWord);
+    }
+    lines.add(currentLine);
+}
+
     private boolean firstCharacter = false;
     private TextMesh createQuadVertices(GLText text,
                                             List<TextLine> lines)
@@ -95,6 +145,7 @@ public class TextMeshCreator
         double cursorX = 0.5;
         double cursorY = 0.5;
         firstCharacter = true;
+        totalHeight = 0.0f;
 
         List<Float> vertices = new ArrayList<Float>();
         List<Float> textureCoords = new ArrayList<Float>();
@@ -132,7 +183,50 @@ public class TextMeshCreator
         return new TextMesh(listToArray(vertices),
                 listToArray(textureCoords), maxX - minX, totalHeight);
     }
+    private TextMesh createQuadVertices(GLText2 text,
+                                        List<TextLine> lines)
+    {
+        text.setNumberOfLines(lines.size());
+        double cursorX = 0.5;
+        double cursorY = 0.5;
+        firstCharacter = true;
+        totalHeight = 0.0f;
+        List<Float> vertices = new ArrayList<Float>();
+        List<Float> textureCoords = new ArrayList<Float>();
+        for(int i = 0; i < lines.size(); i++) {
+            maxCharOffset = 0.0f;
+            if(text.isCentered())
+            {
+                cursorX = 0.5 + (lines.get(i).getMaxLength() - lines.get(i).getLineLength()) / 2f;
+            }
 
+            for(Word word : lines.get(i).getWords())
+            {
+                for(GLCharacter letter : word.getCharacters())
+                {
+                    addVerticesForCharacter(cursorX, cursorY, text.getFontSize(), letter, vertices);
+                    addTexCoords(textureCoords, letter.getxTextureCoord(),
+                            letter.getyTextureCoord(), letter.getxMaxTextureCoord(),
+                            letter.getyMaxTextureCoord());
+                    cursorX += letter.getxAdvance() * text.getFontSize();
+                }
+                cursorX += metaData.getSpaceWidth() * text.getFontSize();
+            }
+
+            cursorX = 0.5;
+            cursorY += LINE_HEIGHT * text.getFontSize();
+        }
+
+        // Determine the height of the text area
+        for(int i = 0; i < lines.size(); i++)
+        {
+            totalHeight += (LINE_HEIGHT * text.getFontSize());
+        }
+        totalHeight -= maxCharOffset;
+
+        return new TextMesh(listToArray(vertices),
+                listToArray(textureCoords), maxX - minX, totalHeight);
+    }
     private void addVerticesForCharacter(double cursorX, double cursorY,
                                          float fontSize,
                                          GLCharacter character,
