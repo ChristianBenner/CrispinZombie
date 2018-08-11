@@ -1,0 +1,23 @@
+Things to do (ah theres loads):
+- Create some sort of scene manager inside the CrispinEngine
+- Cached model loading
+- Test and improve audio system 
+- Add more zombies into gameplay
+- Add models that represent weapons rather than pictures
+- Use lights loaded in from the map loading in the map
+- Load in and create doors
+- Make doors interactable
+- Smooth zombie motion
+- Collision code
+- Gun pickups
+- Hotbar usage
+- Zombies that bite
+- Health bar
+- Attack animation for zombie
+- Score system
+- Load in grass
+- Listen to Zombie Spawn Points
+- Listen to Human Spawn Points
+- Implement barricades that zombies have to go through
+- Create a fully functioning but small demo map
+- More/undiscovered
