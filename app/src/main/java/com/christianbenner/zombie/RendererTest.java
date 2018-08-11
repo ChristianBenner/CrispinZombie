@@ -5,7 +5,7 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
 import com.christianbenner.crispinandroid.ui.GLFont;
-import com.christianbenner.crispinandroid.ui.GLText2;
+import com.christianbenner.crispinandroid.ui.GLText;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.util.UIRenderer;
@@ -16,7 +16,7 @@ import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.glClear;
 
 public class RendererTest extends Scene {
-    private GLText2 text;
+    private GLText text;
     private UIRenderer renderer;
     private UIRendererGroup group;
     private TextureShaderProgram uiShader;
@@ -40,7 +40,7 @@ public class RendererTest extends Scene {
         uiShader = new TextureShaderProgram(context);
         renderer.setShader(uiShader);
 
-        text = new GLText2(context, "Test of the new text system does it keep working though who knows testing it for the last time what is going on", 2, new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f, width, height, true);
+        text = new GLText("Test of the new text system does it keep working though who knows testing it for the last time what is going on", 2, new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f,  renderer, true);
       //  text.setPosition(100.0f, -20.0f);
         renderer.addUI(text);
      //   colourShaderProgram = new TextureShaderProgram(context);

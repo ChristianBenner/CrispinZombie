@@ -5,16 +5,12 @@ import android.opengl.Matrix;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.data.Texture;
 import com.christianbenner.crispinandroid.data.objects.FlexibleSquare;
 import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
-import com.christianbenner.crispinandroid.ui.GLFont;
-import com.christianbenner.crispinandroid.ui.GLText;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.util.TextureHelper;
-import com.christianbenner.zombie.Constants;
 import com.christianbenner.zombie.R;
 
 import static android.opengl.GLES20.GL_ALPHA;
@@ -43,7 +39,7 @@ public class SceneIntro extends Scene {
     private Texture textureCrispinRed;
 
     // Version Text
-    private GLText version;
+   // private GLText version;
 
     // Logic Variables
     private float alphaWhite = 1.0f;
@@ -78,9 +74,9 @@ public class SceneIntro extends Scene {
         textureCrispinRed = TextureHelper.loadTexture(context, R.drawable.crispinred);
 
         // Setup text
-        version = new GLText(context, "Version " + Constants.VERSION_STRING, 1, new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f, 1080f, 1.0f);
-        version.setPosition(-1.0f, -1.0f);
-        version.setColour(new Colour(1.0f, 0.0f, 0.0f));
+      //  version = new GLText("Version " + Constants.VERSION_STRING, 1, new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f, 1080f, 1.0f);
+     //   version.setPosition(-1.0f, -1.0f);
+    //    version.setColour(new Colour(1.0f, 0.0f, 0.0f));
 
         // Play a tune
         playSound(context, R.raw.crispingintropiano, 0);
@@ -167,7 +163,7 @@ public class SceneIntro extends Scene {
                 setVolume(1.0f);
             } else {
                 setVolume(alphaRed);
-                version.setAlpha(alphaRed);
+           //     version.setAlpha(alphaRed);
             }
 
             // Scene is over, switch to the next one

@@ -1,104 +1,83 @@
 package com.christianbenner.crispinandroid.ui;
 
-import android.content.Context;
-import android.opengl.Matrix;
-
 import com.christianbenner.crispinandroid.data.TextMesh;
 import com.christianbenner.crispinandroid.data.VertexArray;
-import com.christianbenner.crispinandroid.programs.FontShaderProgram;
-import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
+import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.ShaderProgram;
+import com.christianbenner.crispinandroid.util.UIRenderer;
 
 import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glDrawArrays;
 import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 
-/**
- * Created by Christian Benner on 16/12/2017.
- */
+/*
+    GLText has some horrible problems because of the way text is generated. Essentially GLText
+    will build a string by cutting out loads of textures from a texture file. It does this by
+    using a information file that tells it where each letter is/how big each letter is etc.
 
+    Ok so the bad part...
+    When it comes to using it like other UI it is different because it is generated AROUND vertex
+    positions x = 0.0f and y = 0.0f. That means some verticies are negative and some are positive.
+    Because I wrote the code so long ago, its very complicated and VERY uncommented, I have
+    completely forgotten how it works. Instead of fixing the problem at it's
+    roots I took the easier approach and adjusted positions in the GLText class itself, but it also
+    has to be adjusted in the UI renderer (because that's what looks at the vertices). Therefor
+    this is the only UI class that is slightly different to the others and it must be treated
+    differently.
+
+    Anyway end of story - we all learn from our mistakes. Maybe one day I will look into re-writing
+    the text generating code entirely.
+ */
 public class GLText extends UIBase {
     // Data Constants
     private static final int POSITION_STRIDE = (POSITION_COMPONENT_COUNT) * BYTES_PER_FLOAT;
     private static final int TEXTURE_STRIDE = (TEXTURE_COORDINATES_COMPONENT_COUNT) *
             BYTES_PER_FLOAT;
 
-    private String text;
-    private GLFont font;
-    private float fontSize;
-
-    // Formatting Data
-    private float maxLineSize;
-    private int numberOfLines;
-    private boolean centerText = false;
-
     // Rendering stuff
     private VertexArray vertexArray;
     private VertexArray textureArray;
     private int vertexCount;
-    private FontShaderProgram fontShaderProgram;
 
-    private float[] identityM = new float[16];
-    private float[] finalM = new float[16];
-    private final float[] defaultMatrix =
-    {
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    private float orthoWidth;
-    private float orthoHeight;
+    // Formatting Data
+    private float maxLineSize;
+    private int numberOfLines;
+    private boolean centerText;
+    private float maxLineVertexWidth;
     private float vertexWidth;
     private float vertexHeight;
-    private float maxLineVertexWidth;
+    private float canvasWidth;
+    private float canvasHeight;
 
-    public GLText(Context context, String text, float fontSize, GLFont font,
-                  float maxLineLength, float orthoWidth, float orthoHeight, boolean centered) {
-        this.fontShaderProgram = new FontShaderProgram(context);
+    // GLText data
+    private String text;
+    private GLFont font;
+    private float fontSize;
+
+    public GLText(String text, float fontSize, GLFont font,
+                  float maxLineLength, UIRenderer renderer, boolean centered) {
         this.fontSize = fontSize;
         this.font = font;
         this.maxLineVertexWidth = maxLineLength;
-        this.maxLineSize = maxLineVertexWidth / orthoWidth;
+
+        if(renderer.hasUICanvas())
+        {
+            this.canvasWidth = renderer.getCanvasWidth();
+            this.canvasHeight = renderer.getCanvasWidth();
+        }
+        else
+        {
+            System.err.println("[GLText] You MUST create a canvas on your UI renderer.");
+            this.canvasWidth = 0.0f;
+            this.canvasHeight = 0.0f;
+        }
+
+        this.maxLineSize = maxLineVertexWidth / this.canvasWidth;
         this.centerText = centered;
-        this.orthoWidth = orthoWidth;
-        this.orthoHeight = orthoHeight;
         this.texture = font.getTextureAtlas();
         setText(text);
-        setPosition(0.0f, 0.0f);
     }
-
-    public GLText(Context context, String text, float fontSize, GLFont font,
-                  float orthoWidth, float orthoHeight, float maxLineLength) {
-        this(context, text, fontSize, font, maxLineLength, orthoWidth, orthoHeight, false);
-    }
-
-    public void setOrthoDimensions(float width, float height)
-    {
-        this.orthoWidth = width;
-        this.orthoHeight = height;
-
-        dimensions.w = (vertexWidth * this.orthoWidth);
-        dimensions.h = (vertexHeight * this.orthoHeight);
-        this.maxLineSize = maxLineVertexWidth / orthoWidth;
-    }
-
-    public void setText(String text) {
-        this.text = text;
-        TextMesh data = this.font.loadText(this);
-        this.vertexArray = new VertexArray(data.getVertexPositions());
-        this.textureArray = new VertexArray(data.getTextureCoords());
-        this.vertexCount = data.getVertexCount();
-
-        this.vertexWidth = data.getVertexWidth();
-        this.vertexHeight = data.getVertexHeight();
-
-        dimensions.w = (data.getVertexWidth() * this.orthoWidth);
-        dimensions.h = (data.getVertexHeight() * this.orthoHeight);
-    }
-
-    // If you wish to seperately call the bind
+    @Override
     public void bindData(ShaderProgram shader) {
         vertexArray.setVertexAttribPointer(
                 0,
@@ -113,58 +92,39 @@ public class GLText extends UIBase {
                 TEXTURE_STRIDE);
     }
 
-    // If you wish to seperately call the bind
-    public void bindData() {
-        vertexArray.setVertexAttribPointer(
-                0,
-                fontShaderProgram.getPositionAttributeLocation(),
-                POSITION_COMPONENT_COUNT,
-                POSITION_STRIDE);
-
-        textureArray.setVertexAttribPointer(
-                0,
-                fontShaderProgram.getTextureCoordinatesAttributeLocation(),
-                TEXTURE_COORDINATES_COMPONENT_COUNT,
-                TEXTURE_STRIDE);
-    }
-
-    // If you wish to seperately set the uniforms
-    public void setUniforms()
-    {
-        float[] v = new float[16];
-        Matrix.translateM(v, 0, defaultMatrix, 0, -0.5f, 0.0f, 0.0f);
-        fontShaderProgram.setUniforms(v, font.getTextureAtlas().getTextureId(),
-                colour.r, colour.g, colour.b, colour.a);
-    }
-
-    public void setUniforms(TextureShaderProgram textureShaderProgram)
-    {
-        float[] v = new float[16];
-        Matrix.translateM(v, 0, defaultMatrix, 0, -1.0f, 0.0f, 0.0f);
-        textureShaderProgram.setUniforms(v, font.getTextureAtlas().getTextureId(),
-                colour.r, colour.g, colour.b, colour.a);
-    }
-
-    public void setPosition(float x, float y)
-    {
-        this.dimensions.x = x;
-        this.dimensions.y = y + getHeight();
-    }
-
-    // If you wish to draw the text seperately
-    public void draw()
-    {
+    @Override
+    public void draw() {
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     }
 
-    public GLFont getFont()
-    {
-        return font;
+    public void setText(String text) {
+        this.text = text;
+        TextMesh data = this.font.loadText(this);
+        this.vertexArray = new VertexArray(data.getVertexPositions());
+        this.textureArray = new VertexArray(data.getTextureCoords());
+        this.vertexCount = data.getVertexCount();
+        this.vertexWidth = data.getVertexWidth();
+        this.vertexHeight = data.getVertexHeight();
     }
 
-    public float getFontSize()
+    @Override
+    public void setPosition(Geometry.Point position)
     {
-        return fontSize;
+        super.setPosition(new Geometry.Point(position.x, position.y + getHeight(), position.z));
+    }
+
+    @Override
+    public void setDimensions(UIDimension dimensions)
+    {
+        System.err.println("[GLText] You cannot set dimensions of GLText");
+        super.setPosition(new Geometry.Point(dimensions.x, dimensions.y + getHeight(),
+                super.getPosition().z));
+    }
+
+    @Override
+    public float getHeight()
+    {
+        return vertexHeight * canvasHeight;
     }
 
     public void setNumberOfLines(int number)
@@ -187,8 +147,8 @@ public class GLText extends UIBase {
         return this.text;
     }
 
-    public int getNumberOfLines()
+    public float getFontSize()
     {
-        return numberOfLines;
+        return fontSize;
     }
 }

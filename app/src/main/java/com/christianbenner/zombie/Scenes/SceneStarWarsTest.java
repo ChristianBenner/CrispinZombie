@@ -59,7 +59,7 @@ public class SceneStarWarsTest extends Scene {
         font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
 
         // Create some text
-        coolText = new GLText(context, "What the fuck did you just fucking say about me, " +
+      /*  coolText = new GLText(context, "What the fuck did you just fucking say about me, " +
                 "you little bitch? I'll have you know I graduated top of my class in the Navy" +
                 " Seals, and I've been involved in numerous secret raids on Al-Quaeda, and I" +
                 " have over 300 confirmed kills. I am trained in gorilla warfare and I'm the" +
@@ -80,9 +80,9 @@ public class SceneStarWarsTest extends Scene {
                 "But you couldn't, you didn't, and now you're paying the price, you goddamn " +
                 "idiot. I will shit fury all over you and you will drown in it. You're fucking" +
                 " dead, kiddo.", 4, font, 1.0f, 1920f, 1080f, true);
-        coolText.setColour(new Colour(1.0f, 1.0f, 0.0f));
+        coolText.setColour(new Colour(1.0f, 1.0f, 0.0f));*/
 
-        fpsText = new GLText(context, "fps: x", 4, font, 1.0f, 1920f ,1080f, false);
+       // fpsText = new GLText(context, "fps: x", 4, font, 1.0f, 1920f ,1080f, false);
         fpsText.setColour(new Colour(1.0f, 1.0f, 1.0f));
 
         // Play a tune

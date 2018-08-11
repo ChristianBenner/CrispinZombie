@@ -12,11 +12,23 @@ import java.util.ArrayList;
  */
 
 public class UIRendererGroup {
+    // Should we render or not
     private boolean render;
+
+    // List of the UI elements in the group
     private ArrayList<UIBase> uiElements;
+
+    // Reference to the UI rednerer
     private UIRenderer renderer;
-    private float[] orthoMatrix = new float[16];
+
+    // Reference to the shader
     private ShaderProgram shader;
+
+    // Matrix's
+    private float[] orthoMatrix = new float[16];
+    private float[] textOrthoMatrix = new float[16];
+    private float[] transformation = new float[16];
+    private float[] modelMatrix = new float[16];
 
     public UIRendererGroup(UIRenderer renderer, boolean renderingEnabled)
     {
@@ -29,9 +41,43 @@ public class UIRendererGroup {
         this(renderer, true);
     }
 
-    public void setOrthoMatrix(float[] ortho)
+    // When the UIRenderer creates a canvas it should update the ortho matrix's
+    public void setOrthoMatrix(float[] ortho, float[] textOrtho)
     {
         this.orthoMatrix = ortho;
+        this.textOrthoMatrix = textOrtho;
+    }
+
+    // See UIRenderer to see how this render function works (the same one)
+    public void render()
+    {
+        if(render)
+        {
+            for(UIBase ui : uiElements)
+            {
+                ui.bindData(shader);
+                Matrix.setIdentityM(modelMatrix, 0);
+                Matrix.translateM(modelMatrix, 0, ui.getPosition().x, ui.getPosition().y, 0.0f);
+
+                if(ui instanceof GLText)
+                {
+                    Matrix.scaleM(modelMatrix, 0, this.renderer.getCanvasWidth()/2f,
+                            this.renderer.getCanvasHeight()/2f, 1.0f);
+                    Matrix.multiplyMM(transformation, 0, textOrthoMatrix, 0, modelMatrix, 0);
+                }
+                else
+                {
+
+                    Matrix.scaleM(modelMatrix, 0, ui.getDimensions().w, ui.getDimensions().h, 0.0f);
+                    Matrix.multiplyMM(transformation, 0, orthoMatrix, 0, modelMatrix, 0);
+                }
+
+                shader.setTextureUniforms(ui.getTexture().getTextureId());
+                shader.setMatrix(transformation);
+                shader.setColourUniforms(ui.getColour());
+                ui.draw();
+            }
+        }
     }
 
     public void setShader(ShaderProgram shader)
@@ -62,42 +108,5 @@ public class UIRendererGroup {
     public void clear()
     {
         uiElements.clear();
-    }
-
-    public void render()
-    {
-        if(render)
-        {
-            for(UIBase ui : uiElements)
-            {
-                ui.bindData(shader);
-
-                float[] modelMatrix = new float[16];
-                Matrix.setIdentityM(modelMatrix, 0);
-
-                // UI x,y
-                Matrix.translateM(modelMatrix, 0, ui.getPosition().x, ui.getPosition().y, 0.0f);
-
-                // UI Width and height
-                if(ui instanceof GLText)
-                {
-                    Matrix.scaleM(modelMatrix, 0, renderer.getCanvasWidth()/2.0f,
-                            renderer.getCanvasHeight()/2.0f, 0.0f);
-                }
-                else
-                {
-                    Matrix.scaleM(modelMatrix, 0, ui.getDimensions().w, ui.getDimensions().h, 0.0f);
-                }
-
-
-                float[] transformation = new float[16];
-                Matrix.multiplyMM(transformation, 0, orthoMatrix, 0, modelMatrix, 0);
-
-                shader.setTextureUniforms(ui.getTexture().getTextureId());
-                shader.setMatrix(transformation);
-                shader.setColourUniforms(ui.getColour());
-                ui.draw();
-            }
-        }
     }
 }

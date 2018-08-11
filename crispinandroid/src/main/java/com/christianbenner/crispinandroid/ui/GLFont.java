@@ -31,9 +31,4 @@ public class GLFont {
     {
         return meshCreator.createTextMesh(text);
     }
-
-    public TextMesh loadText(GLText2 text)
-    {
-        return meshCreator.createTextMesh(text);
-    }
 }

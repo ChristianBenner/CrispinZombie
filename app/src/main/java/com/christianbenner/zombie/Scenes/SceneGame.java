@@ -11,7 +11,7 @@ import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
 import com.christianbenner.crispinandroid.ui.GLButton;
 import com.christianbenner.crispinandroid.ui.GLFont;
 import com.christianbenner.crispinandroid.ui.GLImage;
-import com.christianbenner.crispinandroid.ui.GLText2;
+import com.christianbenner.crispinandroid.ui.GLText;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.ui.TouchEvent;
 import com.christianbenner.crispinandroid.ui.TouchListener;
@@ -105,7 +105,7 @@ public class SceneGame extends Scene {
     private GLButton switch_camera_button;
     private GLButton wave_button;
     private GLImage hotbar;
-    private GLText2 cameraText;
+    private GLText cameraText;
     private BaseController baseController;
     private MoveController moveController;
 
@@ -234,7 +234,7 @@ public class SceneGame extends Scene {
             }
         });*/
     }
-    private GLText2 text;
+    private GLText text;
     @Override
     public void surfaceChanged(int width, int height) {
         viewWidth = width;
@@ -252,15 +252,14 @@ public class SceneGame extends Scene {
         GLFont font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         if(debugView)
         {
-            cameraText = new GLText2(context, "Debug Camera", 2, font, width, width, height, true);
+            cameraText = new GLText("Debug Camera", 2, font, width, uiRenderer, true);
         }
         else
         {
-            cameraText = new GLText2(context, "Birds Eye Camera", 2, font, width, width, height, true);
+            cameraText = new GLText("Birds Eye Camera", 2, font, width, uiRenderer, true);
         }
 
         cameraText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
-        
         uiRenderer.addUI(cameraText);
 
         initUI();
