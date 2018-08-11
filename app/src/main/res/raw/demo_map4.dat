@@ -1,0 +1,48 @@
+// TYPE(X,Y,Z)
+WEAPONS{
+SNIPER(0.0,0.0,0.0);
+PISTOL(2.0,1.0,3.0);
+}
+// TYPE(R,G,B,X,Y,Z)
+LIGHTS{
+AMBIENT(1.0,0.0,0.0,0.0,0.0,0.0);
+LAMP(1.0,0.0,0.0,1.0,1.0,1.0);
+}
+// POS(X,Y,Z)
+ZOMBIESPAWNS{
+POS(0.0,0.0,0.0);
+POS(10.0,15.0,20.0);
+}
+// POS(X,Y,Z)
+PLAYERSPAWNS{
+POS(0.0,0.0,0.0);
+POS(1.0,0.0,0.0);
+}
+// TYPE(X,Y,Z,ROTATION,COST)
+DOORS{
+WOOD(0.0,0.0,0.0,1,1000);
+STEEL(1.0,1.0,1.0,2,2500);
+}
+// SHAPE(X,Y,W,H)
+GRASS{
+RECT(0.0,0.0,10.0,10.0);
+}
+// RAW DATA
+MAPDATA{
+b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b
+b.a.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.c.a.c.a.a.a.a.c.c.c.c.c.c.c.c.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.c.c.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.c.c.c.c.a.a.b
+b.a.c.a.c.c.c.c.c.a.c.c.c.a.a.a.c.c.c.a.a.a.a.a.a.a.a.a.a.a.b
+b.a.c.a.c.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.a.b
+b.a.c.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.c.c.c.c.c.c.c.a.b
+b.a.c.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.a.b
+b.a.c.c.c.c.c.c.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.a.c.c.b
+b.a.a.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.c.c.a.b
+b.a.a.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.c.a.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.c.c.a.c.c.a.a.a.a.c.c.c.c.c.a.c.a.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b
+b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b
+}

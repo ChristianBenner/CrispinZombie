@@ -123,7 +123,8 @@ public class SceneGame extends Scene {
         super(context);
 
         // Create the demo map
-        demoMap = new Map(context, R.raw.demo_map3);
+        demoMap = new Map(context, R.raw.demo_map4);
+        demoMap.printMap();
 
         // Sets up whether or not we start on the debug camera
         debugView = STARTUP_ON_DEBUG_VIEW;

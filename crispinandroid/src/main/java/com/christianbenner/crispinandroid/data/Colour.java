@@ -25,4 +25,10 @@ public class Colour {
         this.b = b;
         this.a = a;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Colour[r:" + r + ",g:" + g + ",b:" + b +"]";
+    }
 }

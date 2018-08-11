@@ -1,5 +1,7 @@
 package com.christianbenner.crispinandroid.programs;
 
+import com.christianbenner.crispinandroid.util.Light;
+
 /**
  * Created by chris on 10/09/2017.
  */
@@ -49,4 +51,5 @@ public class ShaderConstants {
     public static final float DEFAULT_AMBIENT_DISTANCE = 0.1f;
     public static final float DEFAULT_ATTENUATION = 0.4f;
     public static final float DEFAULT_MAX_AMBIENT = 10.0f;
+    public static final Light.LightType DEFAULT_LIGHT_TYPE = Light.LightType.LAMP;
 }

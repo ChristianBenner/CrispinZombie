@@ -8,6 +8,13 @@ import com.christianbenner.crispinandroid.programs.ShaderConstants;
  */
 
 public class Light {
+    public enum LightType
+    {
+        AMBIENT,
+        LAMP
+    }
+
+    private LightType type;
     // colour, position, max, min, distance (CHANGE TO INTENSITY)
     private Colour colour;
     private Geometry.Point position;
@@ -23,13 +30,34 @@ public class Light {
     //8 = ambience intensity
     private float[] lightData = new float[9];
 
+    public Light(LightType type, Colour colour, Geometry.Point position, float ambience, float attenuation, float ambientDistance)
+    {
+        this.type = type;
+        setColour(colour);
+        setPosition(position);
+        setMaxAmbience(ambience);
+        setAttenuation(attenuation);
+        setAmbienceIntensity(ambientDistance);
+    }
+
+    public Light(LightType type, Colour colour, Geometry.Point position)
+    {
+        this(type,
+                colour,
+                position,
+                ShaderConstants.DEFAULT_MAX_AMBIENT,
+                ShaderConstants.DEFAULT_ATTENUATION,
+                ShaderConstants.DEFAULT_AMBIENT_DISTANCE);
+    }
+
     public Light()
     {
-        setColour(new Colour(1.0f, 1.0f, 1.0f));
-        setPosition(new Geometry.Point(0.0f, 0.0f, 0.0f));
-        setMaxAmbience(ShaderConstants.DEFAULT_MAX_AMBIENT);
-        setAttenuation(ShaderConstants.DEFAULT_ATTENUATION);
-        setAmbienceIntensity(ShaderConstants.DEFAULT_AMBIENT_DISTANCE);
+        this(ShaderConstants.DEFAULT_LIGHT_TYPE,
+                new Colour(1.0f, 1.0f, 1.0f),
+                new Geometry.Point(0.0f, 0.0f, 0.0f),
+                ShaderConstants.DEFAULT_MAX_AMBIENT,
+                ShaderConstants.DEFAULT_ATTENUATION,
+                ShaderConstants.DEFAULT_AMBIENT_DISTANCE);
     }
 
     public float[] getLightData()
@@ -95,4 +123,10 @@ public class Light {
     {
         return this.ambienceIntensity;
     }
+
+    @Override
+    public String toString()
+    {
+        return "Light[" + type + "], " + colour + ", " + position;
+    };
 }
