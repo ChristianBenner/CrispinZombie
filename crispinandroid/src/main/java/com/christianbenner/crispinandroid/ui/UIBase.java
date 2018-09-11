@@ -3,9 +3,9 @@ package com.christianbenner.crispinandroid.ui;
 import android.opengl.GLES20;
 
 import com.christianbenner.crispinandroid.data.Colour;
-import com.christianbenner.crispinandroid.data.Texture;
+import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.util.Geometry;
-import com.christianbenner.crispinandroid.util.ShaderProgram;
+import com.christianbenner.crispinandroid.render.util.ShaderProgram;
 
 import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 

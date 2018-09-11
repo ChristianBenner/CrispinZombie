@@ -6,7 +6,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.zombie.RendererTest;
+import com.christianbenner.zombie.Constants;
 
 import java.util.HashMap;
 
@@ -32,13 +32,13 @@ public class RendererManager implements GLSurfaceView.Renderer {
     {
         this.context = context;
      //   scene = new SceneIntro(context);
-       // addRenderer(RendererIDConstants.INTRO_ID, scene, true);
+       // addRenderer(Constants.INTRO_ID, scene, true);
      //   scene = new SceneGameTest(context);
-     //   addRenderer(RendererIDConstants.GAME_TEST_ID, scene, true);
+     //   addRenderer(Constants.GAME_TEST_ID, scene, true);
         scene = new SceneGame(context);
-        addRenderer(RendererIDConstants.GAME_ID, scene, true);
+        addRenderer(Constants.GAME_ID, scene, true);
      //   scene = new RendererTest(context);
-     //   addRenderer(RendererIDConstants.RENDERER_TEST_ID, scene, true);
+     //   addRenderer(Constants.RENDERER_TEST_ID, scene, true);
     }
 
     private void addRenderer(int id, Scene renderer, boolean currentRenderer)
@@ -98,30 +98,20 @@ public class RendererManager implements GLSurfaceView.Renderer {
         currentRendererID = renderers.get(currentRendererID).getNextSceneId();
         switch (currentRendererID)
         {
-            case RendererIDConstants.INTRO_ID:
+            case Constants.INTRO_ID:
                 System.out.println("Switching to intro renderer");
                 scene = new SceneIntro(context);
-                addRenderer(RendererIDConstants.INTRO_ID, scene, true);
+                addRenderer(Constants.INTRO_ID, scene, true);
                 break;
-            case RendererIDConstants.MENU_ID:
+            case Constants.MENU_ID:
                 System.out.println("Switching to menu renderer");
                 scene = new SceneMenu(context);
-                addRenderer(RendererIDConstants.MENU_ID, scene, true);
+                addRenderer(Constants.MENU_ID, scene, true);
                 break;
-            case RendererIDConstants.START_WARS_TEST_ID:
-                System.out.println("Switching to test bench renderer");
-                scene = new SceneStarWarsTest(context);
-                addRenderer(RendererIDConstants.START_WARS_TEST_ID, scene, true);
-                break;
-            case RendererIDConstants.GAME_ID:
+            case Constants.GAME_ID:
                 System.out.println("Switching to game scene");
                 scene = new SceneGame(context);
-                addRenderer(RendererIDConstants.GAME_ID, scene, true);
-                break;
-            case RendererIDConstants.RENDERER_TEST_ID:
-                System.out.println("Switching to game scene");
-                scene = new RendererTest(context);
-                addRenderer(RendererIDConstants.RENDERER_TEST_ID, scene, true);
+                addRenderer(Constants.GAME_ID, scene, true);
                 break;
         }
     }

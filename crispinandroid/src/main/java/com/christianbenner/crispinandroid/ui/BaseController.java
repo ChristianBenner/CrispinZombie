@@ -3,10 +3,10 @@ package com.christianbenner.crispinandroid.ui;
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.christianbenner.crispinandroid.data.VertexArray;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
 import com.christianbenner.crispinandroid.util.Geometry;
-import com.christianbenner.crispinandroid.util.ShaderProgram;
-import com.christianbenner.crispinandroid.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.ShaderProgram;
+import com.christianbenner.crispinandroid.render.util.TextureHelper;
 
 /**
  * Created by Christian Benner on 22/03/2018.

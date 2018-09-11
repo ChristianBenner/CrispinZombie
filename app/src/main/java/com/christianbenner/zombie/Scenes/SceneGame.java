@@ -4,31 +4,31 @@ import android.content.Context;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
-import com.christianbenner.crispinandroid.data.Texture;
-import com.christianbenner.crispinandroid.data.objects.RendererModel;
-import com.christianbenner.crispinandroid.programs.PerFragMultiLightingShader;
-import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
-import com.christianbenner.crispinandroid.ui.GLButton;
-import com.christianbenner.crispinandroid.ui.GLFont;
-import com.christianbenner.crispinandroid.ui.GLImage;
-import com.christianbenner.crispinandroid.ui.GLText;
+import com.christianbenner.crispinandroid.render.data.Texture;
+import com.christianbenner.crispinandroid.render.model.RendererModel;
+import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
+import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
+import com.christianbenner.crispinandroid.ui.Button;
+import com.christianbenner.crispinandroid.ui.Font;
+import com.christianbenner.crispinandroid.ui.Image;
+import com.christianbenner.crispinandroid.ui.Text;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.ui.TouchEvent;
 import com.christianbenner.crispinandroid.ui.TouchListener;
 import com.christianbenner.crispinandroid.ui.UIDimension;
-import com.christianbenner.crispinandroid.util.Camera;
+import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.util.Geometry;
-import com.christianbenner.crispinandroid.util.Light;
-import com.christianbenner.crispinandroid.util.Renderer;
+import com.christianbenner.crispinandroid.render.data.Light;
+import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.crispinandroid.util.TextureHelper;
-import com.christianbenner.crispinandroid.util.UIRenderer;
-import com.christianbenner.crispinandroid.util.UIRendererGroup;
+import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.UIRenderer;
+import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
 import com.christianbenner.crispinandroid.ui.BaseController;
-import com.christianbenner.zombie.Map;
+import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.crispinandroid.ui.MoveController;
-import com.christianbenner.zombie.Objects.Human;
-import com.christianbenner.zombie.Objects.Zombie;
+import com.christianbenner.zombie.Entities.Human;
+import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
@@ -102,17 +102,17 @@ public class SceneGame extends Scene {
     private TextureShaderProgram uiShader;
 
     // UI
-    private GLButton debug_camera_button_up;
-    private GLButton debug_camera_button_down;
-    private GLButton switch_camera_button;
-    private GLButton wave_button;
-    private GLImage hotbar;
-    private GLText cameraText;
+    private Button debug_camera_button_up;
+    private Button debug_camera_button_down;
+    private Button switch_camera_button;
+    private Button wave_button;
+    private Image hotbar;
+    private Text cameraText;
     private BaseController baseMoveController;
     private MoveController moveController;
     private BaseController baseAimController;
     private MoveController aimController;
-    private GLImage crosshair;
+    private Image crosshair;
 
     // Properties and timers
     private boolean debugView;
@@ -240,7 +240,7 @@ public class SceneGame extends Scene {
             }
         });*/
     }
-    private GLText text;
+    private Text text;
     @Override
     public void surfaceChanged(int width, int height) {
         viewWidth = width;
@@ -255,14 +255,14 @@ public class SceneGame extends Scene {
 
         // If Debug Enabled
         // Camera Text
-        GLFont font = new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         if(debugView)
         {
-            cameraText = new GLText("Debug Camera", 2, font, width, uiRenderer, true);
+            cameraText = new Text("Debug Camera", 2, font, width, uiRenderer, true);
         }
         else
         {
-            cameraText = new GLText("Birds Eye Camera", 2, font, width, uiRenderer, true);
+            cameraText = new Text("Birds Eye Camera", 2, font, width, uiRenderer, true);
         }
 
         cameraText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
@@ -419,7 +419,7 @@ public class SceneGame extends Scene {
         }
     }
 
-    private boolean handlePointerControl(GLButton button, Pointer pointer)
+    private boolean handlePointerControl(Button button, Pointer pointer)
     {
         if(button.interacts(pointer))
         {
@@ -433,10 +433,10 @@ public class SceneGame extends Scene {
     private void initUI()
     {
         Texture hotbar_texture = TextureHelper.loadTexture(context, R.drawable.hotbar_scaled, true);
-        hotbar = new GLImage(new UIDimension((viewWidth / 2.0f) - (hotbar_texture.getWidth() / 2.0f), 10.0f,
+        hotbar = new Image(new UIDimension((viewWidth / 2.0f) - (hotbar_texture.getWidth() / 2.0f), 10.0f,
                 hotbar_texture.getWidth(), hotbar_texture.getHeight()), hotbar_texture);
 
-        crosshair = new GLImage(
+        crosshair = new Image(
                 new UIDimension((viewWidth/2.0f) - 25, (viewHeight/2.0f) - 25, 50, 50),
                 new Colour(1.0f, 1.0f, 1.0f, 0.0f),
                 TextureHelper.loadTexture(context, R.drawable.crosshair, true));
@@ -503,7 +503,7 @@ public class SceneGame extends Scene {
             }
         });
 
-        wave_button = new GLButton(new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
+        wave_button = new Button(new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                 viewHeight - BUTTON_SIZE - BUTTON_PADDING - BUTTON_PADDING - BUTTON_SIZE,
                 BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_wave));
@@ -520,7 +520,7 @@ public class SceneGame extends Scene {
             }
         });
 
-        switch_camera_button = new GLButton(
+        switch_camera_button = new Button(
                 new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         viewHeight - BUTTON_SIZE - BUTTON_PADDING, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_camera));
@@ -560,7 +560,7 @@ public class SceneGame extends Scene {
             }
         });
 
-        debug_camera_button_up = new GLButton(
+        debug_camera_button_up = new Button(
                 new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         BUTTON_PADDING + BUTTON_PADDING + BUTTON_SIZE, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_up));
@@ -579,7 +579,7 @@ public class SceneGame extends Scene {
             }
         });
 
-        debug_camera_button_down = new GLButton(
+        debug_camera_button_down = new Button(
                 new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         BUTTON_PADDING, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_down));

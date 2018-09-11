@@ -5,12 +5,13 @@ import android.opengl.Matrix;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.christianbenner.crispinandroid.data.Texture;
-import com.christianbenner.crispinandroid.data.objects.FlexibleSquare;
-import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
+import com.christianbenner.crispinandroid.render.data.Texture;
+import com.christianbenner.crispinandroid.render.objects.FlexibleSquare;
+import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.crispinandroid.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.zombie.Constants;
 import com.christianbenner.zombie.R;
 
 import static android.opengl.GLES20.GL_ALPHA;
@@ -39,7 +40,7 @@ public class SceneIntro extends Scene {
     private Texture textureCrispinRed;
 
     // Version Text
-   // private GLText version;
+   // private Text version;
 
     // Logic Variables
     private float alphaWhite = 1.0f;
@@ -74,7 +75,7 @@ public class SceneIntro extends Scene {
         textureCrispinRed = TextureHelper.loadTexture(context, R.drawable.crispinred);
 
         // Setup text
-      //  version = new GLText("Version " + Constants.VERSION_STRING, 1, new GLFont(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f, 1080f, 1.0f);
+      //  version = new Text("Version " + Constants.VERSION_STRING, 1, new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt), 1920f, 1080f, 1.0f);
      //   version.setPosition(-1.0f, -1.0f);
     //    version.setColour(new Colour(1.0f, 0.0f, 0.0f));
 
@@ -170,7 +171,7 @@ public class SceneIntro extends Scene {
             if(timePassed >= 300.0f)
             {
                 timePassed = 0.0f;
-                gotoScene(RendererIDConstants.GAME_ID);
+                gotoScene(Constants.GAME_ID);
             }
         }
     }
