@@ -16,7 +16,7 @@ import static com.christianbenner.crispinandroid.util.Logger.errorf;
  */
 
 public class Audio {
-    Context context;
+    private Context context;
 
     // Store the current playing music ID
     private int currentMusicID = -1;
