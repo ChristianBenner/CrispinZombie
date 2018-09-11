@@ -24,9 +24,9 @@ import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.UIRenderer;
 import com.christianbenner.crispinandroid.util.UIRendererGroup;
-import com.christianbenner.zombie.BaseController;
+import com.christianbenner.crispinandroid.ui.BaseController;
 import com.christianbenner.zombie.Map;
-import com.christianbenner.zombie.MoveController;
+import com.christianbenner.crispinandroid.ui.MoveController;
 import com.christianbenner.zombie.Objects.Human;
 import com.christianbenner.zombie.Objects.Zombie;
 import com.christianbenner.zombie.R;
@@ -67,6 +67,8 @@ public class SceneGame extends Scene {
             new Geometry.Point(0.0f, 1.0f, 0.0f);
     private final Geometry.Point PLAYER_START_POSITION =
             new Geometry.Point(5.0f, 0.0f, 5.0f);
+    static final float CROSSHAIR_OFFSET = 100.0f;
+    private final int MUSIC_TRACKS = 2;
 
     // Android Context
     private int viewWidth;
@@ -106,17 +108,21 @@ public class SceneGame extends Scene {
     private GLButton wave_button;
     private GLImage hotbar;
     private GLText cameraText;
-    private BaseController baseController;
+    private BaseController baseMoveController;
     private MoveController moveController;
+    private BaseController baseAimController;
+    private MoveController aimController;
+    private GLImage crosshair;
 
     // Properties and timers
     private boolean debugView;
     private float cameraTextTimer = 1.0f;
 
-    private final int TRACKS = 2;
-    private int[] musicQueue = new int[TRACKS];
+    // Music queue
+    private int[] musicQueue = new int[MUSIC_TRACKS];
     private int musicQueueIndex = 0;
 
+    // Map
     private Map demoMap;
 
     public SceneGame(Context context) {
@@ -280,7 +286,7 @@ public class SceneGame extends Scene {
     @Override
     public void draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
         glEnable(GL_ALPHA);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -337,6 +343,7 @@ public class SceneGame extends Scene {
         }*/
 
         moveController.update(deltaTime);
+        aimController.update(deltaTime);
 
         Geometry.Vector moveVector = moveController.getDirection();
         humanoid.setVelocity(new Geometry.Vector(moveVector.x, 0.0f, -moveVector.y));
@@ -397,6 +404,7 @@ public class SceneGame extends Scene {
                 if(handlePointerControl(switch_camera_button, pointer)) { return; }
                 if(handlePointerControl(wave_button, pointer)) { return; }
                 if(handlePointerControl(moveController, pointer)) { return; }
+                if(handlePointerControl(aimController, pointer)) { return; }
                 if(debugView)
                 {
                     if(handlePointerControl(debug_camera_button_up, pointer)) { return; }
@@ -428,11 +436,15 @@ public class SceneGame extends Scene {
         hotbar = new GLImage(new UIDimension((viewWidth / 2.0f) - (hotbar_texture.getWidth() / 2.0f), 10.0f,
                 hotbar_texture.getWidth(), hotbar_texture.getHeight()), hotbar_texture);
 
-        baseController = new BaseController(context,
-                new Geometry.Point(80.0f, 70.0f, 0.0f), 200.0f);
-        moveController = new MoveController(context, baseController);
+        crosshair = new GLImage(
+                new UIDimension((viewWidth/2.0f) - 25, (viewHeight/2.0f) - 25, 50, 50),
+                new Colour(1.0f, 1.0f, 1.0f, 0.0f),
+                TextureHelper.loadTexture(context, R.drawable.crosshair, true));
 
-        // Setup UI
+        // Add the move joystick
+        baseMoveController = new BaseController(context,
+                new Geometry.Point(80.0f, 70.0f, 0.0f), 200.0f, R.drawable.joy_stick_outer);
+        moveController = new MoveController(context, baseMoveController, R.drawable.movement_joystick_inner);
         moveController.addButtonListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
@@ -455,6 +467,37 @@ public class SceneGame extends Scene {
                         break;
                     case RELEASE:
                         humanoid.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
+                        break;
+                }
+            }
+        });
+
+        // Add the aim joystick
+        baseAimController = new BaseController(context,
+                new Geometry.Point(viewWidth - 80.0f - 400.0f, 70.0f, 0.0f), 200.0f,
+                R.drawable.joy_stick_outer);
+        aimController = new MoveController(context, baseAimController, R.drawable.aim_joy_stick_inner);
+        aimController.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
+                {
+                    case CLICK:
+                        playSound(context, R.raw.button_click, 1);
+                        crosshair.setAlpha(1.0f);
+                        break;
+                    case DOWN:
+                        Geometry.Vector offset = aimController.getDirection().
+                                scale(1.0f / aimController.getDirection().length()).
+                                scale(CROSSHAIR_OFFSET);
+                        crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25 + offset.x,
+                                (viewHeight/2.0f) - 25 + offset.y, 0.0f));
+
+                        break;
+                    case RELEASE:
+                        crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25,
+                                (viewHeight/2.0f) - 25, 0.0f));
+                        crosshair.setAlpha(0.0f);
                         break;
                 }
             }
@@ -557,8 +600,11 @@ public class SceneGame extends Scene {
 
         // Add to the UI Renderer
         uiRenderer.addUI(hotbar);
-        uiRenderer.addUI(baseController);
+        uiRenderer.addUI(crosshair);
+        uiRenderer.addUI(baseMoveController);
         uiRenderer.addUI(moveController);
+        uiRenderer.addUI(baseAimController);
+        uiRenderer.addUI(aimController);
         uiRenderer.addUI(switch_camera_button);
         uiRenderer.addUI(wave_button);
         debugViewUIGroup.addUI(debug_camera_button_down);

@@ -1,11 +1,9 @@
-package com.christianbenner.zombie;
+package com.christianbenner.crispinandroid.ui;
 
 import android.content.Context;
 import android.opengl.GLES20;
 
 import com.christianbenner.crispinandroid.data.VertexArray;
-import com.christianbenner.crispinandroid.ui.UIBase;
-import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.ShaderProgram;
 import com.christianbenner.crispinandroid.util.TextureHelper;
@@ -29,7 +27,8 @@ public class BaseController extends UIBase
             1f, 0f, 1f, 1f
     };
 
-    public BaseController(Context context, Geometry.Point position, float radius)
+    public BaseController(Context context, Geometry.Point position, float radius,
+                          int textureResource)
     {
         baseVertexArray = new VertexArray(vertexData);
         baseVertexCount = vertexData.length /
@@ -37,7 +36,7 @@ public class BaseController extends UIBase
 
         this.dimensions = new UIDimension(position.x, position.y,
                 radius * 2.0f, radius * 2.0f);
-        texture = TextureHelper.loadTexture(context, R.drawable.joy_stick_outer, true);
+        texture = TextureHelper.loadTexture(context, textureResource, true);
     }
 
     public float getRadius()

@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.zombie.AStarTesting.AStarDemo;
 import com.christianbenner.zombie.RendererTest;
 
 import java.util.HashMap;
@@ -113,11 +112,6 @@ public class RendererManager implements GLSurfaceView.Renderer {
                 System.out.println("Switching to test bench renderer");
                 scene = new SceneStarWarsTest(context);
                 addRenderer(RendererIDConstants.START_WARS_TEST_ID, scene, true);
-                break;
-            case RendererIDConstants.A_STAR_DEMO:
-                System.out.println("Switching to a star demo scene");
-                scene = new AStarDemo(context);
-                addRenderer(RendererIDConstants.A_STAR_DEMO, scene, true);
                 break;
             case RendererIDConstants.GAME_ID:
                 System.out.println("Switching to game scene");

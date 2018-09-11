@@ -1,12 +1,10 @@
-package com.christianbenner.zombie;
+package com.christianbenner.crispinandroid.ui;
 
 import android.content.Context;
 import android.graphics.PointF;
 import android.opengl.GLES20;
 
 import com.christianbenner.crispinandroid.data.VertexArray;
-import com.christianbenner.crispinandroid.ui.GLButton;
-import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.ShaderProgram;
 import com.christianbenner.crispinandroid.util.TextureHelper;
@@ -33,7 +31,7 @@ public class MoveController extends GLButton
             1f, 0f, 1f, 1f
     };
 
-    public MoveController(Context context, BaseController controller)
+    public MoveController(Context context, BaseController controller, int textureResource)
     {
         super(new UIDimension(
                 controller.getPosition().x + controller.getRadius() -
@@ -42,7 +40,7 @@ public class MoveController extends GLButton
                                 (controller.getRadius() / 2.0f),
                         (controller.getRadius() / 2.0f) * 2.0f,
                         (controller.getRadius() / 2.0f) * 2.0f),
-                TextureHelper.loadTexture(context, R.drawable.joy_stick_inner,
+                TextureHelper.loadTexture(context, textureResource,
                         true));
 
         this.baseController = controller;
