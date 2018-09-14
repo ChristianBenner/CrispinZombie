@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
+<<<<<<< HEAD
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
@@ -12,6 +13,18 @@ import com.christianbenner.crispinandroid.ui.Button;
 import com.christianbenner.crispinandroid.ui.Font;
 import com.christianbenner.crispinandroid.ui.Image;
 import com.christianbenner.crispinandroid.ui.Text;
+=======
+import com.christianbenner.crispinandroid.data.Texture;
+import com.christianbenner.crispinandroid.data.objects.RendererModel;
+import com.christianbenner.crispinandroid.programs.PerFragMultiLightingShader;
+import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
+import com.christianbenner.crispinandroid.ui.BaseController;
+import com.christianbenner.crispinandroid.ui.GLButton;
+import com.christianbenner.crispinandroid.ui.GLFont;
+import com.christianbenner.crispinandroid.ui.GLImage;
+import com.christianbenner.crispinandroid.ui.GLText;
+import com.christianbenner.crispinandroid.ui.MoveController;
+>>>>>>> Bullet
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.ui.TouchEvent;
 import com.christianbenner.crispinandroid.ui.TouchListener;
@@ -21,6 +34,7 @@ import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.data.Light;
 import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.util.Scene;
+<<<<<<< HEAD
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
 import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
@@ -29,6 +43,15 @@ import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.crispinandroid.ui.MoveController;
 import com.christianbenner.zombie.Entities.Human;
 import com.christianbenner.zombie.Entities.Zombie;
+=======
+import com.christianbenner.crispinandroid.util.TextureHelper;
+import com.christianbenner.crispinandroid.util.UIRenderer;
+import com.christianbenner.crispinandroid.util.UIRendererGroup;
+import com.christianbenner.zombie.Map;
+import com.christianbenner.zombie.Objects.Bullet;
+import com.christianbenner.zombie.Objects.Human;
+import com.christianbenner.zombie.Objects.Zombie;
+>>>>>>> Bullet
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
@@ -125,6 +148,8 @@ public class SceneGame extends Scene {
     // Map
     private Map demoMap;
 
+    private ArrayList<Bullet> bullets;
+
     public SceneGame(Context context) {
         super(context);
 
@@ -143,6 +168,8 @@ public class SceneGame extends Scene {
         // Create the debug camera
         debugCamera = new Camera();
         debugCamera.setPosition(DEBUG_CAMERA_START_POSITION);
+
+        bullets = new ArrayList<>();
 
         // Add a touch listener so that we can pick up touches on the camera and handle them
         debugCamera.addTouchListener(new TouchListener() {
@@ -430,6 +457,8 @@ public class SceneGame extends Scene {
         return false;
     }
 
+
+    int bulletWaitCount = 0;
     private void initUI()
     {
         Texture hotbar_texture = TextureHelper.loadTexture(context, R.drawable.hotbar_scaled, true);
@@ -487,11 +516,23 @@ public class SceneGame extends Scene {
                         crosshair.setAlpha(1.0f);
                         break;
                     case DOWN:
-                        Geometry.Vector offset = aimController.getDirection().
-                                scale(1.0f / aimController.getDirection().length()).
-                                scale(CROSSHAIR_OFFSET);
+                        Geometry.Vector offsetDirection = aimController.getDirection().
+                                scale(1.0f / aimController.getDirection().length());
+                        Geometry.Vector offset = offsetDirection.scale(CROSSHAIR_OFFSET);
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25 + offset.x,
                                 (viewHeight/2.0f) - 25 + offset.y, 0.0f));
+
+                        if(bulletWaitCount > 10)
+                        {
+                            bulletWaitCount = 0;
+
+                            // Spawn bullet
+                            bullets.add(new Bullet(humanoid.getPosition().x,
+                                    humanoid.getPosition().y, offsetDirection,
+                                    0.01f, 500000.0f));
+
+                        }
+
 
                         break;
                     case RELEASE:
