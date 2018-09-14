@@ -197,7 +197,7 @@ public abstract class Scene {
     {
         if(audio == null)
         {
-            audio = new Audio();
+            audio = Audio.getInstance();
         }
         audio.initMusicChannel(context);
         audio.playMusic(resourceID, musicPosition);
@@ -208,7 +208,7 @@ public abstract class Scene {
     {
         if(audio == null)
         {
-            audio = new Audio();
+            audio = Audio.getInstance();
         }
 
         if(!audio.isSoundInnit())

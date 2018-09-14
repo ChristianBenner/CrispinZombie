@@ -33,7 +33,8 @@ public class Weapon {
         MACHINE_GUN,
         SUB_MACHINE_GUN,
         GRENADE_LAUNCHER,
-        ROCKET_LAUNCHER
+        ROCKET_LAUNCHER,
+        HANDS
     }
 
     private WeaponType type;
@@ -83,6 +84,11 @@ public class Weapon {
     public RendererModel getModel()
     {
         return this.model;
+    }
+
+    public WeaponType getType()
+    {
+        return this.type;
     }
 
     @Override

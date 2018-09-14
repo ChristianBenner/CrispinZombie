@@ -2,17 +2,25 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
+import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.Renderer;
+import com.christianbenner.crispinandroid.render.util.RendererGroup;
+import com.christianbenner.crispinandroid.util.Audio;
+import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.zombie.R;
+
+import java.util.ArrayList;
 
 /**
  * Created by chris on 10/01/2018.
  */
 
 public class Human {
+    private Context context;
+    private Audio audio;
+
     protected RendererModel leg_left;
     protected RendererModel leg_right;
     protected RendererModel arm_right;
@@ -20,9 +28,11 @@ public class Human {
     protected RendererModel body;
     protected RendererModel head;
 
-    private Texture texture_human;
+    private RendererGroup bulletsGroup;
 
-    private Context context;
+    private ArrayList<Bullet> bullets;
+
+    private Texture texture_human;
 
     private static final int DEFAULT_GROUP_HUMAN = 200;
     private int rendererGroup = DEFAULT_GROUP_HUMAN;
@@ -45,9 +55,14 @@ public class Human {
     protected final Geometry.Point rightArmWaveRotationAxis =
             new Geometry.Point(0.15f, 0.65f, 0f );
 
+    private Weapon.WeaponType currentWeapon;
+
     public Human(Context context, Texture texture, float movementSpeed)
     {
         this.context = context;
+        this.audio = Audio.getInstance();
+        this.currentWeapon = Weapon.WeaponType.HANDS;
+
         texture_human = texture;
         this.position = new Geometry.Point(0.0f, 0.0f, 0.0f);
         this.velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
@@ -55,6 +70,9 @@ public class Human {
         desiredAngle = 0.0f;
         createParts();
         this.movementSpeed = movementSpeed;
+
+        bullets = new ArrayList<>();
+        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
     }
 
     private void createParts()
@@ -75,6 +93,111 @@ public class Human {
         renderer.addModel(arm_right);
         renderer.addModel(body);
         renderer.addModel(head);
+        renderer.addGroup(bulletsGroup);
+    }
+
+    int bulletWaitCount = 0;
+    public void fireAction(Geometry.Vector unitVectorDirection)
+    {
+        if(bulletWaitCount > 30)
+        {
+            bulletWaitCount = 0;
+
+            // Todo: On gunshot spawn a light for a couple ms
+
+            Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(0.0f, 0.5f, 0.0f));
+
+            Bullet[] bulletsToAdd = null;
+
+            // Do different things for different weapons that may be equipped
+            switch (currentWeapon)
+            {
+                case HANDS:
+                    audio.playSound(R.raw.temp_punch, 1);
+                    break;
+                case PISTOL:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.4f, 150.0f);
+
+                    audio.playSound(R.raw.temp_pistol, 1);
+
+                    break;
+                case SNIPER:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.7f, 150.0f);
+
+                    audio.playSound(R.raw.temp_sniper, 1);
+                    break;
+                case SHOTGUN:
+                    bulletsToAdd = new Bullet[5];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.05f, 40.0f);
+                    bulletsToAdd[1] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.04f, 40.0f);
+                    bulletsToAdd[2] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.03f, 40.0f);
+                    bulletsToAdd[3] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.02f, 40.0f);
+                    bulletsToAdd[4] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.01f, 40.0f);
+
+                    audio.playSound(R.raw.temp_shotgun, 1);
+                    break;
+                case MACHINE_GUN:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.4f, 150.0f);
+                    audio.playSound(R.raw.temp_assault_rifle, 1);
+                    break;
+                case ROCKET_LAUNCHER:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.08f, 85.0f);
+                    audio.playSound(R.raw.temp_rpg, 1);
+                    break;
+                case SUB_MACHINE_GUN:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.3f, 150.0f);
+                    audio.playSound(R.raw.temp_smg, 1);
+                    break;
+                case GRENADE_LAUNCHER:
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.02f, 150.0f);
+                    audio.playSound(R.raw.temp_grenade_launcher, 1);
+                    break;
+                default:
+                    System.out.println("Not implemented weapon mechanics yet.");
+                    break;
+            }
+
+            if(bulletsToAdd != null)
+            {
+                for(int i = 0; i < bulletsToAdd.length; i++)
+                {
+                    // Spawn bullet
+                    bullets.add(bulletsToAdd[i]);
+                    bulletsGroup.addModel(bulletsToAdd[i].getModel());
+                }
+            }
+        }
+        bulletWaitCount++;
+    }
+
+    // Debug function iterates through the weapon types list
+    public void switchWeaponTemp()
+    {
+        if(currentWeapon == Weapon.WeaponType.HANDS)
+        {
+            currentWeapon = Weapon.WeaponType.values()[0];
+        }
+        else
+        {
+            currentWeapon = Weapon.WeaponType.values()[currentWeapon.ordinal() + 1];
+        }
     }
 
     public int getRendererGroup()
@@ -226,67 +349,15 @@ public class Human {
             arm_right.rotateAroundPos(rightArmWaveRotationAxis, angle_wave + 90.0f, 0.0f, 0.0f, 1.0f);
         }
 
-     /*   if(waving) {
-            // rotate arm upwards to a certain point
-            //  Geometry.Point pos = arm_right.getPosition();
-            //   Geometry.Point newPos = new Geometry.Point(0.0f, 0.0f, 0.0f);
-            // arm_right.setPosition(newPos);
-            arm_right.newIdentity();
+        // Update bullets
+        for (int n = 0; n < bullets.size(); n++) {
+            bullets.get(n).update(deltaTime);
 
-        }*/
-
-  //      rotate(facingAngle);
-/*
-        if(waving)
-        {
-            //arm_right.setPosition(new Geometry.Point(-0.1f, -0.7f, 0.0f));
-
-            arm_right.newIdentity();
-
-            Geometry.Point positionOfArm = new Geometry.Point(0.1f * (float)Math.cos(facingAngle), 0.7f * (float)Math.cos(facingAngle), 0.0f);
-            Geometry.Point pointOfRotation = new Geometry.Point(
-                    positionOfArm.x + 0.1f,
-                    positionOfArm.y + 0.0f,
-                    positionOfArm.z + 0.0f);
-
-            // Position
-            System.out.println(facingAngle);
-            arm_right.setPosition(new Geometry.Point(
-                    positionOfArm.x + position.x,
-                    positionOfArm.y + position.y,
-                    positionOfArm.z + position.z));
-            arm_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
-            arm_right.rotate(angle, 0.0f, 0.0f, 1.0f);
-            // Position after rotation?
-            arm_right.setPosition(new Geometry.Point(-pointOfRotation.x, -pointOfRotation.y, -pointOfRotation.z));
-
-           // arm_right.setPosition(new Geometry.Point(0.1f + position.x,
-         //         0.7f + position.y, 0.0f + position.z));
-         //   arm_right.rotate(facingAngle + angle, 0.0f, 0.0f, 1.0f);
-          //  arm_right.setPosition(new Geometry.Point(-0.2f, -0.7f, 0.0f));
-
-            angle += 5.0f * deltaTime;
-
-            if(angle >= 150.0f && moving_up)
-            {
-                moving_up = false;
-                moving_down = true;
+            // If the bullets have run out of life, remove them
+            if (bullets.get(n).isAlive() == false) {
+                bulletsGroup.removeModel(bullets.get(n).getModel());
+                bullets.remove(n--);
             }
-
-            if(angle <= 100.0f && moving_down)
-            {
-                moving_down = false;
-                moving_up = true;
-            }
-
-            if(moving_down)
-            {
-                angle -= 2.0f * deltaTime;
-            }
-            else if(moving_up)
-            {
-                angle += 2.0f * deltaTime;
-            }
-        }*/
+        }
     }
 }

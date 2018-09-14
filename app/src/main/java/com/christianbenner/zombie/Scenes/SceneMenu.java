@@ -29,7 +29,7 @@ public class SceneMenu extends Scene {
     @Override
     protected void surfaceCreated() {
         // Create audio
-        audio = new Audio();
+        audio = Audio.getInstance();
         audio.initMusicChannel(context);
        // audio.playMusic(R.raw.no_words, audioPos);
     }

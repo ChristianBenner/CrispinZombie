@@ -16,6 +16,7 @@ import static com.christianbenner.crispinandroid.util.Logger.errorf;
  */
 
 public class Audio {
+    private static Audio single_instance = null;
     private Context context;
 
     // Store the current playing music ID
@@ -33,6 +34,21 @@ public class Audio {
     private boolean soundInnit = false;
 
     private boolean trackFinished = true;
+
+    private Audio()
+    {
+        System.out.println("Created Audio class instance");
+    }
+
+    public static Audio getInstance()
+    {
+        if(single_instance == null)
+        {
+            single_instance = new Audio();
+        }
+
+        return single_instance;
+    }
 
     public void changeContext(Context context){
         this.context = context;

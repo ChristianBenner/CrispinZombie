@@ -5,14 +5,12 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Light;
-import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
-import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
 import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
@@ -28,7 +26,6 @@ import com.christianbenner.crispinandroid.ui.TouchListener;
 import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Human;
 import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.Map.Map;
@@ -99,7 +96,6 @@ public class SceneGame extends Scene {
     private boolean doneYet = false;
 
     private Renderer renderer;
-    private RendererGroup bulletsGroup;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
 
@@ -111,6 +107,7 @@ public class SceneGame extends Scene {
     private Button debug_camera_button_down;
     private Button switch_camera_button;
     private Button wave_button;
+    private Button switch_weapon_button;
     private Image hotbar;
     private Text cameraText;
     private BaseController baseMoveController;
@@ -130,8 +127,6 @@ public class SceneGame extends Scene {
     // Map
     private Map demoMap;
 
-    private ArrayList<Bullet> bullets;
-
     public SceneGame(Context context) {
         super(context);
 
@@ -150,8 +145,6 @@ public class SceneGame extends Scene {
         // Create the debug camera
         debugCamera = new Camera();
         debugCamera.setPosition(DEBUG_CAMERA_START_POSITION);
-
-        bullets = new ArrayList<>();
 
         // Add a touch listener so that we can pick up touches on the camera and handle them
         debugCamera.addTouchListener(new TouchListener() {
@@ -190,8 +183,8 @@ public class SceneGame extends Scene {
       //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
-        humanoid = new Human(context,
-                TextureHelper.loadTexture(context, R.drawable.player, true), MOVE_SPEED);
+        humanoid = new Human(context, TextureHelper.loadTexture(context, R.drawable.player, true),
+                MOVE_SPEED);
         humanoid.setPosition(PLAYER_START_POSITION);
 
         zombies = new ArrayList<>();
@@ -209,8 +202,7 @@ public class SceneGame extends Scene {
 
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
-        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
-        renderer.addGroup(bulletsGroup);
+
         //renderer.addModel(sniper);
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
@@ -340,14 +332,6 @@ public class SceneGame extends Scene {
         }
     }
 
-    float angleS = 0.0f;
-    long time = 0;
-    boolean done = false;
-
-    float nX = 0.0f;
-    float nZ = 0.0f;
-
-    boolean spawnedBullet = false;
     @Override
     public void update(float deltaTime) {
         /*for(int i = 0; i < 5; i++)
@@ -379,6 +363,7 @@ public class SceneGame extends Scene {
             debug_camera_button_up.update(deltaTime);
             debug_camera_button_down.update(deltaTime);
         }
+        switch_weapon_button.update(deltaTime);
         switch_camera_button.update(deltaTime);
         wave_button.update(deltaTime);
 
@@ -401,21 +386,9 @@ public class SceneGame extends Scene {
             zombie.update(deltaTime);
         }
 
-        // Update bullets
-        for (int n = 0; n < bullets.size(); n++) {
-            bullets.get(n).update(deltaTime);
-
-            // If the bullets have run out of life, remove them
-            if (bullets.get(n).isAlive() == false) {
-                bulletsGroup.removeModel(bullets.get(n).getModel());
-                bullets.remove(n--);
-            }
-        }
-
      //   sniper.setPosition(new Geometry.Point(humanoid.getPosition().x, humanoid.getPosition().y, humanoid.getPosition().z));
       //  sniper.setPosition(new Geometry.Point(humanoid.getPosition().x, 1.0f, 1.0f));
 
-        angleS += 2f * deltaTime;
    //     sniper.newIdentity();
     //    sniper.setPosition(new Geometry.Point(3.0f, 0.1f, 4.0f));
     //    sniper.setScale(0.1f);
@@ -440,6 +413,7 @@ public class SceneGame extends Scene {
             case CLICK:
                 // Look through the UI and check if the pointer interacts with them
                 if(handlePointerControl(switch_camera_button, pointer)) { return; }
+                if(handlePointerControl(switch_weapon_button, pointer)) { return; }
                 if(handlePointerControl(wave_button, pointer)) { return; }
                 if(handlePointerControl(moveController, pointer)) { return; }
                 if(handlePointerControl(aimController, pointer)) { return; }
@@ -469,7 +443,6 @@ public class SceneGame extends Scene {
     }
 
 
-    int bulletWaitCount = 0;
     private void initUI()
     {
         Texture hotbar_texture = TextureHelper.loadTexture(context, R.drawable.hotbar_scaled, true);
@@ -527,28 +500,21 @@ public class SceneGame extends Scene {
                         crosshair.setAlpha(1.0f);
                         break;
                     case DOWN:
-                        Geometry.Vector offsetDirection = aimController.getDirection().
+                        // Fetch the direction from the joystick, divide by magnitude to get the
+                        // unit vector.
+                        Geometry.Vector unitVectorDirection = aimController.getDirection().
                                 scale(1.0f / aimController.getDirection().length());
-                        Geometry.Vector offset = offsetDirection.scale(CROSSHAIR_OFFSET);
+
+                        // Scale the unit vector by the cross-hair offset to set distance from the
+                        // player
+                        Geometry.Vector offset = unitVectorDirection.scale(CROSSHAIR_OFFSET);
+
+                        // Set the cross-hair position
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25 + offset.x,
                                 (viewHeight/2.0f) - 25 + offset.y, 0.0f));
 
-                        if(bulletWaitCount > 30)
-                        {
-                            bulletWaitCount = 0;
-
-                            // Todo: On gunshot spawn a light for a couple ms
-
-                            // Spawn bullet
-                            Geometry.Point playerPos = humanoid.getPosition().translate(new Geometry.Vector(0.0f, 0.5f, 0.0f));
-                            Bullet bullet = new Bullet(context, playerPos,
-                                    offsetDirection, 0.4f, 150.0f);
-                            playSound(context, R.raw.temp_gunshot, 1);
-                            bullets.add(bullet);
-                            bulletsGroup.addModel(bullet.getModel());
-                        }
-                        bulletWaitCount++;
-
+                        // Tell the player that the user has used the fire action
+                        humanoid.fireAction(unitVectorDirection);
                         break;
                     case RELEASE:
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25,
@@ -616,6 +582,25 @@ public class SceneGame extends Scene {
             }
         });
 
+        switch_weapon_button = new Button(
+                new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE - BUTTON_PADDING -
+                        BUTTON_SIZE,
+                        viewHeight - BUTTON_SIZE - BUTTON_PADDING,
+                        BUTTON_SIZE, BUTTON_SIZE),
+                TextureHelper.loadTexture(context, R.drawable.button_switch_weapon));
+        switch_weapon_button.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
+                {
+                    case CLICK:
+                        playSound(context, R.raw.button_click, 1);
+                        humanoid.switchWeaponTemp();
+                        break;
+                }
+            }
+        });
+
         debug_camera_button_up = new Button(
                 new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         BUTTON_PADDING + BUTTON_PADDING + BUTTON_SIZE, BUTTON_SIZE, BUTTON_SIZE),
@@ -662,6 +647,7 @@ public class SceneGame extends Scene {
         uiRenderer.addUI(baseAimController);
         uiRenderer.addUI(aimController);
         uiRenderer.addUI(switch_camera_button);
+        uiRenderer.addUI(switch_weapon_button);
         uiRenderer.addUI(wave_button);
         debugViewUIGroup.addUI(debug_camera_button_down);
         debugViewUIGroup.addUI(debug_camera_button_up);
