@@ -4,54 +4,34 @@ import android.content.Context;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
-<<<<<<< HEAD
+import com.christianbenner.crispinandroid.render.data.Light;
+import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
-import com.christianbenner.crispinandroid.ui.Button;
-import com.christianbenner.crispinandroid.ui.Font;
-import com.christianbenner.crispinandroid.ui.Image;
-import com.christianbenner.crispinandroid.ui.Text;
-=======
-import com.christianbenner.crispinandroid.data.Texture;
-import com.christianbenner.crispinandroid.data.objects.RendererModel;
-import com.christianbenner.crispinandroid.programs.PerFragMultiLightingShader;
-import com.christianbenner.crispinandroid.programs.TextureShaderProgram;
-import com.christianbenner.crispinandroid.ui.BaseController;
-import com.christianbenner.crispinandroid.ui.GLButton;
-import com.christianbenner.crispinandroid.ui.GLFont;
-import com.christianbenner.crispinandroid.ui.GLImage;
-import com.christianbenner.crispinandroid.ui.GLText;
-import com.christianbenner.crispinandroid.ui.MoveController;
->>>>>>> Bullet
-import com.christianbenner.crispinandroid.ui.Pointer;
-import com.christianbenner.crispinandroid.ui.TouchEvent;
-import com.christianbenner.crispinandroid.ui.TouchListener;
-import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.render.util.Camera;
-import com.christianbenner.crispinandroid.util.Geometry;
-import com.christianbenner.crispinandroid.render.data.Light;
 import com.christianbenner.crispinandroid.render.util.Renderer;
-import com.christianbenner.crispinandroid.util.Scene;
-<<<<<<< HEAD
+import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
 import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
 import com.christianbenner.crispinandroid.ui.BaseController;
-import com.christianbenner.zombie.Map.Map;
+import com.christianbenner.crispinandroid.ui.Button;
+import com.christianbenner.crispinandroid.ui.Font;
+import com.christianbenner.crispinandroid.ui.Image;
 import com.christianbenner.crispinandroid.ui.MoveController;
+import com.christianbenner.crispinandroid.ui.Pointer;
+import com.christianbenner.crispinandroid.ui.Text;
+import com.christianbenner.crispinandroid.ui.TouchEvent;
+import com.christianbenner.crispinandroid.ui.TouchListener;
+import com.christianbenner.crispinandroid.ui.UIDimension;
+import com.christianbenner.crispinandroid.util.Geometry;
+import com.christianbenner.crispinandroid.util.Scene;
+import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Human;
 import com.christianbenner.zombie.Entities.Zombie;
-=======
-import com.christianbenner.crispinandroid.util.TextureHelper;
-import com.christianbenner.crispinandroid.util.UIRenderer;
-import com.christianbenner.crispinandroid.util.UIRendererGroup;
-import com.christianbenner.zombie.Map;
-import com.christianbenner.zombie.Objects.Bullet;
-import com.christianbenner.zombie.Objects.Human;
-import com.christianbenner.zombie.Objects.Zombie;
->>>>>>> Bullet
+import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
@@ -119,8 +99,10 @@ public class SceneGame extends Scene {
     private boolean doneYet = false;
 
     private Renderer renderer;
+    private RendererGroup bulletsGroup;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
+
     private PerFragMultiLightingShader shader;
     private TextureShaderProgram uiShader;
 
@@ -227,6 +209,8 @@ public class SceneGame extends Scene {
 
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
+        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
+        renderer.addGroup(bulletsGroup);
         //renderer.addModel(sniper);
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
@@ -362,11 +346,26 @@ public class SceneGame extends Scene {
 
     float nX = 0.0f;
     float nZ = 0.0f;
+
+    boolean spawnedBullet = false;
     @Override
     public void update(float deltaTime) {
         /*for(int i = 0; i < 5; i++)
         {
             System.out.println("At [" + i + "]: " + mActivePointers.get(mActivePointers.keyAt(i), new PointF(0.0f, 0.0f)));
+        }*/
+/*        if(!spawnedBullet)
+        {
+
+            spawnedBullet = true;
+            Bullet temp = new Bullet(context, humanoid.getPosition().x,
+                    humanoid.getPosition().y, new Geometry.Vector(1.0f, 0.0f, 0.0f),
+                    0.01f, 500000.0f);
+
+            // temp.setScale(0.05f);
+            bullets.add(temp);
+            renderer.addModel(temp);
+
         }*/
 
         moveController.update(deltaTime);
@@ -396,9 +395,21 @@ public class SceneGame extends Scene {
 
         humanoid.update(deltaTime);
 
+        // Update zombies
         for(Zombie zombie : zombies)
         {
             zombie.update(deltaTime);
+        }
+
+        // Update bullets
+        for (int n = 0; n < bullets.size(); n++) {
+            bullets.get(n).update(deltaTime);
+
+            // If the bullets have run out of life, remove them
+            if (bullets.get(n).isAlive() == false) {
+                bulletsGroup.removeModel(bullets.get(n).getModel());
+                bullets.remove(n--);
+            }
         }
 
      //   sniper.setPosition(new Geometry.Point(humanoid.getPosition().x, humanoid.getPosition().y, humanoid.getPosition().z));
@@ -522,17 +533,21 @@ public class SceneGame extends Scene {
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25 + offset.x,
                                 (viewHeight/2.0f) - 25 + offset.y, 0.0f));
 
-                        if(bulletWaitCount > 10)
+                        if(bulletWaitCount > 30)
                         {
                             bulletWaitCount = 0;
 
+                            // Todo: On gunshot spawn a light for a couple ms
+
                             // Spawn bullet
-                            bullets.add(new Bullet(humanoid.getPosition().x,
-                                    humanoid.getPosition().y, offsetDirection,
-                                    0.01f, 500000.0f));
-
+                            Geometry.Point playerPos = humanoid.getPosition().translate(new Geometry.Vector(0.0f, 0.5f, 0.0f));
+                            Bullet bullet = new Bullet(context, playerPos,
+                                    offsetDirection, 0.4f, 150.0f);
+                            playSound(context, R.raw.temp_gunshot, 1);
+                            bullets.add(bullet);
+                            bulletsGroup.addModel(bullet.getModel());
                         }
-
+                        bulletWaitCount++;
 
                         break;
                     case RELEASE:
