@@ -5,12 +5,14 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Light;
+import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
+import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
 import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
@@ -26,7 +28,8 @@ import com.christianbenner.crispinandroid.ui.TouchListener;
 import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.zombie.Entities.Human;
+import com.christianbenner.zombie.Entities.Bullet;
+import com.christianbenner.zombie.Entities.Player;
 import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
@@ -78,7 +81,7 @@ public class SceneGame extends Scene {
     private Light TEST_LIGHT;
     private Light TEST_LIGHT2;
     private RendererModel box;
-    private Human humanoid;
+    private Player player;
     //private RendererModel sniper;
 
     // Hold all the zombies
@@ -124,6 +127,9 @@ public class SceneGame extends Scene {
     private int[] musicQueue = new int[MUSIC_TRACKS];
     private int musicQueueIndex = 0;
 
+    // Bullets
+    private ArrayList<Bullet> bullets;
+    private RendererGroup bulletsGroup;
     // Map
     private Map demoMap;
 
@@ -183,14 +189,18 @@ public class SceneGame extends Scene {
       //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
-        humanoid = new Human(context, TextureHelper.loadTexture(context, R.drawable.player, true),
-                MOVE_SPEED);
-        humanoid.setPosition(PLAYER_START_POSITION);
+        
+        bullets = new ArrayList<>();
+        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
+
+        player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
+                MOVE_SPEED, bullets, bulletsGroup);
+        player.setPosition(PLAYER_START_POSITION);
 
         zombies = new ArrayList<>();
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, humanoid,
+                MOVE_SPEED / 2.0f, player,
                 new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
 
         TEST_LIGHT = new Light();
@@ -207,7 +217,9 @@ public class SceneGame extends Scene {
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
-        humanoid.addToRenderer(renderer);
+        player.addToRenderer(renderer);
+
+        renderer.addGroup(bulletsGroup);
 
         for(int i = 0; i < zombies.size(); i++)
         {
@@ -356,7 +368,7 @@ public class SceneGame extends Scene {
         aimController.update(deltaTime);
 
         Geometry.Vector moveVector = moveController.getDirection();
-        humanoid.setVelocity(new Geometry.Vector(moveVector.x, 0.0f, -moveVector.y));
+        player.setVelocity(new Geometry.Vector(moveVector.x, 0.0f, -moveVector.y));
 
         if(debugView)
         {
@@ -378,12 +390,28 @@ public class SceneGame extends Scene {
             cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, cameraTextTimer));
         }
 
-        humanoid.update(deltaTime);
+        player.update(deltaTime);
 
         // Update zombies
         for(Zombie zombie : zombies)
         {
             zombie.update(deltaTime);
+        }
+
+        // Update bullets
+        for (int n = 0; n < bullets.size(); n++) {
+            bullets.get(n).update(deltaTime);
+
+            // todo: Check the bullet collisions with the map
+
+            // todo: Check the bullet collisions with zombies and players
+
+
+            // If the bullets have run out of life, remove them
+            if (bullets.get(n).isAlive() == false) {
+                bulletsGroup.removeModel(bullets.get(n).getModel());
+                bullets.remove(n--);
+            }
         }
 
      //   sniper.setPosition(new Geometry.Point(humanoid.getPosition().x, humanoid.getPosition().y, humanoid.getPosition().z));
@@ -393,7 +421,7 @@ public class SceneGame extends Scene {
     //    sniper.setPosition(new Geometry.Point(3.0f, 0.1f, 4.0f));
     //    sniper.setScale(0.1f);
     //    sniper.rotate(angleS, 0.0f, 1.0f, 0.0f);
-        camera.setPosition(new Geometry.Point(humanoid.getPosition().x, CAMERA_START_POSITION.y, humanoid.getPosition().z));
+        camera.setPosition(new Geometry.Point(player.getPosition().x, CAMERA_START_POSITION.y, player.getPosition().z));
 
         boxRotationAngle += 1f * deltaTime;
         lightRotationAngle += 0.5f * deltaTime;
@@ -475,11 +503,11 @@ public class SceneGame extends Scene {
                         else
                         {
                             Geometry.Vector velocity = moveController.getDirection().scale(MOVE_SPEED);
-                            humanoid.setVelocity(new Geometry.Vector(velocity.x, 0.0f, -velocity.y));
+                            player.setVelocity(new Geometry.Vector(velocity.x, 0.0f, -velocity.y));
                         }
                         break;
                     case RELEASE:
-                        humanoid.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
+                        player.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
                         break;
                 }
             }
@@ -514,7 +542,7 @@ public class SceneGame extends Scene {
                                 (viewHeight/2.0f) - 25 + offset.y, 0.0f));
 
                         // Tell the player that the user has used the fire action
-                        humanoid.fireAction(unitVectorDirection);
+                        player.fireAction(unitVectorDirection);
                         break;
                     case RELEASE:
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25,
@@ -536,7 +564,7 @@ public class SceneGame extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                        humanoid.setWaving(!humanoid.isWaving());
+                        player.setWaving(!player.isWaving());
                         break;
                 }
             }
@@ -564,7 +592,7 @@ public class SceneGame extends Scene {
                             debugCamera.setPosition(pos);
                             renderer.setCamera(debugCamera);
                             cameraText.setText("Debug Camera");
-                            humanoid.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
+                            player.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
                             debugViewUIGroup.enableRendering();
                         }
                         else
@@ -595,7 +623,7 @@ public class SceneGame extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                        humanoid.switchWeaponTemp();
+                        player.switchWeaponTemp();
                         break;
                 }
             }

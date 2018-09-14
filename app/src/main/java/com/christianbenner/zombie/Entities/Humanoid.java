@@ -2,24 +2,18 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
-import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.util.Renderer;
-import com.christianbenner.crispinandroid.render.util.RendererGroup;
-import com.christianbenner.crispinandroid.util.Audio;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.zombie.R;
-
-import java.util.ArrayList;
 
 /**
  * Created by chris on 10/01/2018.
  */
 
-public class Human {
-    private Context context;
-    private Audio audio;
+public class Humanoid {
+    protected Context context;
 
     protected RendererModel leg_left;
     protected RendererModel leg_right;
@@ -27,10 +21,6 @@ public class Human {
     protected RendererModel arm_left;
     protected RendererModel body;
     protected RendererModel head;
-
-    private RendererGroup bulletsGroup;
-
-    private ArrayList<Bullet> bullets;
 
     private Texture texture_human;
 
@@ -55,13 +45,10 @@ public class Human {
     protected final Geometry.Point rightArmWaveRotationAxis =
             new Geometry.Point(0.15f, 0.65f, 0f );
 
-    private Weapon.WeaponType currentWeapon;
-
-    public Human(Context context, Texture texture, float movementSpeed)
+    public Humanoid(Context context, Texture texture, float movementSpeed)
     {
         this.context = context;
-        this.audio = Audio.getInstance();
-        this.currentWeapon = Weapon.WeaponType.HANDS;
+        this.movementSpeed = movementSpeed;
 
         texture_human = texture;
         this.position = new Geometry.Point(0.0f, 0.0f, 0.0f);
@@ -69,10 +56,6 @@ public class Human {
         facingAngle = 0.0f;
         desiredAngle = 0.0f;
         createParts();
-        this.movementSpeed = movementSpeed;
-
-        bullets = new ArrayList<>();
-        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
     }
 
     private void createParts()
@@ -93,111 +76,6 @@ public class Human {
         renderer.addModel(arm_right);
         renderer.addModel(body);
         renderer.addModel(head);
-        renderer.addGroup(bulletsGroup);
-    }
-
-    int bulletWaitCount = 0;
-    public void fireAction(Geometry.Vector unitVectorDirection)
-    {
-        if(bulletWaitCount > 30)
-        {
-            bulletWaitCount = 0;
-
-            // Todo: On gunshot spawn a light for a couple ms
-
-            Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(0.0f, 0.5f, 0.0f));
-
-            Bullet[] bulletsToAdd = null;
-
-            // Do different things for different weapons that may be equipped
-            switch (currentWeapon)
-            {
-                case HANDS:
-                    audio.playSound(R.raw.temp_punch, 1);
-                    break;
-                case PISTOL:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.4f, 150.0f);
-
-                    audio.playSound(R.raw.temp_pistol, 1);
-
-                    break;
-                case SNIPER:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.7f, 150.0f);
-
-                    audio.playSound(R.raw.temp_sniper, 1);
-                    break;
-                case SHOTGUN:
-                    bulletsToAdd = new Bullet[5];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.05f, 40.0f);
-                    bulletsToAdd[1] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.04f, 40.0f);
-                    bulletsToAdd[2] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.03f, 40.0f);
-                    bulletsToAdd[3] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.02f, 40.0f);
-                    bulletsToAdd[4] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.01f, 40.0f);
-
-                    audio.playSound(R.raw.temp_shotgun, 1);
-                    break;
-                case MACHINE_GUN:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.4f, 150.0f);
-                    audio.playSound(R.raw.temp_assault_rifle, 1);
-                    break;
-                case ROCKET_LAUNCHER:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.08f, 85.0f);
-                    audio.playSound(R.raw.temp_rpg, 1);
-                    break;
-                case SUB_MACHINE_GUN:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.3f, 150.0f);
-                    audio.playSound(R.raw.temp_smg, 1);
-                    break;
-                case GRENADE_LAUNCHER:
-                    bulletsToAdd = new Bullet[1];
-                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.02f, 150.0f);
-                    audio.playSound(R.raw.temp_grenade_launcher, 1);
-                    break;
-                default:
-                    System.out.println("Not implemented weapon mechanics yet.");
-                    break;
-            }
-
-            if(bulletsToAdd != null)
-            {
-                for(int i = 0; i < bulletsToAdd.length; i++)
-                {
-                    // Spawn bullet
-                    bullets.add(bulletsToAdd[i]);
-                    bulletsGroup.addModel(bulletsToAdd[i].getModel());
-                }
-            }
-        }
-        bulletWaitCount++;
-    }
-
-    // Debug function iterates through the weapon types list
-    public void switchWeaponTemp()
-    {
-        if(currentWeapon == Weapon.WeaponType.HANDS)
-        {
-            currentWeapon = Weapon.WeaponType.values()[0];
-        }
-        else
-        {
-            currentWeapon = Weapon.WeaponType.values()[currentWeapon.ordinal() + 1];
-        }
     }
 
     public int getRendererGroup()
@@ -347,17 +225,6 @@ public class Human {
         if(waving)
         {
             arm_right.rotateAroundPos(rightArmWaveRotationAxis, angle_wave + 90.0f, 0.0f, 0.0f, 1.0f);
-        }
-
-        // Update bullets
-        for (int n = 0; n < bullets.size(); n++) {
-            bullets.get(n).update(deltaTime);
-
-            // If the bullets have run out of life, remove them
-            if (bullets.get(n).isAlive() == false) {
-                bulletsGroup.removeModel(bullets.get(n).getModel());
-                bullets.remove(n--);
-            }
         }
     }
 }

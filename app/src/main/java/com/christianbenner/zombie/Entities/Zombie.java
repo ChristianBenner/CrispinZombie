@@ -14,8 +14,8 @@ import java.util.LinkedList;
  * Created by Christian Benner on 19/05/2018.
  */
 
-public class Zombie extends Human {
-    private Human player;
+public class Zombie extends Humanoid {
+    private Humanoid player;
     private final float ARM_ANGLE = -90.0f;
     private Map map;
 
@@ -25,11 +25,11 @@ public class Zombie extends Human {
     private final long PATH_UPDATE_WAIT_MILLIS = 1000 / PATH_UPDATE_FREQUENCY;
     public  boolean hasPath = false;
 
-    public Zombie(Context context, Texture texture, float movementSpeed, Human human, Geometry.Point position, Map map)
+    public Zombie(Context context, Texture texture, float movementSpeed, Humanoid humanoid, Geometry.Point position, Map map)
     {
         super(context, texture, movementSpeed);
         setPosition(position);
-        this.player = human;
+        this.player = humanoid;
         this.map = map;
     }
 
