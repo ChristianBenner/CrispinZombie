@@ -35,7 +35,7 @@ public class Player extends Humanoid
 
             // Todo: On gunshot spawn a light for a couple ms
 
-            Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(0.0f, 0.5f, 0.0f));
+            Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(0.0f, 0.25f, 0.0f));
 
             Bullet[] bulletsToAdd = null;
 
@@ -48,7 +48,7 @@ public class Player extends Humanoid
                 case PISTOL:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.4f, 150.0f);
+                            unitVectorDirection, 0.04f, 150.0f);
 
                     audio.playSound(R.raw.temp_pistol, 1);
 

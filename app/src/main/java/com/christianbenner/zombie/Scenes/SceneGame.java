@@ -189,7 +189,7 @@ public class SceneGame extends Scene {
       //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
-        
+
         bullets = new ArrayList<>();
         bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
@@ -400,16 +400,23 @@ public class SceneGame extends Scene {
 
         // Update bullets
         for (int n = 0; n < bullets.size(); n++) {
-            bullets.get(n).update(deltaTime);
+            Bullet bullet = bullets.get(n);
 
-            // todo: Check the bullet collisions with the map
+            bullet.update(deltaTime);
 
             // todo: Check the bullet collisions with zombies and players
 
+            // todo: Check the bullet collisions with the map
+            if(demoMap.checkCollision(bullet))
+            {
+                // Collision sound effect
+                audio.playSound(R.raw.wood_collide, 1);
+                bullet.endLife();
+            }
 
             // If the bullets have run out of life, remove them
-            if (bullets.get(n).isAlive() == false) {
-                bulletsGroup.removeModel(bullets.get(n).getModel());
+            if (bullet.isAlive() == false) {
+                bulletsGroup.removeModel(bullet.getModel());
                 bullets.remove(n--);
             }
         }

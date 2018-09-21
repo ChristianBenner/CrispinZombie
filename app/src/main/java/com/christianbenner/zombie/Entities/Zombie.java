@@ -170,22 +170,22 @@ public class Zombie extends Humanoid {
         // How much the limbs should move (depends on how far the joystick is dragged)
         float limbMovementFactor = (velocity.length() / movementSpeed);
 
-        if(angle > MAX_LIMB_MOVEMENT * limbMovementFactor)
+        if(limbAngle > MAX_LIMB_MOVEMENT * limbMovementFactor)
         {
-            up = false;
+            limbRaised = false;
         }
-        else if(angle < -MAX_LIMB_MOVEMENT * limbMovementFactor)
+        else if(limbAngle < -MAX_LIMB_MOVEMENT * limbMovementFactor)
         {
-            up = true;
+            limbRaised = true;
 
         }
 
-        if(up)
+        if(limbRaised)
         {
-            angle += (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
+            limbAngle += (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
         }else
         {
-            angle -= (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
+            limbAngle -= (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
         }
 
         // Rotate all the parts to face the right way
@@ -199,41 +199,14 @@ public class Zombie extends Humanoid {
         // Rotate the arms and legs to move
         if(velocity.length() > 0.0f)
         {
-            leg_left.rotateAroundPos(leftLegRotationAxis, angle, 1.0f, 0.0f, 0.0f);
-            leg_right.rotateAroundPos(leftLegRotationAxis, -angle, 1.0f, 0.0f, 0.0f);
+            leg_left.rotateAroundPos(leftLegRotationAxis, limbAngle, 1.0f, 0.0f, 0.0f);
+            leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
             arm_left.rotateAroundPos(leftArmRotationAxis, ARM_ANGLE, 1.0f, 0.0f, 0.0f);
             arm_right.rotateAroundPos(rightArmRotationAxis, ARM_ANGLE, 1.0f, 0.0f, 0.0f);
         }
         else
         {
-            angle = 0.0f;
-        }
-
-
-        count++;
-        if(count >= 60)
-        {
-            count = 0;
-            // Path find to the player
-            // Find the current tile that we are on
-            int currentTileX = (int)(position.x / 2.0f);
-            int currentTileZ = (int)((position.z / 2.0f) + 1.0f);
-
-        //    ArrayList<Tile> path = map.newPathFind(currentTileX, currentTileZ, (int)(playerPosition.x / 2.0f), (int)((playerPosition.z / 2.0f) + 1.0f));
-
-            //ArrayList<Tile> path = map.pathfind(currentTileX, currentTileZ, (int)(playerPosition.x / 2.0f), (int)((playerPosition.z / 2.0f) + 1.0f));
-            //map.nextMove(currentTileX, currentTileZ, (int)playerPosition.x, (int)(playerPosition.z + 1.0f));
-
-  //          System.out.println("Current Tile: " + currentTileX + ", " + currentTileZ);
-
-    //        System.out.println("Path {");
-      //      for(Tile tile : path)
-      //      {
-      //          System.out.println("\tTile x[" + tile.getPosition().x + ", y[" + tile.getPosition().y + "]");
-     //       }
-    //        System.out.println("}");
+            limbAngle = 0.0f;
         }
     }
-
-    int count = 0;
 }

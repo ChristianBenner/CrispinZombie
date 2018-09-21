@@ -13,8 +13,16 @@ import com.christianbenner.zombie.R;
  */
 
 public class Humanoid {
+    // Activity context
     protected Context context;
 
+    // Constants
+    private static final int DEFAULT_GROUP_HUMAN = 200;
+    private int rendererGroup = DEFAULT_GROUP_HUMAN;
+    protected final float MAX_LIMB_MOVEMENT = 45.0f;
+    protected final float MAX_LIMB_MOVEMENT_SPEED = 5.0f;
+
+    // The renderer models for each part of the human
     protected RendererModel leg_left;
     protected RendererModel leg_right;
     protected RendererModel arm_right;
@@ -22,17 +30,31 @@ public class Humanoid {
     protected RendererModel body;
     protected RendererModel head;
 
-    private Texture texture_human;
+    // The texture associated to the humanoid
+    private Texture texture;
 
-    private static final int DEFAULT_GROUP_HUMAN = 200;
-    private int rendererGroup = DEFAULT_GROUP_HUMAN;
-
+    // The current position
     protected Geometry.Point position;
-    private Geometry.Vector velocity;
-    protected float facingAngle;
-    private float desiredAngle;
 
+    // The velocity
+    private Geometry.Vector velocity;
+
+    // The angle that the humanoid is facing
+    protected float facingAngle;
+
+    // The speed in which the humanoid can move
     protected float movementSpeed;
+
+    // The state of the limb being raised
+    boolean limbRaised = false;
+
+    // The angle of the limbs
+    float limbAngle = 0.0f;
+
+    boolean upWave = false;
+    float waveAngle = 0.0f;
+
+    private boolean waving = false;
 
     protected final Geometry.Point leftLegRotationAxis =
             new Geometry.Point(-0.05f, 0.35f, 0f );
@@ -49,23 +71,22 @@ public class Humanoid {
     {
         this.context = context;
         this.movementSpeed = movementSpeed;
+        this.texture = texture;
 
-        texture_human = texture;
-        this.position = new Geometry.Point(0.0f, 0.0f, 0.0f);
-        this.velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
+        position = new Geometry.Point(0.0f, 0.0f, 0.0f);
+        velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
         facingAngle = 0.0f;
-        desiredAngle = 0.0f;
         createParts();
     }
 
     private void createParts()
     {
-        leg_left = new RendererModel(context, R.raw.left_leg_clean, texture_human);
-        leg_right = new RendererModel(context, R.raw.right_leg_clean, texture_human);
-        arm_left = new RendererModel(context, R.raw.left_arm_clean, texture_human);
-        arm_right = new RendererModel(context, R.raw.right_arm_clean, texture_human);
-        body = new RendererModel(context, R.raw.body_clean, texture_human);
-        head = new RendererModel(context, R.raw.head_clean, texture_human);
+        leg_left = new RendererModel(context, R.raw.left_leg_clean, texture);
+        leg_right = new RendererModel(context, R.raw.right_leg_clean, texture);
+        arm_left = new RendererModel(context, R.raw.left_arm_clean, texture);
+        arm_right = new RendererModel(context, R.raw.right_arm_clean, texture);
+        body = new RendererModel(context, R.raw.body_clean, texture);
+        head = new RendererModel(context, R.raw.head_clean, texture);
     }
 
     public void addToRenderer(Renderer renderer)
@@ -125,16 +146,6 @@ public class Humanoid {
         head.rotate(angle, 0.0f, 1.0f, 0.0f);
     }
 
-    boolean up = false;
-    float angle = 0.0f;
-
-    boolean up_wave = false;
-    float angle_wave = 0.0f;
-
-    protected final float MAX_LIMB_MOVEMENT = 45.0f;
-    protected final float MAX_LIMB_MOVEMENT_SPEED = 5.0f;
-    private boolean waving = false;
-
     public void setWaving(boolean state)
     {
         waving = state;
@@ -160,22 +171,22 @@ public class Humanoid {
         // How much the limbs should move (depends on how far the joystick is dragged)
         float limbMovementFactor = (velocity.length() / movementSpeed);
 
-        if(angle > MAX_LIMB_MOVEMENT * limbMovementFactor)
+        if(limbAngle > MAX_LIMB_MOVEMENT * limbMovementFactor)
         {
-            up = false;
+            limbRaised = false;
         }
-        else if(angle < -MAX_LIMB_MOVEMENT * limbMovementFactor)
+        else if(limbAngle < -MAX_LIMB_MOVEMENT * limbMovementFactor)
         {
-            up = true;
+            limbRaised = true;
 
         }
 
-        if(up)
+        if(limbRaised)
         {
-            angle += (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
+            limbAngle += (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
         }else
         {
-            angle -= (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
+            limbAngle -= (MAX_LIMB_MOVEMENT_SPEED * limbMovementFactor);
         }
 
         // Rotate all the parts to face the right way
@@ -189,42 +200,42 @@ public class Humanoid {
         // Rotate the arms and legs to move
         if(velocity.length() > 0.0f)
         {
-            leg_left.rotateAroundPos(leftLegRotationAxis, angle, 1.0f, 0.0f, 0.0f);
-            leg_right.rotateAroundPos(leftLegRotationAxis, -angle, 1.0f, 0.0f, 0.0f);
-            arm_left.rotateAroundPos(leftArmRotationAxis, -angle, 1.0f, 0.0f, 0.0f);
+            leg_left.rotateAroundPos(leftLegRotationAxis, limbAngle, 1.0f, 0.0f, 0.0f);
+            leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+            arm_left.rotateAroundPos(leftArmRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
 
             if(!waving)
             {
-                arm_right.rotateAroundPos(rightArmRotationAxis, angle, 1.0f, 0.0f, 0.0f);
+                arm_right.rotateAroundPos(rightArmRotationAxis, limbAngle, 1.0f, 0.0f, 0.0f);
             }
         }
         else
         {
-            angle = 0.0f;
+            limbAngle = 0.0f;
         }
 
-
-        if(angle_wave > 75.0f)
+        if(waveAngle > 75.0f)
         {
-            up_wave = false;
+            upWave = false;
         }
-        else if(angle_wave < 0.0f)
+        else if(waveAngle < 0.0f)
         {
-            up_wave = true;
+            upWave = true;
         }
 
-        if(up_wave)
+        if(upWave)
         {
-            angle_wave += 5.0f;
+            waveAngle += 5.0f;
         }
         else
         {
-            angle_wave -= 5.0f;
+            waveAngle -= 5.0f;
         }
 
         if(waving)
         {
-            arm_right.rotateAroundPos(rightArmWaveRotationAxis, angle_wave + 90.0f, 0.0f, 0.0f, 1.0f);
+            arm_right.rotateAroundPos(rightArmWaveRotationAxis, waveAngle + 90.0f, 0.0f, 0.0f,
+                    1.0f);
         }
     }
 }

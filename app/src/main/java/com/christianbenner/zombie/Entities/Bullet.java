@@ -24,6 +24,12 @@ public class Bullet {
     // The renderer model
     private RendererModel model;
 
+    // The width of the bullet
+    public final float WIDTH_MULTIPLIER = 0.1f;
+
+    // The height of the bullet
+    public final float DEPTH_MULTIPLIER = 0.2f;
+
     // Create a bullet that needs to be updated to be projected with a specific speed and
     // direction. The life value is an amount that decays over time. Actual time can't be used
     // here because if the game runs slower on some devices the bullets will de-spawn at
@@ -44,7 +50,7 @@ public class Bullet {
                 Model.AllowedData.VERTEX_TEXEL_NORMAL);
         model.newIdentity();
         model.setPosition(position);
-        model.setScale(0.1f);
+        model.setScale(WIDTH_MULTIPLIER);
     }
 
     public void update(float deltaTime)
@@ -60,7 +66,7 @@ public class Bullet {
 
         model.newIdentity();
         model.setPosition(new Geometry.Point(position.x, 1.0f, position.z));
-        model.setScale(0.1f);
+        model.setScale(WIDTH_MULTIPLIER);
     }
 
     // Return the renderer model
@@ -84,5 +90,16 @@ public class Bullet {
     public boolean isAlive()
     {
         return life > 0.0f;
+    }
+
+    // Kill the bullet
+    public void endLife()
+    {
+        life = 0.0f;
+    }
+
+    // Return the current position of the bullet
+    public Geometry.Point getPosition() {
+        return position;
     }
 }

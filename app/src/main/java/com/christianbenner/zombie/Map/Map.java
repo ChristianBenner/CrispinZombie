@@ -10,6 +10,7 @@ import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.Geometry;
+import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Weapon;
 import com.christianbenner.zombie.R;
 
@@ -109,24 +110,6 @@ public class Map
             System.err.println("Failed to load the map");
             e.printStackTrace();
         }
-    }
-
-    // Get the map width
-    public int getMapWidth()
-    {
-        return mapWidth;
-    }
-
-    // Get the map height
-    public int getMapHeight()
-    {
-        return mapHeight;
-    }
-
-    // Get the position of a model in the model array
-    public Geometry.Point getModelPosition(Cell cell)
-    {
-        return models[cell.getPositionZ()][cell.getPositionX()].getPosition();
     }
 
     // Set the renderer of the map
@@ -725,5 +708,116 @@ public class Map
             }
         }
         return lowestIndex != -1 ? openSet.get(lowestIndex) : null;
+    }
+
+    // Check if a bullet is colliding with any of the wall tiles
+    public boolean checkCollision(Bullet bullet)
+    {
+        // Todo: Optimise so that only cells around the bullet will be checked.
+        // Todo: A good optimisation may be having an array of walls that reference the cells or models so that we can just check that array too.
+
+        for(int y = 0; y < mapHeight; y++)
+        {
+            for(int x = 0; x < mapWidth; x++)
+            {
+                if(cells[y][x].isCollidable())
+                {
+                    if(bulletCollidesWithWall(bullet, models[y][x]))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Do circular collisions
+    private boolean bulletCollidesWithSphericalWall(Bullet bullet, RendererModel wall)
+    {
+        final Geometry.Point bPos = bullet.getPosition();
+        final Geometry.Point wPos = wall.getPosition().translate(new Geometry.Vector(-(TILE_SIZE/2.0f), 0.0f, 0.0f));
+
+        final Geometry.Point bDims =
+                new Geometry.Point(bullet.DEPTH_MULTIPLIER, 0.5f, bullet.DEPTH_MULTIPLIER);
+        final Geometry.Point wDims =
+                new Geometry.Point(TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+        final Geometry.Point wCenterPos = new Geometry.Point(wPos.x + (wDims.x / 2.0f),
+                wPos.y + (wDims.y / 2.0f), wPos.z + (wDims.z / 2.0f));
+        final Geometry.Point bCenterPos = new Geometry.Point(bPos.x + (bDims.x / 2.0f),
+                wCenterPos.y, bPos.z + (bDims.z / 2.0f));
+
+        final float bRadius = bDims.x / 2.0f;
+        final float wRadius = wDims.x / 2.0f;
+
+        final Geometry.Point difference = new Geometry.Point(
+                Math.abs(wCenterPos.x - bCenterPos.x),
+                Math.abs(wCenterPos.y - bCenterPos.y),
+                Math.abs(wCenterPos.z - bCenterPos.z));
+
+        if(difference.x < bRadius + wRadius &&
+                difference.y < bRadius + wRadius &&
+                difference.z < bRadius + wRadius)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    //private boolean contains()
+
+    private boolean bulletCollidesWithWall(Bullet bullet, RendererModel wall)
+    {
+        final Geometry.Point bPos = bullet.getPosition();
+        final Geometry.Point wPos = wall.getPosition().translate(new Geometry.Vector(-(TILE_SIZE/2.0f), 0.0f, 0.0f));
+
+        final Geometry.Point bDims =
+                new Geometry.Point(bullet.DEPTH_MULTIPLIER, 0.125f, bullet.DEPTH_MULTIPLIER);
+        final Geometry.Point wDims =
+                new Geometry.Point(TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+
+        boolean xInRange = false;
+        boolean zInRange = false;
+
+        // Test if the X co-ordinate is in range
+        if((bPos.x > wPos.x && bPos.x < wPos.x + wDims.x) ||
+                (bPos.x + bDims.x > wPos.x && bPos.x + bDims.x < wPos.x + wDims.x))
+        {
+            xInRange = true;
+        }
+
+        if(xInRange)
+        {
+            // Test for Z in range
+            if((bPos.z > wPos.z && bPos.z < wPos.z + wDims.z) ||
+                    (bPos.z + bDims.z > wPos.z && bPos.z + bDims.z < wPos.z + wDims.z))
+            {
+                zInRange = true;
+            }
+        }
+
+        return xInRange && zInRange;
+    }
+
+    // Get the map width
+    public int getMapWidth()
+    {
+        return mapWidth;
+    }
+
+    // Get the map height
+    public int getMapHeight()
+    {
+        return mapHeight;
+    }
+
+    // Get the position of a model in the model array
+    public Geometry.Point getModelPosition(Cell cell)
+    {
+        return models[cell.getPositionZ()][cell.getPositionX()].getPosition();
     }
 }
