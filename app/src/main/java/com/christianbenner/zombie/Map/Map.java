@@ -39,6 +39,9 @@ public class Map
     // Array of cells
     private Cell[][] cells = null;
 
+    // Positions of walls in the cell array
+    private ArrayList<Integer> wallIndexValues = null;
+
     // Array of models that correspond to the cell array
     private RendererModel[][] models = null;
 
@@ -432,6 +435,9 @@ public class Map
         // Create the cell array
         cells = new Cell[mapHeight][mapWidth];
 
+        // Create the wall reference array
+        wallIndexValues = new ArrayList<>();
+
         // Move into the cell array
         for(int i = 0; i < data.length(); i++)
         {
@@ -439,6 +445,11 @@ public class Map
             int locationZ = i / mapWidth;
             cells[locationZ][locationX] =
                     new Cell((int)data.charAt(i), locationX, locationZ);
+
+            if(cells[locationZ][locationX].isCollidable())
+            {
+                wallIndexValues.add((locationZ * mapWidth) + locationX);
+            }
         }
     }
 
@@ -602,7 +613,7 @@ public class Map
             closedSet.add(current);
 
             // Check the current nodes neighbouring cells
-            for(Cell neighbour : getNeighbours(current))
+            for(Cell neighbour : getNonCollidableNeighbours(current))
             {
                 // The neighbour has already been processed, no need to process again
                 if(closedSet.contains(neighbour))
@@ -648,28 +659,28 @@ public class Map
     }
 
     // Find all the neighbours around a specified cell, returns a list of cells
-    private LinkedList<Cell> getNeighbours(Cell cell)
+    private LinkedList<Cell> getNonCollidableNeighbours(Cell cell)
     {
         // List of neighbouring cells
         LinkedList<Cell> neighbours = new LinkedList<>();
 
         int x = cell.getPositionX(); int z = cell.getPositionZ();
 
-        if(isValidIndex(x, z-1)) neighbours.add(cells[z-1][x]);     // Above
-        if(isValidIndex(x+1, z-1)) neighbours.add(cells[z-1][x+1]); // Top right
-        if(isValidIndex(x+1, z)) neighbours.add(cells[z][x+1]);     // Right
-        if(isValidIndex(x+1, z+1)) neighbours.add(cells[z+1][x+1]); // Bottom Right
-        if(isValidIndex(x, z+1)) neighbours.add(cells[z+1][x]);     // Bottom
-        if(isValidIndex(x-1, z+1)) neighbours.add(cells[z+1][x-1]); // Bottom left
-        if(isValidIndex(x-1, z)) neighbours.add(cells[z][x-1]);     // Left
-        if(isValidIndex(x-1, z-1)) neighbours.add(cells[z-1][x-1]); // Top left
+        if(isValidNonCollidablendex(x, z-1)) neighbours.add(cells[z-1][x]);     // Above
+        if(isValidNonCollidablendex(x+1, z-1)) neighbours.add(cells[z-1][x+1]); // Top right
+        if(isValidNonCollidablendex(x+1, z)) neighbours.add(cells[z][x+1]);     // Right
+        if(isValidNonCollidablendex(x+1, z+1)) neighbours.add(cells[z+1][x+1]); // Bottom Right
+        if(isValidNonCollidablendex(x, z+1)) neighbours.add(cells[z+1][x]);     // Bottom
+        if(isValidNonCollidablendex(x-1, z+1)) neighbours.add(cells[z+1][x-1]); // Bottom left
+        if(isValidNonCollidablendex(x-1, z)) neighbours.add(cells[z][x-1]);     // Left
+        if(isValidNonCollidablendex(x-1, z-1)) neighbours.add(cells[z-1][x-1]); // Top left
 
         return neighbours;
     }
 
     // Check if the co-ordinates are in the map boundaries (in array range) and the cell is not
     // a collidable type
-    private boolean isValidIndex(int x, int z)
+    private boolean isValidNonCollidablendex(int x, int z)
     {
         return ((x >= 0 && x < mapWidth && z >= 0 && z < mapHeight) && !cells[z][x].isCollidable());
     }
@@ -710,25 +721,48 @@ public class Map
         return lowestIndex != -1 ? openSet.get(lowestIndex) : null;
     }
 
-    // Check if a bullet is colliding with any of the wall tiles
+    // Returns the walls surrounding index X,Z and if X,Z is on a wall
+    private LinkedList<Cell> getSurroundingWalls(int x, int z)
+    {
+        // List of all the walls
+        LinkedList<Cell> walls = new LinkedList<>();
+
+        if(isValidWall(x, z)) walls.add(cells[z][x]);         // Current
+        if(isValidWall(x, z-1)) walls.add(cells[z-1][x]);     // Above
+        if(isValidWall(x+1, z-1)) walls.add(cells[z-1][x+1]); // Top right
+        if(isValidWall(x+1, z)) walls.add(cells[z][x+1]);     // Right
+        if(isValidWall(x+1, z+1)) walls.add(cells[z+1][x+1]); // Bottom Right
+        if(isValidWall(x, z+1)) walls.add(cells[z+1][x]);     // Bottom
+        if(isValidWall(x-1, z+1)) walls.add(cells[z+1][x-1]); // Bottom left
+        if(isValidWall(x-1, z)) walls.add(cells[z][x-1]);     // Left
+        if(isValidWall(x-1, z-1)) walls.add(cells[z-1][x-1]); // Top left
+
+        return walls;
+    }
+
+    // Checks if the given index is a collidable cell by checking against the wall list
+    private boolean isValidWall(int x, int z)
+    {
+        return ((x >= 0 && x < mapWidth && z >= 0 && z < mapHeight) &&
+                wallIndexValues.contains((z * mapWidth) + x));
+    }
+
+    // Check if a bullet is colliding with any of the walls surrounding it
     public boolean checkCollision(Bullet bullet)
     {
-        // Todo: Optimise so that only cells around the bullet will be checked.
-        // Todo: A good optimisation may be having an array of walls that reference the cells or models so that we can just check that array too.
+        // tiles are TILE_WIDTH large and bullets are
+        final int x = (int)(bullet.getPosition().x / TILE_SIZE);
+        final int z = (int)(bullet.getPosition().z / TILE_SIZE);
 
-        for(int y = 0; y < mapHeight; y++)
-        {
-            for(int x = 0; x < mapWidth; x++)
-            {
-                if(cells[y][x].isCollidable())
-                {
-                    if(bulletCollidesWithWall(bullet, models[y][x]))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
+        if(isValidWall(x, z) && bulletWallCollision(bullet, models[z][x])) { return true; }         // Current
+        if(isValidWall(x, z-1) && bulletWallCollision(bullet, models[z-1][x])) { return true; }     // Above
+        if(isValidWall(x+1, z-1) && bulletWallCollision(bullet, models[z-1][x+1])) { return true; } // Top right
+        if(isValidWall(x+1, z) && bulletWallCollision(bullet, models[z][x+1])) { return true; }     // Right
+        if(isValidWall(x+1, z+1) && bulletWallCollision(bullet, models[z+1][x+1])) { return true; } // Bottom Right
+        if(isValidWall(x, z+1) && bulletWallCollision(bullet, models[z+1][x])) { return true; }     // Bottom
+        if(isValidWall(x-1, z+1) && bulletWallCollision(bullet, models[z+1][x-1])) { return true; } // Bottom Left
+        if(isValidWall(x-1, z) && bulletWallCollision(bullet, models[z][x-1])) { return true; }     // Left
+        if(isValidWall(x-1, z-1) && bulletWallCollision(bullet, models[z-1][x-1])) { return true; } // Top Left
 
         return false;
     }
@@ -769,7 +803,7 @@ public class Map
 
     //private boolean contains()
 
-    private boolean bulletCollidesWithWall(Bullet bullet, RendererModel wall)
+    private boolean bulletWallCollision(Bullet bullet, RendererModel wall)
     {
         final Geometry.Point bPos = bullet.getPosition();
         final Geometry.Point wPos = wall.getPosition().translate(new Geometry.Vector(-(TILE_SIZE/2.0f), 0.0f, 0.0f));

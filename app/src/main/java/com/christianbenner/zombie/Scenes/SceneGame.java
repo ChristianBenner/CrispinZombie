@@ -407,6 +407,7 @@ public class SceneGame extends Scene {
             // todo: Check the bullet collisions with zombies and players
 
             // todo: Check the bullet collisions with the map
+
             if(demoMap.checkCollision(bullet))
             {
                 // Collision sound effect
