@@ -19,6 +19,7 @@ public abstract class UIBase {
     public static final int TEXTURE_COORDINATES_COMPONENT_COUNT = 2;
     public static final int STRIDE = (POSITION_COMPONENT_COUNT +
             TEXTURE_COORDINATES_COMPONENT_COUNT) * BYTES_PER_FLOAT;
+    public static final int STRIDE_NO_TEXELS = POSITION_COMPONENT_COUNT * BYTES_PER_FLOAT;
 
     // Common to all UI elements (texture may not be used check if == null)
     protected Texture texture;

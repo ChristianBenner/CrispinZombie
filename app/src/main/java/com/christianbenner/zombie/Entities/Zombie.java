@@ -19,6 +19,8 @@ public class Zombie extends Humanoid {
     private final float ARM_ANGLE = -90.0f;
     private Map map;
 
+    private float life = 100.0f;
+
     // Temp
     private long time = 0;
     private final long PATH_UPDATE_FREQUENCY = 5;
@@ -35,6 +37,17 @@ public class Zombie extends Humanoid {
 
     private LinkedList<Cell> path = null;
     Cell lastValid = null;
+
+    public void damage(float value)
+    {
+        life -= value;
+    }
+
+    public boolean isAlive()
+    {
+        return life > 0.0f;
+    }
+
     public void update(float deltaTime)
     {
         // Get path to player DEBUG

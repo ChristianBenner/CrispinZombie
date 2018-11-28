@@ -32,6 +32,20 @@ public class RendererModel extends Model {
     private Context context;
     private boolean vboModel;
 
+    public float[] getFirstFloats()
+    {
+        float[] firstFloats = {
+                vertexArray.floatBuffer.get(0),
+                vertexArray.floatBuffer.get(1),
+                vertexArray.floatBuffer.get(2),
+                vertexArray.floatBuffer.get(3)
+        };
+
+        return firstFloats;
+    }
+
+
+
     private float[] modelMatrix = new float[16];
 
     private int[] vbo;

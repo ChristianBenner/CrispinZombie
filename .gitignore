@@ -79,3 +79,5 @@ fastlane/readme.md
 /.idea
 gradlew
 gradlew.bat
+app/src/main/res/raw/zombie_hit.mp3
+app/src/main/res/drawable/blank.png

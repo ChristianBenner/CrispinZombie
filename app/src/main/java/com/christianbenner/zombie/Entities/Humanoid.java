@@ -67,6 +67,11 @@ public class Humanoid {
     protected final Geometry.Point rightArmWaveRotationAxis =
             new Geometry.Point(0.15f, 0.65f, 0f );
 
+    public float[] getFirstFloats()
+    {
+        return head.getFirstFloats();
+    }
+
     public Humanoid(Context context, Texture texture, float movementSpeed)
     {
         this.context = context;
@@ -77,6 +82,16 @@ public class Humanoid {
         velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
         facingAngle = 0.0f;
         createParts();
+    }
+
+    public void removeFromRenderer(Renderer renderer)
+    {
+        renderer.removeModel(leg_left);
+        renderer.removeModel(leg_right);
+        renderer.removeModel(arm_left);
+        renderer.removeModel(arm_right);
+        renderer.removeModel(body);
+        renderer.removeModel(head);
     }
 
     private void createParts()
@@ -97,6 +112,11 @@ public class Humanoid {
         renderer.addModel(arm_right);
         renderer.addModel(body);
         renderer.addModel(head);
+    }
+
+    public float[] getModelMatrix()
+    {
+        return head.getModelMatrix();
     }
 
     public int getRendererGroup()

@@ -22,7 +22,7 @@ public class UIRendererGroup {
     private UIRenderer renderer;
 
     // Reference to the shader
-    private ShaderProgram shader;
+    private ShaderProgram shader = null;
 
     // Matrix's
     private float[] orthoMatrix = new float[16];
@@ -55,6 +55,8 @@ public class UIRendererGroup {
         {
             for(UIBase ui : uiElements)
             {
+                shader.useProgram();
+
                 ui.bindData(shader);
                 Matrix.setIdentityM(modelMatrix, 0);
                 Matrix.translateM(modelMatrix, 0, ui.getPosition().x, ui.getPosition().y, 0.0f);
@@ -72,7 +74,11 @@ public class UIRendererGroup {
                     Matrix.multiplyMM(transformation, 0, orthoMatrix, 0, modelMatrix, 0);
                 }
 
-                shader.setTextureUniforms(ui.getTexture().getTextureId());
+                if(ui.getTexture() != null)
+                {
+                    shader.setTextureUniforms(ui.getTexture().getTextureId());
+                }
+
                 shader.setMatrix(transformation);
                 shader.setColourUniforms(ui.getColour());
                 ui.draw();
@@ -83,6 +89,10 @@ public class UIRendererGroup {
     public void setShader(ShaderProgram shader)
     {
         this.shader = shader;
+    }
+
+    public ShaderProgram getShader() {
+        return shader;
     }
 
     public void enableRendering()

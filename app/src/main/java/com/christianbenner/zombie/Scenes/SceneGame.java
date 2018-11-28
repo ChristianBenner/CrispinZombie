@@ -1,6 +1,7 @@
 package com.christianbenner.zombie.Scenes;
 
 import android.content.Context;
+import android.opengl.Matrix;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
@@ -8,6 +9,7 @@ import com.christianbenner.crispinandroid.render.data.Light;
 import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
+import com.christianbenner.crispinandroid.render.shaders.ColourShaderProgram;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
@@ -34,6 +36,9 @@ import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import static android.opengl.GLES20.GL_ALPHA;
@@ -42,17 +47,24 @@ import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_CULL_FACE;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_TEST;
+import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
 import static android.opengl.GLES20.GL_SRC_ALPHA;
+import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glDisable;
+import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnable;
+import static android.opengl.GLES20.glEnableVertexAttribArray;
+import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.setIdentityM;
 import static android.opengl.Matrix.translateM;
+import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 
 /**
  * Created by Christian Benner on 15/02/2018.
@@ -233,6 +245,10 @@ public class SceneGame extends Scene {
 
         musicQueue[0] = R.raw.button_click;
         musicQueue[1] = R.raw.button_click;
+
+        healthbarBuffer = ByteBuffer.allocateDirect(healthbarData.length * BYTES_PER_FLOAT)
+                .order(ByteOrder.nativeOrder()).asFloatBuffer();
+        healthbarBuffer.put(healthbarData).position(0);
     }
 
     @Override
@@ -268,6 +284,9 @@ public class SceneGame extends Scene {
         uiShader = new TextureShaderProgram(context);
         uiRenderer.setShader(uiShader);
 
+        colourShader = new ColourShaderProgram(context);
+
+
         // If Debug Enabled
         // Camera Text
         Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
@@ -297,6 +316,52 @@ public class SceneGame extends Scene {
         }
     }
 
+    ///////////////////// WIP HEALTHBAR VARIABLES /////////////////////
+    // X, Y, Z
+    // R, G, B, A (not used anymore)
+    final float[] healthbarData = {
+            // Bottom Left
+            -1.0f, -0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+
+            // Bottom Right
+            1.0f, -0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+
+            // Top left
+            -1.0f, 0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+
+            // Top Right
+            1.0f, 0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+
+            // Top left
+            -1.0f, 0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f,
+
+            // Bottom Right
+            1.0f, -0.1f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+    final private float[] defaultOrtho =
+            {
+                    1.0f, 0.0f, 0.0f, 0.0f,
+                    0.0f, 1.0f, 0.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f, 0.0f,
+                    0.0f, 0.0f, 0.0f, 1.0f
+            };
+
+    private final FloatBuffer healthbarBuffer;
+    private ColourShaderProgram colourShader;
+    private final int strideBytes = 7 * BYTES_PER_FLOAT;
+    private final int positionOffset = 0;
+    private final int positionDataSize = 3;
+    private final int colourOffset = 3;
+
+    ///////////////////////////////////////////////////////////////////
+
     private float boxRotationAngle = 0.0f;
     @Override
     public void draw() {
@@ -314,9 +379,107 @@ public class SceneGame extends Scene {
         box.setScale(0.25f);
 
         renderer.render();
-        uiRenderer.render();
 
+
+
+        colourShader.useProgram();
+
+        ///////////////////// WIP HEALTHBAR CODE /////////////////////
+        for(Zombie z : zombies)
+        {
+            if(z.isAlive())
+            {
+                float[] vert = z.getFirstFloats();
+
+                float[] outcome = new float[4];
+
+                float[] modelMatrix = z.getModelMatrix();
+                float[] viewMatrix = debugCamera.getViewMatrix();
+                float[] projectionMatrix = debugCamera.getProjectionMatrix();
+
+                float[] modelViewMatrix = new float[16];
+                float[] modelViewProjectionMatrix = new float[16];
+
+                Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+
+                Matrix.multiplyMV(outcome, 0, modelViewProjectionMatrix, 0, vert, 0);
+
+                outcome[0] = outcome[0] / modelViewProjectionMatrix[15];
+                outcome[1] = outcome[1] / modelViewProjectionMatrix[15];
+                outcome[2] = 0.5f;
+                outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
+
+                Matrix.setIdentityM(modelMatrix, 0);
+
+                Matrix.translateM(modelMatrix, 0, outcome[0], outcome[1], outcome[2]);
+                Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+                healthbarBuffer.position(positionOffset);
+                glVertexAttribPointer(colourShader.getPositionAttributeLocation(), positionDataSize, GL_FLOAT, false,
+                        strideBytes, healthbarBuffer);
+                glEnableVertexAttribArray(colourShader.getPositionAttributeLocation());
+                healthbarBuffer.position(colourOffset);
+                float[] matrix = new float[16];
+                multiplyMM(matrix, 0, defaultOrtho, 0, modelMatrix, 0);
+
+                colourShader.setUniforms(matrix, 1.0f, 0.0f, 0.0f, 1.0f);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+            }
+        }
+
+        // Draw the health bars
+        // would be nice to get the center position of the box instead
+        float[] vert = box.getFirstFloats();
+
+        float[] outcome = new float[4];
+
+        float[] modelMatrix = box.getModelMatrix();
+        float[] viewMatrix = camera.getViewMatrix();
+        float[] projectionMatrix = camera.getProjectionMatrix();
+
+        float[] modelViewMatrix = new float[16];
+        float[] modelViewProjectionMatrix = new float[16];
+
+        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
+        Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
+
+        Matrix.multiplyMV(outcome, 0, modelViewProjectionMatrix, 0, vert, 0);
+
+        outcome[0] = outcome[0] / modelViewProjectionMatrix[15];
+        outcome[1] = outcome[1] / modelViewProjectionMatrix[15];
+        outcome[2] = 0.5f;
+        outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
+
+        Matrix.setIdentityM(modelMatrix, 0);
+
+        Matrix.translateM(modelMatrix, 0, outcome[0], outcome[1], outcome[2]);
+        Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
+        healthbarBuffer.position(positionOffset);
+        glVertexAttribPointer(colourShader.getPositionAttributeLocation(), positionDataSize, GL_FLOAT, false,
+                strideBytes, healthbarBuffer);
+
+        glEnableVertexAttribArray(colourShader.getPositionAttributeLocation());
+
+        // Pass in the color information
+        healthbarBuffer.position(colourOffset);
+     //   glVertexAttribPointer(colourShader.get, mColorDataSize, GL_FLOAT, false,
+     //           mStrideBytes, healthbarBuffer);
+
+     //   glEnableVertexAttribArray(mColorHandle);
+
+        float[] matrix = new float[16];
+        multiplyMM(matrix, 0, defaultOrtho, 0, modelMatrix, 0);
+
+        colourShader.setUniforms(matrix, 1.0f, 0.0f, 0.0f, 1.0f);
+      //  glUniformMatrix4fv(mMVPMatrixHandle, 1, false, matrix, 0);
         glDisable(GL_DEPTH_TEST);
+     //   glDisable(GL_CULL_FACE);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    //    glEnable(GL_DEPTH_TEST);
+    //    glEnable(GL_CULL_FACE);
+        colourShader.unbindProgram();
+        //////////////////////////////////////////////////////////////
+        uiRenderer.render();
     }
 
     // Position Lights (Rotate around a point)
@@ -343,6 +506,58 @@ public class SceneGame extends Scene {
             multiplyMV(mLightPosInEyeSpace, 0, camera.getViewMatrix(), 0, mLightPosInWorldSpace, 0);
         }
     }
+
+    public Geometry.Point get2DPoint()
+    {
+        float[] outcome = new float[4];
+        float[] input = box.getFirstFloats();
+        float[] modelViewMatrix = new float[16];
+        multiplyMM(modelViewMatrix, 0, camera.getViewMatrix(), 0, box.getModelMatrix(), 0);
+        multiplyMV(outcome, 0, modelViewMatrix, 0, input, 0);
+        float[] modelViewProjectionMatrix = new float[16];
+        multiplyMM(modelViewProjectionMatrix, 0, camera.getProjectionMatrix(), 0, modelViewMatrix, 0);
+        System.out.println("NDC: x" + outcome[0] + ", y" + outcome[1] + ", z" + outcome[2]);
+        return new Geometry.Point(outcome[0], outcome[1], outcome[2]);
+
+/*        float[] point3D =
+                {
+                        box.getPosition().x,
+                        box.getPosition().y,
+                        box.getPosition().z,
+                        1.0f
+                };
+
+        float[] ndc = new float[4];
+        multiplyMV(ndc, 0, camera.getViewProjectionMatrix(), 0, point3D, 0);
+
+        int winX = (int) Math.round((( ndc[0] + 1 ) / 2.0) *
+                viewWidth );
+        int winY = (int) Math.round(((ndc[1] + 1) / 2.0) *
+                viewHeight );
+        return new Geometry.Point(winX, winY, 0.0f);*/
+
+
+/*        float[] mvMatrix = new float[16];
+        float[] mvpMatrix = new float[16];
+        float[] modelMatrix = new float[16];
+        setIdentityM(modelMatrix, 0);
+        translateM(modelMatrix, 0, box.getPosition().x, box.getPosition().y, box.getPosition().z);
+        multiplyMM(mvMatrix, 0, camera.getViewMatrix(), 0, modelMatrix, 0);
+        multiplyMM(mvpMatrix, 0, camera.getProjectionMatrix(), 0, mvMatrix, 0);
+
+        float[] pos =
+                {
+                        0.0f,
+                        0.0f,
+                        0.0f,
+                        1.0f
+                };
+
+        float[] ndc = new float[4];
+        multiplyMV(ndc, 0, mvpMatrix, 0, pos, 0);
+
+        return new Geometry.Point(((ndc[0] + 1.0f) / 2.0f) * viewWidth, ((ndc[1] + 1.0f) / 2.0f) * viewHeight, 1.0f);
+   */ }
 
     @Override
     public void update(float deltaTime) {
@@ -404,10 +619,23 @@ public class SceneGame extends Scene {
 
             bullet.update(deltaTime);
 
-            // todo: Check the bullet collisions with zombies and players
+            // todo: Check the bullet collisions with zombies
+            for(Zombie zombie : zombies)
+            {
+                if(bullet.collidesWith(zombie))
+                {
+                    zombie.damage(bullet.getDamage());
+                    audio.playSound(R.raw.zombie_hit, 1);
+                    bullet.endLife();
 
-            // todo: Check the bullet collisions with the map
+                    if(!zombie.isAlive())
+                    {
+                        zombie.removeFromRenderer(renderer);
+                    }
+                }
+            }
 
+            // Check bullet collision with the map
             if(demoMap.checkCollision(bullet))
             {
                 // Collision sound effect

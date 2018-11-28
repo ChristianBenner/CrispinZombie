@@ -48,7 +48,7 @@ public class Player extends Humanoid
                 case PISTOL:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.04f, 150.0f);
+                            unitVectorDirection, 0.04f, 150.0f, 25.0f);
 
                     audio.playSound(R.raw.temp_pistol, 1);
 
@@ -56,47 +56,47 @@ public class Player extends Humanoid
                 case SNIPER:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.7f, 150.0f);
+                            unitVectorDirection, 0.7f, 150.0f, 100.0f);
 
                     audio.playSound(R.raw.temp_sniper, 1);
                     break;
                 case SHOTGUN:
                     bulletsToAdd = new Bullet[5];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.05f, 40.0f);
+                            unitVectorDirection, 0.05f, 40.0f, 50.0f);
                     bulletsToAdd[1] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.04f, 40.0f);
+                            unitVectorDirection, 0.04f, 40.0f, 50.0f);
                     bulletsToAdd[2] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.03f, 40.0f);
+                            unitVectorDirection, 0.03f, 40.0f, 50.0f);
                     bulletsToAdd[3] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.02f, 40.0f);
+                            unitVectorDirection, 0.02f, 40.0f, 50.0f);
                     bulletsToAdd[4] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.01f, 40.0f);
+                            unitVectorDirection, 0.01f, 40.0f, 50.0f);
 
                     audio.playSound(R.raw.temp_shotgun, 1);
                     break;
                 case MACHINE_GUN:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.4f, 150.0f);
+                            unitVectorDirection, 0.4f, 150.0f, 20.0f);
                     audio.playSound(R.raw.temp_assault_rifle, 1);
                     break;
                 case ROCKET_LAUNCHER:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.08f, 85.0f);
+                            unitVectorDirection, 0.08f, 85.0f, 100.0f);
                     audio.playSound(R.raw.temp_rpg, 1);
                     break;
                 case SUB_MACHINE_GUN:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.3f, 150.0f);
+                            unitVectorDirection, 0.3f, 150.0f, 15.0f);
                     audio.playSound(R.raw.temp_smg, 1);
                     break;
                 case GRENADE_LAUNCHER:
                     bulletsToAdd = new Bullet[1];
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
-                            unitVectorDirection, 0.02f, 150.0f);
+                            unitVectorDirection, 0.02f, 150.0f, 100.0f);
                     audio.playSound(R.raw.temp_grenade_launcher, 1);
                     break;
                 default:

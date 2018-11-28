@@ -78,7 +78,12 @@ public class UIRenderer {
     {
         // Make sure that the group has the ortho matrix and shader
         group.setOrthoMatrix(orthoMatrix, textOrthoMatrix);
-        group.setShader(shader);
+
+        if(group.getShader() == null)
+        {
+            group.setShader(shader);
+        }
+
         this.groups.add(group);
     }
 
@@ -96,7 +101,10 @@ public class UIRenderer {
         // Need to set the shader for each group
         for(UIRendererGroup group : groups)
         {
-            group.setShader(shader);
+            if(group.getShader() == null)
+            {
+                group.setShader(shader);
+            }
         }
     }
 
@@ -133,7 +141,11 @@ public class UIRenderer {
             }
 
             // Pass the uniforms for each UI to the shader
-            shader.setTextureUniforms(ui.getTexture().getTextureId());
+            if(ui.getTexture() != null)
+            {
+                shader.setTextureUniforms(ui.getTexture().getTextureId());
+            }
+
             shader.setMatrix(transformation);
             shader.setColourUniforms(ui.getColour());
 
