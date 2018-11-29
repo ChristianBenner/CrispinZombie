@@ -1,7 +1,6 @@
 package com.christianbenner.zombie.Scenes;
 
 import android.content.Context;
-import android.opengl.Matrix;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
@@ -36,9 +35,6 @@ import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import static android.opengl.GLES20.GL_ALPHA;
@@ -47,24 +43,16 @@ import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_CULL_FACE;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_TEST;
-import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
 import static android.opengl.GLES20.GL_SRC_ALPHA;
-import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
-import static android.opengl.GLES20.glDisable;
-import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnable;
-import static android.opengl.GLES20.glEnableVertexAttribArray;
-import static android.opengl.GLES20.glVertexAttribPointer;
-import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.setIdentityM;
 import static android.opengl.Matrix.translateM;
-import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 
 /**
  * Created by Christian Benner on 15/02/2018.
@@ -113,9 +101,11 @@ public class SceneGame extends Scene {
     private Renderer renderer;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
+    private UIRendererGroup healthbarsUIGroup;
 
     private PerFragMultiLightingShader shader;
     private TextureShaderProgram uiShader;
+    private ColourShaderProgram colourShader;
 
     // UI
     private Button debug_camera_button_up;
@@ -233,22 +223,19 @@ public class SceneGame extends Scene {
 
         renderer.addGroup(bulletsGroup);
 
-        for(int i = 0; i < zombies.size(); i++)
-        {
-            zombies.get(i).addToRenderer(renderer);
-        }
-
         demoMap.addToRenderer(renderer);
 
         uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         debugViewUIGroup = new UIRendererGroup(uiRenderer, debugView);
+        healthbarsUIGroup = new UIRendererGroup(uiRenderer);
+
+        for(Zombie z : zombies)
+        {
+            z.addToRenderer(renderer, healthbarsUIGroup);
+        }
 
         musicQueue[0] = R.raw.button_click;
         musicQueue[1] = R.raw.button_click;
-
-        healthbarBuffer = ByteBuffer.allocateDirect(healthbarData.length * BYTES_PER_FLOAT)
-                .order(ByteOrder.nativeOrder()).asFloatBuffer();
-        healthbarBuffer.put(healthbarData).position(0);
     }
 
     @Override
@@ -285,7 +272,7 @@ public class SceneGame extends Scene {
         uiRenderer.setShader(uiShader);
 
         colourShader = new ColourShaderProgram(context);
-
+        healthbarsUIGroup.setShader(colourShader);
 
         // If Debug Enabled
         // Camera Text
@@ -316,52 +303,6 @@ public class SceneGame extends Scene {
         }
     }
 
-    ///////////////////// WIP HEALTHBAR VARIABLES /////////////////////
-    // X, Y, Z
-    // R, G, B, A (not used anymore)
-    final float[] healthbarData = {
-            // Bottom Left
-            -1.0f, -0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-
-            // Bottom Right
-            1.0f, -0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-
-            // Top left
-            -1.0f, 0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-
-            // Top Right
-            1.0f, 0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-
-            // Top left
-            -1.0f, 0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f,
-
-            // Bottom Right
-            1.0f, -0.1f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-    };
-
-    final private float[] defaultOrtho =
-            {
-                    1.0f, 0.0f, 0.0f, 0.0f,
-                    0.0f, 1.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 1.0f, 0.0f,
-                    0.0f, 0.0f, 0.0f, 1.0f
-            };
-
-    private final FloatBuffer healthbarBuffer;
-    private ColourShaderProgram colourShader;
-    private final int strideBytes = 7 * BYTES_PER_FLOAT;
-    private final int positionOffset = 0;
-    private final int positionDataSize = 3;
-    private final int colourOffset = 3;
-
-    ///////////////////////////////////////////////////////////////////
-
     private float boxRotationAngle = 0.0f;
     @Override
     public void draw() {
@@ -380,124 +321,19 @@ public class SceneGame extends Scene {
 
         renderer.render();
 
-
-
         colourShader.useProgram();
 
-        ///////////////////// WIP HEALTHBAR CODE /////////////////////
-        for(Zombie z : zombies)
-        {
+        for(Zombie z : zombies) {
             if(z.isAlive())
             {
-
-
-                float[] vert = z.getFirstFloats();
-
-                float[] outcome = new float[4];
-
-                float[] modelMatrix = z.getModelMatrix();
-
-                float[] viewMatrix = camera.getViewMatrix();
-                float[] projectionMatrix = camera.getProjectionMatrix();
-                if(debugView)
-                {
-                    viewMatrix = debugCamera.getViewMatrix();
-                    projectionMatrix = debugCamera.getProjectionMatrix();
-                    projectionMatrix = debugCamera.getProjectionMatrix();
+                if (debugView) {
+                    z.updateHealthbar(debugCamera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
+                } else {
+                    z.updateHealthbar(camera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
                 }
-                else
-                {
-                    viewMatrix = camera.getViewMatrix();
-                    projectionMatrix = camera.getProjectionMatrix();
-                }
-
-                float[] modelViewMatrix = new float[16];
-                float[] modelViewProjectionMatrix = new float[16];
-
-                Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-                Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
-                Matrix.multiplyMV(outcome, 0, modelViewProjectionMatrix, 0, vert, 0);
-
-                outcome[0] = outcome[0] / outcome[3];
-                outcome[1] = outcome[1] / outcome[3];
-                outcome[2] = outcome[2] / outcome[3];
-               // outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
-
-               // Geometry.Point p = new Geometry.Point(z.getFirstFloats());
-              //  Geometry.Point NDCPoint = convertToNDC(camera, p, z.getModelMatrix());
-
-               // float[] NDCPoint = convertToNDC(debugCamera, z.getFirstFloats(), z.getModelMatrix());
-               // float[] modelMatrix = new float[16];
-                Matrix.setIdentityM(modelMatrix, 0);
-
-                Matrix.translateM(modelMatrix, 0, outcome[0], outcome[1], outcome[2]);
-                Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
-                healthbarBuffer.position(positionOffset);
-                glVertexAttribPointer(colourShader.getPositionAttributeLocation(), positionDataSize, GL_FLOAT, false,
-                        strideBytes, healthbarBuffer);
-                glEnableVertexAttribArray(colourShader.getPositionAttributeLocation());
-                healthbarBuffer.position(colourOffset);
-                float[] matrix = new float[16];
-                multiplyMM(matrix, 0, defaultOrtho, 0, modelMatrix, 0);
-
-                colourShader.setUniforms(matrix, 1.0f, 0.0f, 0.0f, 1.0f);
-                glDrawArrays(GL_TRIANGLES, 0, 6);
             }
         }
 
-        // Draw the health bars
-        // would be nice to get the center position of the box instead
-        float[] vert = box.getFirstFloats();
-
-        float[] outcome = new float[4];
-
-        float[] modelMatrix = box.getModelMatrix();
-        float[] viewMatrix = camera.getViewMatrix();
-        float[] projectionMatrix = camera.getProjectionMatrix();
-
-        float[] modelViewMatrix = new float[16];
-        float[] modelViewProjectionMatrix = new float[16];
-
-        Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
-        Matrix.multiplyMM(modelViewProjectionMatrix, 0, projectionMatrix, 0, modelViewMatrix, 0);
-
-        Matrix.multiplyMV(outcome, 0, modelViewProjectionMatrix, 0, vert, 0);
-
-        outcome[0] = outcome[0] / modelViewProjectionMatrix[15];
-        outcome[1] = outcome[1] / modelViewProjectionMatrix[15];
-        outcome[2] = 0.5f;
-        outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
-
-        Matrix.setIdentityM(modelMatrix, 0);
-
-        Matrix.translateM(modelMatrix, 0, outcome[0], outcome[1], outcome[2]);
-        Matrix.scaleM(modelMatrix, 0, 0.1f, 0.1f, 0.1f);
-        healthbarBuffer.position(positionOffset);
-        glVertexAttribPointer(colourShader.getPositionAttributeLocation(), positionDataSize, GL_FLOAT, false,
-                strideBytes, healthbarBuffer);
-
-        glEnableVertexAttribArray(colourShader.getPositionAttributeLocation());
-
-        // Pass in the color information
-        healthbarBuffer.position(colourOffset);
-     //   glVertexAttribPointer(colourShader.get, mColorDataSize, GL_FLOAT, false,
-     //           mStrideBytes, healthbarBuffer);
-
-     //   glEnableVertexAttribArray(mColorHandle);
-
-        float[] matrix = new float[16];
-        multiplyMM(matrix, 0, defaultOrtho, 0, modelMatrix, 0);
-
-        colourShader.setUniforms(matrix, 1.0f, 0.0f, 0.0f, 1.0f);
-      //  glUniformMatrix4fv(mMVPMatrixHandle, 1, false, matrix, 0);
-        glDisable(GL_DEPTH_TEST);
-     //   glDisable(GL_CULL_FACE);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-    //    glEnable(GL_DEPTH_TEST);
-    //    glEnable(GL_CULL_FACE);
-        colourShader.unbindProgram();
-        //////////////////////////////////////////////////////////////
         uiRenderer.render();
     }
 
@@ -508,75 +344,19 @@ public class SceneGame extends Scene {
     private float[] mLightPosInModelSpace = { 0.0f, 0.0f, 0.0f, 1.0f };
     private float lightRotationAngle = 0.0f;
     private float[] lightInModelSpace = new float[4];
-    private void positionLight(float z)
-    {
+    private void positionLight(float z) {
         setIdentityM(mLightModelMatrix, 0);
         translateM(mLightModelMatrix, 0, 7.0f, 1.0f, 4.0f);
         rotateM(mLightModelMatrix, 0, lightRotationAngle, 0.0f, 1.0f, 0.0f);
         translateM(mLightModelMatrix, 0, 0.0f, 0.0f, z);
         multiplyMV(lightInModelSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
         multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
-        if(debugView)
-        {
+        if (debugView) {
             multiplyMV(mLightPosInEyeSpace, 0, debugCamera.getViewMatrix(), 0, mLightPosInWorldSpace, 0);
-        }
-        else
-        {
+        } else {
             multiplyMV(mLightPosInEyeSpace, 0, camera.getViewMatrix(), 0, mLightPosInWorldSpace, 0);
         }
     }
-
-    public Geometry.Point get2DPoint()
-    {
-        float[] outcome = new float[4];
-        float[] input = box.getFirstFloats();
-        float[] modelViewMatrix = new float[16];
-        multiplyMM(modelViewMatrix, 0, camera.getViewMatrix(), 0, box.getModelMatrix(), 0);
-        multiplyMV(outcome, 0, modelViewMatrix, 0, input, 0);
-        float[] modelViewProjectionMatrix = new float[16];
-        multiplyMM(modelViewProjectionMatrix, 0, camera.getProjectionMatrix(), 0, modelViewMatrix, 0);
-        System.out.println("NDC: x" + outcome[0] + ", y" + outcome[1] + ", z" + outcome[2]);
-        return new Geometry.Point(outcome[0], outcome[1], outcome[2]);
-
-/*        float[] point3D =
-                {
-                        box.getPosition().x,
-                        box.getPosition().y,
-                        box.getPosition().z,
-                        1.0f
-                };
-
-        float[] ndc = new float[4];
-        multiplyMV(ndc, 0, camera.getViewProjectionMatrix(), 0, point3D, 0);
-
-        int winX = (int) Math.round((( ndc[0] + 1 ) / 2.0) *
-                viewWidth );
-        int winY = (int) Math.round(((ndc[1] + 1) / 2.0) *
-                viewHeight );
-        return new Geometry.Point(winX, winY, 0.0f);*/
-
-
-/*        float[] mvMatrix = new float[16];
-        float[] mvpMatrix = new float[16];
-        float[] modelMatrix = new float[16];
-        setIdentityM(modelMatrix, 0);
-        translateM(modelMatrix, 0, box.getPosition().x, box.getPosition().y, box.getPosition().z);
-        multiplyMM(mvMatrix, 0, camera.getViewMatrix(), 0, modelMatrix, 0);
-        multiplyMM(mvpMatrix, 0, camera.getProjectionMatrix(), 0, mvMatrix, 0);
-
-        float[] pos =
-                {
-                        0.0f,
-                        0.0f,
-                        0.0f,
-                        1.0f
-                };
-
-        float[] ndc = new float[4];
-        multiplyMV(ndc, 0, mvpMatrix, 0, pos, 0);
-
-        return new Geometry.Point(((ndc[0] + 1.0f) / 2.0f) * viewWidth, ((ndc[1] + 1.0f) / 2.0f) * viewHeight, 1.0f);
-   */ }
 
     @Override
     public void update(float deltaTime) {
@@ -649,7 +429,7 @@ public class SceneGame extends Scene {
 
                     if(!zombie.isAlive())
                     {
-                        zombie.removeFromRenderer(renderer);
+                        zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }
             }
@@ -932,6 +712,7 @@ public class SceneGame extends Scene {
         uiRenderer.addUI(switch_camera_button);
         uiRenderer.addUI(switch_weapon_button);
         uiRenderer.addUI(wave_button);
+        uiRenderer.addRendererGroup(healthbarsUIGroup);
         debugViewUIGroup.addUI(debug_camera_button_down);
         debugViewUIGroup.addUI(debug_camera_button_up);
         uiRenderer.addRendererGroup(debugViewUIGroup);

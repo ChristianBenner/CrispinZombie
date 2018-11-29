@@ -1,9 +1,16 @@
 package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
+import android.opengl.Matrix;
 import android.os.SystemClock;
 
+import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
+import com.christianbenner.crispinandroid.render.util.Camera;
+import com.christianbenner.crispinandroid.render.util.Renderer;
+import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
+import com.christianbenner.crispinandroid.ui.Image;
+import com.christianbenner.crispinandroid.ui.UIDimension;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.zombie.Map.Cell;
 import com.christianbenner.zombie.Map.Map;
@@ -19,6 +26,11 @@ public class Zombie extends Humanoid {
     private final float ARM_ANGLE = -90.0f;
     private Map map;
 
+    private Image healthbar;
+    private Image healthbarLife;
+    private final int HEALTHBAR_WIDTH = 100;
+    private final int HEALTHBAR_HEIGHT = 16;
+
     private float life = 100.0f;
 
     // Temp
@@ -33,6 +45,16 @@ public class Zombie extends Humanoid {
         setPosition(position);
         this.player = humanoid;
         this.map = map;
+
+        this.healthbar = new Image(new UIDimension(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
+                new Colour(1.0f, 0.0f, 0.0f, 0.0f));
+        this.healthbarLife = new Image(new UIDimension(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
+            new Colour(0.0f, 1.0f, 0.0f, 0.0f));
+    }
+
+    public float getLife()
+    {
+        return this.life;
     }
 
     private LinkedList<Cell> path = null;
@@ -46,6 +68,52 @@ public class Zombie extends Humanoid {
     public boolean isAlive()
     {
         return life > 0.0f;
+    }
+
+    final float[] HEALTHBAR_CENTER_POS =
+    {
+            0.0f, 1.0f, 0.0f, 1.0f
+    };
+
+    public void updateHealthbar(Camera camera, float uiCanvasWidth, float uiCanvasHeight)
+    {
+        // Update the healthbar position to the zombies position
+        float[] ndcCoordinates = new float[4];
+        float[] modelViewMatrix = new float[16];
+        float[] modelViewProjectionMatrix = new float[16];
+
+        Matrix.multiplyMM(modelViewMatrix, 0, camera.getViewMatrix(), 0, getModelMatrix(), 0);
+        Matrix.multiplyMM(modelViewProjectionMatrix, 0, camera.getProjectionMatrix(), 0, modelViewMatrix, 0);
+        Matrix.multiplyMV(ndcCoordinates, 0, modelViewProjectionMatrix, 0, HEALTHBAR_CENTER_POS, 0);
+        ndcCoordinates[0] /= ndcCoordinates[3];
+        ndcCoordinates[1] /= ndcCoordinates[3];
+        ndcCoordinates[2] /= ndcCoordinates[3];
+        healthbar.setPosition(new Geometry.Point((((ndcCoordinates[0] + 1.0f) / 2.0f) *
+                uiCanvasWidth) - (HEALTHBAR_WIDTH / 2.0f),
+                (((ndcCoordinates[1] + 1.0f) / 2.0f) * uiCanvasHeight) + (HEALTHBAR_HEIGHT / 2.0f), 0.0f));
+        healthbar.setAlpha(1.0f);
+
+        final int LIFE_PIXELS = (int)((this.life / 100.0f) * HEALTHBAR_WIDTH);
+
+        healthbarLife.setDimensions(new UIDimension(
+                (((ndcCoordinates[0] + 1.0f) / 2.0f) * uiCanvasWidth) - (HEALTHBAR_WIDTH / 2.0f),
+                (((ndcCoordinates[1] + 1.0f) / 2.0f) * uiCanvasHeight) + (HEALTHBAR_HEIGHT / 2.0f),
+                LIFE_PIXELS, HEALTHBAR_HEIGHT));
+        healthbarLife.setAlpha(1.0f);
+    }
+
+    public void addToRenderer(Renderer renderer, UIRendererGroup uiRendererGroup)
+    {
+        super.addToRenderer(renderer);
+        uiRendererGroup.addUI(healthbar);
+        uiRendererGroup.addUI(healthbarLife);
+    }
+
+    public void removeFromRenderer(Renderer renderer, UIRendererGroup uiRendererGroup)
+    {
+        super.removeFromRenderer(renderer);
+        uiRendererGroup.removeUI(healthbar);
+        uiRendererGroup.removeUI(healthbarLife);
     }
 
     public void update(float deltaTime)

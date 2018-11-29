@@ -67,17 +67,6 @@ public class Humanoid {
     protected final Geometry.Point rightArmWaveRotationAxis =
             new Geometry.Point(0.15f, 0.65f, 0f );
 
-    public float[] getFirstFloats()
-    {
-        float[] headMidPos =
-                {
-                        0.0f, 1.1f, 0.0f, 1.0f
-                };
-        return headMidPos;
-    //    return 0.0f, 0.8f, 0.0f;
-     //   return head.getFirstFloats();
-    }
-
     public Humanoid(Context context, Texture texture, float movementSpeed)
     {
         this.context = context;
