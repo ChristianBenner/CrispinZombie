@@ -2,6 +2,8 @@ package com.christianbenner.crispinandroid.util;
 
 import android.opengl.Matrix;
 
+import com.christianbenner.crispinandroid.render.util.Camera;
+
 import static java.lang.Math.sin;
 
 /**
@@ -18,6 +20,36 @@ public class Geometry {
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+
+        public Point(float[] pos)
+        {
+            if(pos.length >= 3)
+            {
+                this.x = pos[0];
+                this.y = pos[1];
+                this.z = pos[2];
+
+                if(pos.length > 3)
+                {
+                    System.err.println("Point created at: x:" + this.x + ", y:" + this.y + ", z:"
+                    + this.z + ". Supplied " + pos.length + " coordinates when only 3 is used.");
+                }
+            }
+            else
+            {
+                if(pos.length == 2)
+                {
+                    this.x = pos[0];
+                    this.y = pos[1];
+                    this.z = 0.0f;
+                }
+                else
+                {
+                    System.err.println("Error, not enough coordinates provided to point. 2-3 " +
+                    "coordinates are required and only " + pos.length + " where supplied");
+                }
+            }
         }
 
         public Point translate(Vector vector)
@@ -245,6 +277,26 @@ public class Geometry {
 
         Point intersectionPoint = ray.point.translate(ray.vector.scale(scaleFactor));
         return intersectionPoint;
+    }
+
+    public static float[] convertToNDC(Camera camera, float[] vertex, float[] modelMatrix)
+    {
+        float[] normalizedDeviceCoordinates = new float[4];
+
+        float[] modelViewMatrix = new float[16];
+        float[] modelViewProjectionMatrix = new float[16];
+
+        Matrix.multiplyMM(modelViewMatrix, 0, camera.getViewMatrix(), 0, modelMatrix, 0);
+        Matrix.multiplyMM(modelViewProjectionMatrix, 0, camera.getProjectionMatrix(), 0, modelViewMatrix, 0);
+
+        Matrix.multiplyMV(normalizedDeviceCoordinates, 0, modelViewProjectionMatrix, 0, vertex, 0);
+
+        normalizedDeviceCoordinates[0] = normalizedDeviceCoordinates[0] / modelViewProjectionMatrix[15];
+        normalizedDeviceCoordinates[1] = normalizedDeviceCoordinates[1] / modelViewProjectionMatrix[15];
+        normalizedDeviceCoordinates[2] = normalizedDeviceCoordinates[2] / modelViewProjectionMatrix[15];
+        normalizedDeviceCoordinates[3] = normalizedDeviceCoordinates[3] / modelViewProjectionMatrix[15];
+
+        return normalizedDeviceCoordinates;
     }
 }
 

@@ -389,13 +389,27 @@ public class SceneGame extends Scene {
         {
             if(z.isAlive())
             {
+
+
                 float[] vert = z.getFirstFloats();
 
                 float[] outcome = new float[4];
 
                 float[] modelMatrix = z.getModelMatrix();
-                float[] viewMatrix = debugCamera.getViewMatrix();
-                float[] projectionMatrix = debugCamera.getProjectionMatrix();
+
+                float[] viewMatrix = camera.getViewMatrix();
+                float[] projectionMatrix = camera.getProjectionMatrix();
+                if(debugView)
+                {
+                    viewMatrix = debugCamera.getViewMatrix();
+                    projectionMatrix = debugCamera.getProjectionMatrix();
+                    projectionMatrix = debugCamera.getProjectionMatrix();
+                }
+                else
+                {
+                    viewMatrix = camera.getViewMatrix();
+                    projectionMatrix = camera.getProjectionMatrix();
+                }
 
                 float[] modelViewMatrix = new float[16];
                 float[] modelViewProjectionMatrix = new float[16];
@@ -405,11 +419,16 @@ public class SceneGame extends Scene {
 
                 Matrix.multiplyMV(outcome, 0, modelViewProjectionMatrix, 0, vert, 0);
 
-                outcome[0] = outcome[0] / modelViewProjectionMatrix[15];
-                outcome[1] = outcome[1] / modelViewProjectionMatrix[15];
-                outcome[2] = 0.5f;
-                outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
+                outcome[0] = outcome[0] / outcome[3];
+                outcome[1] = outcome[1] / outcome[3];
+                outcome[2] = outcome[2] / outcome[3];
+               // outcome[3] = outcome[3] / modelViewProjectionMatrix[15];
 
+               // Geometry.Point p = new Geometry.Point(z.getFirstFloats());
+              //  Geometry.Point NDCPoint = convertToNDC(camera, p, z.getModelMatrix());
+
+               // float[] NDCPoint = convertToNDC(debugCamera, z.getFirstFloats(), z.getModelMatrix());
+               // float[] modelMatrix = new float[16];
                 Matrix.setIdentityM(modelMatrix, 0);
 
                 Matrix.translateM(modelMatrix, 0, outcome[0], outcome[1], outcome[2]);
