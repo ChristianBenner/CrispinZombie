@@ -135,6 +135,10 @@ public class SceneGame extends Scene {
     // Map
     private Map demoMap;
 
+    private Light muzzleFlareLight = null;
+    private float muzzleFlareLightTimer;
+    private boolean muzzleFlareProcess = false;
+
     public SceneGame(Context context) {
         super(context);
 
@@ -233,6 +237,12 @@ public class SceneGame extends Scene {
         TEST_LIGHT2.setAmbienceIntensity(0.3f);
         TEST_LIGHT.setAttenuation(0.001f);
 
+        muzzleFlareLight = new Light();
+        muzzleFlareLight.setColour(new Colour(1.0f, 1.0f, 0.0f));
+        muzzleFlareLight.setAmbienceIntensity(0.0f);
+        muzzleFlareLight.setAttenuation(0.6f);
+        muzzleFlareLight.setMaxAmbience(10.0f);
+
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
 
@@ -240,6 +250,8 @@ public class SceneGame extends Scene {
         renderer.addModel(box);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
+        renderer.addLight(muzzleFlareLight);
+        renderer.addLight(muzzleFlareLight);
         player.addToRenderer(renderer);
 
         renderer.addGroup(bulletsGroup);
@@ -395,6 +407,19 @@ public class SceneGame extends Scene {
         }
     }
 
+    private void positionLight(Geometry.Point point) {
+        System.out.println("POSITIONING");
+        setIdentityM(mLightModelMatrix, 0);
+        translateM(mLightModelMatrix, 0, point.x, point.y, point.z);
+        multiplyMV(lightInModelSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
+        multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
+        if (debugView) {
+            multiplyMV(mLightPosInEyeSpace, 0, debugCamera.getViewMatrix(), 0, mLightPosInWorldSpace, 0);
+        } else {
+            multiplyMV(mLightPosInEyeSpace, 0, camera.getViewMatrix(), 0, mLightPosInWorldSpace, 0);
+        }
+    }
+
     @Override
     public void update(float deltaTime) {
         /*for(int i = 0; i < 5; i++)
@@ -498,11 +523,23 @@ public class SceneGame extends Scene {
         boxRotationAngle += 1f * deltaTime;
         lightRotationAngle += 0.5f * deltaTime;
         positionLight(5.0f);
-        TEST_LIGHT.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
-                mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+      //  TEST_LIGHT.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
+      //          mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
         positionLight(-5.0f);
         TEST_LIGHT2.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
-                mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+                 mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+
+        if(muzzleFlareProcess)
+        {
+            muzzleFlareLightTimer += deltaTime;
+
+            if(muzzleFlareLightTimer >= 5.0f)
+            {
+                muzzleFlareLight.setAmbienceIntensity(0.0f);
+                muzzleFlareLightTimer = 0.0f;
+                muzzleFlareProcess = false;
+            }
+        }
     }
 
     // Process touch
@@ -614,7 +651,16 @@ public class SceneGame extends Scene {
                                 (viewHeight/2.0f) - 25 + offset.y, 0.0f));
 
                         // Tell the player that the user has used the fire action
-                        player.fireAction(unitVectorDirection);
+                        if(player.fireAction(unitVectorDirection))
+                        {
+                            muzzleFlareProcess = true;
+                            muzzleFlareLight.setAmbienceIntensity(0.02f);
+
+                            positionLight(player.getPosition());
+                            muzzleFlareLight.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
+                                    mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+                        }
+
                         break;
                     case RELEASE:
                         crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25,

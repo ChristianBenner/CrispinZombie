@@ -171,6 +171,14 @@ public abstract class ShaderProgram {
     {
         if(lights != null)
         {
+            if(lights.size() > colourFloats.length / 3)
+            {
+                colourFloats = new float[lights.size() * 3];
+                positionFloats = new float[lights.size() * 3];
+                ambientDataFloats = new float[lights.size() * 3];
+            }
+
+
             glUniform1i(uLightCountLocation, lights.size());
 
             int colourIndex = 0;

@@ -81,3 +81,5 @@ gradlew
 gradlew.bat
 app/src/main/res/raw/zombie_hit.mp3
 app/src/main/res/drawable/blank.png
+app/src/main/res/raw/hibymaeson.mp3
+app/src/main/res/raw/zombies.mp3
