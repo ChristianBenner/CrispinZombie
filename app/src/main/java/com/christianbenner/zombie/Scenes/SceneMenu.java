@@ -31,6 +31,7 @@ public class SceneMenu extends Scene {
         // Create audio
         audio = Audio.getInstance();
         audio.initMusicChannel(context);
+      // audio.playMusic(R.raw.);
        // audio.playMusic(R.raw.no_words, audioPos);
     }
 

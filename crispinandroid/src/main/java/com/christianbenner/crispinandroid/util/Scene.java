@@ -148,6 +148,7 @@ public abstract class Scene {
 
     public void onPause()
     {
+        System.out.println("ACTION PAUSE");
         init = false;
         pause();
 
@@ -160,6 +161,7 @@ public abstract class Scene {
 
     public void onResume(Context context)
     {
+        System.out.println("ACTION RESUME");
         //TextureHelper.updateAll(context);
     //    TextureHelper.clearTextureCache();
         resume();
@@ -167,6 +169,7 @@ public abstract class Scene {
 
     public void onRestart()
     {
+        System.out.println("ACTION RESTART");
         init = false;
         restart();
 
@@ -179,6 +182,7 @@ public abstract class Scene {
 
     public void onDestroy()
     {
+        System.out.println("ACTION DESTROY");
         init = false;
         destroy();
 

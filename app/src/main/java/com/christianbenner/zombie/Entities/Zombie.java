@@ -60,9 +60,20 @@ public class Zombie extends Humanoid {
     private LinkedList<Cell> path = null;
     Cell lastValid = null;
 
+    public void kill()
+    {
+        life = 0.0f;
+    }
+
     public void damage(float value)
     {
         life -= value;
+
+        if(life <= 0.0f)
+        {
+            kill();
+        }
+
     }
 
     public boolean isAlive()
@@ -241,11 +252,93 @@ public class Zombie extends Humanoid {
        // translate(velocity);
 
         // Work out the facing angle from the velocity
-        float angleRads = (float)Math.atan2(-velocity.z, velocity.x);
-        if(angleRads != 0.0)
+        final float ANGLE_RADS = (float)Math.atan2(-velocity.z, velocity.x);
+        if(ANGLE_RADS != 0.0)
         {
-            // Convert to Degrees
-            facingAngle = ((angleRads / (float)Math.PI) * 180.0f) + 90.0f;
+            // Convert angle to degrees - this is the target direction we should turn to at
+            // a specific rate
+            final float TARGET_ANGLE_DEGREES = ((ANGLE_RADS / (float)Math.PI) * 180.0f) + 90.0f;
+
+
+
+         //   System.out.println("FACING ANGLE: " + facingAngle + ", TARGET ANGLE: " + TARGET_ANGLE_DEGREES);
+            final int NUM_REPEATS = (int)facingAngle / 360;
+         //   System.out.println("NUM REPEATS: " + NUM_REPEATS);
+
+            facingAngle -= facingAngle * Math.abs(NUM_REPEATS);
+
+            if(facingAngle < 0.0f)
+            {
+                facingAngle = 360.0f + facingAngle;
+            }
+
+            final boolean INCREASE_ANGLE = (TARGET_ANGLE_DEGREES - facingAngle) < (TARGET_ANGLE_DEGREES / 2.0f);
+
+            final float ANGLE_OPTION_ONE = Math.abs(facingAngle - TARGET_ANGLE_DEGREES);
+            final float ANGLE_OPTION_TWO = Math.abs((facingAngle + 360.0f) - TARGET_ANGLE_DEGREES);
+
+            final float ao1 = facingAngle - TARGET_ANGLE_DEGREES;
+            final float ao2 = 360 - Math.abs(ao1);
+            boolean increase = false;
+            if(Math.abs(ao1) < ao2)
+            {
+                if(ao1 < 0.0f)
+                {
+                    increase = false;
+                }
+                else
+                {
+                    increase = true;
+                }
+            }
+            else
+            {
+                increase = false;
+            }
+
+            if(ANGLE_OPTION_ONE < ANGLE_OPTION_TWO)
+            {
+
+            }
+
+          //  final boolean SHOULD_INCREASE_ANGLE = >
+          //          Math.abs((facingAngle + 360.0f) - TARGET_ANGLE_DEGREES);
+
+
+
+
+            if(Math.abs(TARGET_ANGLE_DEGREES - facingAngle) > 5.5f)
+            {
+                if(increase)
+                {
+                    facingAngle += 5.0f;
+                }
+                else
+                {
+                    facingAngle -= 5.0f;
+                }
+            }
+            else
+            {
+                facingAngle = TARGET_ANGLE_DEGREES;
+            }
+            facingAngle = TARGET_ANGLE_DEGREES;
+           /* if(Math.abs(TARGET_ANGLE_DEGREES - facingAngle) < 2.0f)
+            {
+                if(TARGET_ANGLE_DEGREES > facingAngle)
+                {
+                    facingAngle += 1.0f;
+                } else if (TARGET_ANGLE_DEGREES < facingAngle)
+                {
+                    facingAngle -= 1.0f;
+                }
+            }
+            else
+            {
+                facingAngle = TARGET_ANGLE_DEGREES;
+            }*/
+
+
         }
 
         // How much the limbs should move (depends on how far the joystick is dragged)

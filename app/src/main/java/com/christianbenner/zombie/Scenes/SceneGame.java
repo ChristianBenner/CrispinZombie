@@ -98,7 +98,7 @@ public class SceneGame extends Scene {
     private float previousY = 0.0f;
     private boolean doneYet = false;
 
-    private Renderer renderer;
+    static private Renderer renderer;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
     private UIRendererGroup healthbarsUIGroup;
@@ -137,6 +137,8 @@ public class SceneGame extends Scene {
 
     public SceneGame(Context context) {
         super(context);
+
+        System.out.println("SCENE GAME: INIT");
 
         // Create the demo map
         demoMap = new Map(context, R.raw.demo_map4);
@@ -204,6 +206,27 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 2.0f, player,
                 new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
+        zombies.add(new Zombie(context,
+                TextureHelper.loadTexture(context, R.drawable.zombie, true),
+                MOVE_SPEED / 2.0f, player,
+                new Geometry.Point(6.0f, 0.0f, 0.0f), demoMap));
+
+        zombies.add(new Zombie(context,
+                TextureHelper.loadTexture(context, R.drawable.zombie, true),
+                MOVE_SPEED / 2.0f, player,
+                new Geometry.Point(8.0f, 0.0f, 0.0f), demoMap));
+        zombies.add(new Zombie(context,
+                TextureHelper.loadTexture(context, R.drawable.zombie, true),
+                MOVE_SPEED / 2.0f, player,
+                new Geometry.Point(10.0f, 0.0f, 0.0f), demoMap));
+        zombies.add(new Zombie(context,
+                TextureHelper.loadTexture(context, R.drawable.zombie, true),
+                MOVE_SPEED / 2.0f, player,
+                new Geometry.Point(12.0f, 0.0f, 0.0f), demoMap));
+        zombies.add(new Zombie(context,
+                TextureHelper.loadTexture(context, R.drawable.zombie, true),
+                MOVE_SPEED / 2.0f, player,
+                new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));
 
         TEST_LIGHT = new Light();
         TEST_LIGHT2 = new Light();
@@ -241,6 +264,7 @@ public class SceneGame extends Scene {
     @Override
     protected void surfaceCreated()
     {
+        System.out.println("SCENE GAME: SURFACE CREATED");
       //  cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
        // cameraText.setPosition(-1.0f, -1.0f);
 
@@ -261,6 +285,8 @@ public class SceneGame extends Scene {
     private Text text;
     @Override
     public void surfaceChanged(int width, int height) {
+        System.out.println("SCENE GAME: SURFACE CHANGED");
+
         viewWidth = width;
         viewHeight = height;
         uiRenderer.createUICanvas(width, height);
@@ -306,6 +332,8 @@ public class SceneGame extends Scene {
     private float boxRotationAngle = 0.0f;
     @Override
     public void draw() {
+        System.out.println("SCENE GAME: DRAW");
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
         glEnable(GL_ALPHA);
@@ -323,14 +351,26 @@ public class SceneGame extends Scene {
 
         colourShader.useProgram();
 
-        for(Zombie z : zombies) {
-            if(z.isAlive())
+        for(int i = 0; i < zombies.size(); i++)
+        {
+
+        }
+
+        for(int i = 0; i < zombies.size(); i++)
+        {
+            if(zombies.get(i).isAlive())
             {
                 if (debugView) {
-                    z.updateHealthbar(debugCamera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
+                    zombies.get(i).updateHealthbar(debugCamera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
                 } else {
-                    z.updateHealthbar(camera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
+                    zombies.get(i).updateHealthbar(camera, uiRenderer.getCanvasWidth(), uiRenderer.getCanvasHeight());
                 }
+            }
+            else
+            {
+                // The zombie is dead so remove it from processing
+                zombies.remove(i);
+                i--;
             }
         }
 
@@ -360,6 +400,7 @@ public class SceneGame extends Scene {
 
     @Override
     public void update(float deltaTime) {
+        System.out.println("SCENE GAME: UPDATE");
         /*for(int i = 0; i < 5; i++)
         {
             System.out.println("At [" + i + "]: " + mActivePointers.get(mActivePointers.keyAt(i), new PointF(0.0f, 0.0f)));
