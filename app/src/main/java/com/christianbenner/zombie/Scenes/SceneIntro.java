@@ -112,8 +112,6 @@ public class SceneIntro extends Scene {
     @Override
     public void draw()
     {
-        System.out.println("SCENE INTRO: DRAW");
-
         // Clear previous frame and set background colour
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(backgroundRGB, backgroundRGB, backgroundRGB, 1.0f);
@@ -149,8 +147,6 @@ public class SceneIntro extends Scene {
     @Override
     public void update(float deltaTime)
     {
-        System.out.println("SCENE INTRO: UPDATE");
-
         // Calculate logic using the timing method
         alphaWhite -= 0.01f * deltaTime;
         alphaRed += 0.01f * deltaTime;
@@ -175,7 +171,7 @@ public class SceneIntro extends Scene {
             if(timePassed >= 300.0f)
             {
                 timePassed = 0.0f;
-                gotoScene(Constants.GAME_ID);
+                gotoScene(Constants.MENU_ID);
             }
         }
     }

@@ -29,7 +29,7 @@ public class Player extends Humanoid
     int bulletWaitCount = 0;
     public void fireAction(Geometry.Vector unitVectorDirection)
     {
-        if(bulletWaitCount > 30)
+        if(bulletWaitCount > 8)
         {
             bulletWaitCount = 0;
 

@@ -138,8 +138,6 @@ public class SceneGame extends Scene {
     public SceneGame(Context context) {
         super(context);
 
-        System.out.println("SCENE GAME: INIT");
-
         // Create the demo map
         demoMap = new Map(context, R.raw.demo_map4);
         demoMap.printMap();
@@ -208,24 +206,24 @@ public class SceneGame extends Scene {
                 new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, player,
+                MOVE_SPEED / 1.9f, player,
                 new Geometry.Point(6.0f, 0.0f, 0.0f), demoMap));
 
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, player,
+                MOVE_SPEED / 1.8f, player,
                 new Geometry.Point(8.0f, 0.0f, 0.0f), demoMap));
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, player,
+                MOVE_SPEED / 1.7f, player,
                 new Geometry.Point(10.0f, 0.0f, 0.0f), demoMap));
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, player,
+                MOVE_SPEED / 1.5f, player,
                 new Geometry.Point(12.0f, 0.0f, 0.0f), demoMap));
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
-                MOVE_SPEED / 2.0f, player,
+                MOVE_SPEED / 1.2f, player,
                 new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));
 
         TEST_LIGHT = new Light();
@@ -264,7 +262,6 @@ public class SceneGame extends Scene {
     @Override
     protected void surfaceCreated()
     {
-        System.out.println("SCENE GAME: SURFACE CREATED");
       //  cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
        // cameraText.setPosition(-1.0f, -1.0f);
 
@@ -281,11 +278,12 @@ public class SceneGame extends Scene {
                 playMusic(context, musicQueue[musicQueueIndex++]);
             }
         });*/
+
+        playMusic(context, R.raw.zombies);
     }
     private Text text;
     @Override
     public void surfaceChanged(int width, int height) {
-        System.out.println("SCENE GAME: SURFACE CHANGED");
 
         viewWidth = width;
         viewHeight = height;
@@ -332,7 +330,6 @@ public class SceneGame extends Scene {
     private float boxRotationAngle = 0.0f;
     @Override
     public void draw() {
-        System.out.println("SCENE GAME: DRAW");
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
@@ -400,7 +397,6 @@ public class SceneGame extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        System.out.println("SCENE GAME: UPDATE");
         /*for(int i = 0; i < 5; i++)
         {
             System.out.println("At [" + i + "]: " + mActivePointers.get(mActivePointers.keyAt(i), new PointF(0.0f, 0.0f)));

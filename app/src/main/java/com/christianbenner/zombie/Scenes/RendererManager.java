@@ -28,6 +28,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
 
     SceneIntro intro;
     SceneGame game;
+    SceneMenu menu;
     Scene scene;
 
     public RendererManager(Context context)
@@ -35,6 +36,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
         this.context = context;
         intro = new SceneIntro(context);
         game = new SceneGame(context);
+        menu = new SceneMenu(context);
         scene = intro;
         addRenderer(Constants.INTRO_ID, scene, true);
      //   addRenderer(Constants.INTRO_ID, scene, true);
@@ -74,6 +76,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
         this.height = height;
 
         renderers.get(currentRendererID).surfaceChanged(width, height);
+
     }
 
     protected void draw() {
@@ -100,6 +103,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
 
     private void moveOntoNextRenderer()
     {
+        renderers.get(currentRendererID).onDestroy();
         currentRendererID = renderers.get(currentRendererID).getNextSceneId();
         switch (currentRendererID)
         {
@@ -110,8 +114,8 @@ public class RendererManager implements GLSurfaceView.Renderer {
                 break;
             case Constants.MENU_ID:
                 System.out.println("Switching to menu renderer");
-            //    scene = new SceneMenu(context);
-            //    addRenderer(Constants.MENU_ID, scene, true);
+                scene = menu;
+                addRenderer(Constants.MENU_ID, scene, true);
                 break;
             case Constants.GAME_ID:
                 System.out.println("Switching to game scene");
