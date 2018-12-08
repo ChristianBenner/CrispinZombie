@@ -225,6 +225,16 @@ public class Camera implements Interactive {
         updateLookUp();
     }
 
+    public float getHorizontalAngle()
+    {
+        return this.horizontalAngle;
+    }
+
+    public float getVerticalAngle()
+    {
+        return this.verticalAngle;
+    }
+
     public float[] getViewProjectionMatrix()
     {
         return viewProjectionMatrix;

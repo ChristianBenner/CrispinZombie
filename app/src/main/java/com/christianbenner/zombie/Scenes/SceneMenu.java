@@ -5,7 +5,10 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
+import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
+import com.christianbenner.crispinandroid.render.util.Camera;
+import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
 import com.christianbenner.crispinandroid.ui.Button;
@@ -20,6 +23,7 @@ import com.christianbenner.crispinandroid.util.Audio;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Constants;
+import com.christianbenner.zombie.Entities.Player;
 import com.christianbenner.zombie.R;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
@@ -49,11 +53,33 @@ public class SceneMenu extends Scene {
 
     final private int BUTTON_SIZE = 300;
     final private int BUTTON_PADDING = 30;
+    final private int TEXT_PADDING = 10;
+
+    private UIDimension titleDimensions;
+
+    private Camera camera;
+    private Renderer renderer;
+    private PerFragMultiLightingShader shader;
+    private Player player;
 
     public SceneMenu(Context context)
     {
         super(context);
         uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+
+        shader = new PerFragMultiLightingShader(context);
+
+        camera = new Camera();
+        camera.setPosition(new Geometry.Point(5.0f, 1.0f, 8.9f));
+        camera.setAngles(-3.314f, -0.323f);
+        renderer = new Renderer(shader, camera);
+
+        player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
+                0.0f, null, null);
+
+        player.setWaving(true);
+        player.setPosition(new Geometry.Point(5.8f, 0.0f, 7.76f));
+        player.addToRenderer(renderer);
     }
 
     @Override
@@ -71,6 +97,10 @@ public class SceneMenu extends Scene {
         uiShader = new TextureShaderProgram(context);
         uiRenderer.setShader(uiShader);
 
+        shader = new PerFragMultiLightingShader(context);
+        renderer.setShader(shader);
+        camera.viewChanged(width, height);
+        renderer.setCamera(camera);
         initUI(width, height);
     }
 
@@ -79,9 +109,10 @@ public class SceneMenu extends Scene {
         titleTexture = TextureHelper.loadTexture(context, R.drawable.title);
 
         title = new Image(new UIDimension((viewWidth / 2.0f) - (titleTexture.getWidth()),
-                viewHeight - (titleTexture.getHeight() * 2.0f) - 50,
+                viewHeight - (titleTexture.getHeight() * 2.0f) - 100,
                 titleTexture.getWidth() * 2.0f,
                 titleTexture.getHeight() * 2.0f), titleTexture);
+        titleDimensions = title.getDimensions();
 
         playButton = new Button(
                 new UIDimension((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f) - BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
@@ -134,15 +165,15 @@ public class SceneMenu extends Scene {
         Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         playText = new Text("PLAY", 2, font, viewWidth, uiRenderer, true);
         playText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        playText.setPosition(new Geometry.Point(-BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - BUTTON_PADDING, 0.0f));
+        playText.setPosition(new Geometry.Point(-BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
 
         settingsText = new Text("SETTINGS", 2, font, viewWidth, uiRenderer, true);
         settingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        settingsText.setPosition(new Geometry.Point(0.0f, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - BUTTON_PADDING, 0.0f));
+        settingsText.setPosition(new Geometry.Point(0.0f, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
 
         endlessText = new Text("ENDLESS", 2, font, viewWidth, uiRenderer, true);
         endlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        endlessText.setPosition(new Geometry.Point(BUTTON_PADDING + BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - BUTTON_PADDING, 0.0f));
+        endlessText.setPosition(new Geometry.Point(BUTTON_PADDING + BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
 
         versionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, viewWidth, uiRenderer, false);
         versionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
@@ -169,6 +200,7 @@ public class SceneMenu extends Scene {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(red, green, blue, 1.0f);
         uiRenderer.render();
+        renderer.render();
     }
 
     float red = 0.0f;
@@ -179,11 +211,30 @@ public class SceneMenu extends Scene {
     boolean blueb = false;
     float timePassed = 0.0f;
 
+    final float MAX_SIZE_INC = 100.0f;
+    float x = 0.0f;
+
+    float xPos = 0.0f;
     @Override
     public void update(float deltaTime) {
         playButton.update(deltaTime);
         settingsButton.update(deltaTime);
         endlessButton.update(deltaTime);
+
+        xPos -= deltaTime * 1.0f;
+        camera.setPosition(new Geometry.Point(xPos, 0.0f, 0.0f));
+        player.update(deltaTime);
+
+        x += deltaTime * 0.03f;
+        if(x >= Math.PI)
+        {
+            x -= Math.PI;
+        }
+
+        final float SIZE_INC_X = MAX_SIZE_INC * (float)Math.sin(x);
+        final float SIZE_INC_Y = SIZE_INC_X * (titleDimensions.h / titleDimensions.w);
+
+        title.setDimensions(new UIDimension(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
 
         if(red >= 1.0f)
         {

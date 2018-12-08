@@ -98,7 +98,7 @@ public class SceneGame extends Scene {
     private float previousY = 0.0f;
     private boolean doneYet = false;
 
-    static private Renderer renderer;
+    private Renderer renderer;
     private UIRenderer uiRenderer;
     private UIRendererGroup debugViewUIGroup;
     private UIRendererGroup healthbarsUIGroup;
@@ -233,15 +233,17 @@ public class SceneGame extends Scene {
         TEST_LIGHT = new Light();
         TEST_LIGHT2 = new Light();
         TEST_LIGHT.setColour(new Colour(0.89f, 0.89f, 0.89f));
-        TEST_LIGHT2.setColour(new Colour(1.0f, 1.0f, 0.0f));
+        TEST_LIGHT2.setColour(new Colour(1.0f, 0.2f, 0.2f));
         TEST_LIGHT2.setAmbienceIntensity(0.3f);
+        TEST_LIGHT2.setMaxAmbience(40f);
+        TEST_LIGHT2.setAttenuation(4f);
         TEST_LIGHT.setAttenuation(0.001f);
 
         muzzleFlareLight = new Light();
         muzzleFlareLight.setColour(new Colour(1.0f, 1.0f, 0.0f));
         muzzleFlareLight.setAmbienceIntensity(0.0f);
         muzzleFlareLight.setAttenuation(0.6f);
-        muzzleFlareLight.setMaxAmbience(10.0f);
+        muzzleFlareLight.setMaxAmbience(0.0f);
 
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
@@ -422,6 +424,10 @@ public class SceneGame extends Scene {
 
     @Override
     public void update(float deltaTime) {
+        System.out.println("DEBUG CAM POS: " + debugCamera.getPosition());
+        System.out.println("LOOKING AT: " + debugCamera.getHorizontalAngle() + ", " + debugCamera.getVerticalAngle());
+        System.out.println("HUMAN: " + player.getPosition());
+
         /*for(int i = 0; i < 5; i++)
         {
             System.out.println("At [" + i + "]: " + mActivePointers.get(mActivePointers.keyAt(i), new PointF(0.0f, 0.0f)));
@@ -522,9 +528,9 @@ public class SceneGame extends Scene {
 
         boxRotationAngle += 1f * deltaTime;
         lightRotationAngle += 0.5f * deltaTime;
-        positionLight(5.0f);
-      //  TEST_LIGHT.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
-      //          mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+        //positionLight(5.0f);
+       // TEST_LIGHT.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
+       //         mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
         positionLight(-5.0f);
         TEST_LIGHT2.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
                  mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
@@ -536,6 +542,7 @@ public class SceneGame extends Scene {
             if(muzzleFlareLightTimer >= 5.0f)
             {
                 muzzleFlareLight.setAmbienceIntensity(0.0f);
+                muzzleFlareLight.setMaxAmbience(0.0f);
                 muzzleFlareLightTimer = 0.0f;
                 muzzleFlareProcess = false;
             }
@@ -655,7 +662,7 @@ public class SceneGame extends Scene {
                         {
                             muzzleFlareProcess = true;
                             muzzleFlareLight.setAmbienceIntensity(0.02f);
-
+                            muzzleFlareLight.setMaxAmbience(10.0f);
                             positionLight(player.getPosition());
                             muzzleFlareLight.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
                                     mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
