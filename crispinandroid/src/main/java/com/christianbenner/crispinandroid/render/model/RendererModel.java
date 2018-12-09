@@ -32,7 +32,7 @@ public class RendererModel extends Model {
     private Context context;
     private boolean vboModel;
 
-    public float[] getFirstFloats()
+/*    public float[] getFirstFloats()
     {
         float[] firstFloats = {
                 vertexArray.floatBuffer.get(0),
@@ -42,9 +42,12 @@ public class RendererModel extends Model {
         };
 
         return firstFloats;
+    }*/
+
+    public void setAlpha(float alpha)
+    {
+        colour.a = alpha;
     }
-
-
 
     private float[] modelMatrix = new float[16];
 

@@ -1,10 +1,11 @@
 package com.christianbenner.crispinandroid.ui;
 
 import com.christianbenner.crispinandroid.render.text.TextMesh;
-import com.christianbenner.crispinandroid.render.util.VertexArray;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
+import com.christianbenner.crispinandroid.util.Dimension2D;
+import com.christianbenner.crispinandroid.util.Geometry;
 
 import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glDrawArrays;
@@ -114,7 +115,7 @@ public class Text extends UIBase {
     }
 
     @Override
-    public void setDimensions(UIDimension dimensions)
+    public void setDimensions(Dimension2D dimensions)
     {
         System.err.println("[Text] You cannot set dimensions of Text");
         super.setPosition(new Geometry.Point(dimensions.x, dimensions.y + getHeight(),

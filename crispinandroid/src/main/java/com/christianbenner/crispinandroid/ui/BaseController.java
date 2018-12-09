@@ -3,10 +3,11 @@ package com.christianbenner.crispinandroid.ui;
 import android.content.Context;
 import android.opengl.GLES20;
 
-import com.christianbenner.crispinandroid.render.util.VertexArray;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
+import com.christianbenner.crispinandroid.util.Dimension2D;
+import com.christianbenner.crispinandroid.util.Geometry;
 
 /**
  * Created by Christian Benner on 22/03/2018.
@@ -34,7 +35,7 @@ public class BaseController extends UIBase
         baseVertexCount = vertexData.length /
                 (POSITION_COMPONENT_COUNT + TEXTURE_COORDINATES_COMPONENT_COUNT);
 
-        this.dimensions = new UIDimension(position.x, position.y,
+        this.dimensions = new Dimension2D(position.x, position.y,
                 radius * 2.0f, radius * 2.0f);
         texture = TextureHelper.loadTexture(context, textureResource, true);
     }

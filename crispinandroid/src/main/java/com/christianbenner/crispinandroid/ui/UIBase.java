@@ -4,8 +4,9 @@ import android.opengl.GLES20;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
+import com.christianbenner.crispinandroid.util.Dimension2D;
+import com.christianbenner.crispinandroid.util.Geometry;
 
 import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 
@@ -24,7 +25,7 @@ public abstract class UIBase {
     // Common to all UI elements (texture may not be used check if == null)
     protected Texture texture;
     protected Colour colour;
-    protected UIDimension dimensions;
+    protected Dimension2D dimensions;
 
     // Common functionality to all UI elements
     public abstract void bindData(ShaderProgram shader);
@@ -34,7 +35,7 @@ public abstract class UIBase {
     {
         // Set default values
         texture = null;
-        dimensions = new UIDimension(0.0f, 0.0f, 0.0f, 0.f);
+        dimensions = new Dimension2D(0.0f, 0.0f, 0.0f, 0.f);
         colour = new Colour(1.0f, 1.0f, 1.0f);
     }
 
@@ -68,12 +69,12 @@ public abstract class UIBase {
         this.colour = colour;
     }
 
-    public void setDimensions(UIDimension dimensions)
+    public void setDimensions(Dimension2D dimensions)
     {
         this.dimensions = dimensions;
     }
 
-    public UIDimension getDimensions()
+    public Dimension2D getDimensions()
     {
         return this.dimensions;
     }

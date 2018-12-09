@@ -5,8 +5,10 @@ import android.content.Context;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.Model;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.crispinandroid.util.Geometry;
+import com.christianbenner.crispinandroid.util.Hitbox2D;
+import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
 /**
@@ -18,6 +20,7 @@ public class Weapon {
     private Texture uiImage;
     private int maxAmmo;
     private int currentAmmo;
+    private Hitbox2D hitbox;
 
     // If state is drop, rotate on the floor
     private enum state {
@@ -59,7 +62,7 @@ public class Weapon {
 
                 break;
             case MACHINE_GUN:
-
+                textureId = R.drawable.assualt_rifle_hotbar;
                 break;
             case SUB_MACHINE_GUN:
 
@@ -79,6 +82,8 @@ public class Weapon {
         model.newIdentity();
         model.setPosition(startPos);
         model.setScale(0.3f);
+
+        this.hitbox = new Hitbox2D(model, Map.TILE_SIZE, Map.TILE_SIZE);
     }
 
     public RendererModel getModel()
@@ -89,6 +94,10 @@ public class Weapon {
     public WeaponType getType()
     {
         return this.type;
+    }
+
+    public Hitbox2D getHitbox() {
+        return hitbox;
     }
 
     @Override

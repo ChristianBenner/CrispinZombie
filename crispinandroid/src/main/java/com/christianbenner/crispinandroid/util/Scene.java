@@ -163,7 +163,8 @@ public abstract class Scene {
     {
         System.out.println("ACTION RESUME");
         //TextureHelper.updateAll(context);
-    //    TextureHelper.clearTextureCache();
+    //
+        //    TextureHelper.clearTextureCache();
         resume();
     }
 

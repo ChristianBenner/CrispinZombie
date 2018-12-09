@@ -37,7 +37,7 @@ public class RendererManager implements GLSurfaceView.Renderer {
         intro = new SceneIntro(context);
         game = new SceneGame(context);
         menu = new SceneMenu(context);
-        scene = intro;
+        scene = game;
         addRenderer(Constants.INTRO_ID, scene, true);
      //   addRenderer(Constants.INTRO_ID, scene, true);
      //   scene = new SceneGameTest(context);

@@ -26,11 +26,12 @@ import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.ui.Text;
 import com.christianbenner.crispinandroid.ui.TouchEvent;
 import com.christianbenner.crispinandroid.ui.TouchListener;
-import com.christianbenner.crispinandroid.ui.UIDimension;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Player;
+import com.christianbenner.zombie.Entities.Weapon;
 import com.christianbenner.zombie.Entities.Zombie;
 import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
@@ -424,9 +425,9 @@ public class SceneGame extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        System.out.println("DEBUG CAM POS: " + debugCamera.getPosition());
-        System.out.println("LOOKING AT: " + debugCamera.getHorizontalAngle() + ", " + debugCamera.getVerticalAngle());
-        System.out.println("HUMAN: " + player.getPosition());
+    //    System.out.println("DEBUG CAM POS: " + debugCamera.getPosition());
+    //    System.out.println("LOOKING AT: " + debugCamera.getHorizontalAngle() + ", " + debugCamera.getVerticalAngle());
+    ////    System.out.println("HUMAN: " + player.getPosition());
 
         /*for(int i = 0; i < 5; i++)
         {
@@ -480,6 +481,23 @@ public class SceneGame extends Scene {
             zombie.update(deltaTime);
         }
 
+        // Check if the player interacts with weapons on the floor
+     //   for(Weapon weapons : demoMap.getWeapons())
+      //  {
+      //      if(weapons)
+     //   }
+
+        Weapon weaponPickup = demoMap.weaponPickupCollision(player.getHitbox());
+        if(weaponPickup != null)
+        {
+            if(player.getCurrentWeapon() != weaponPickup.getType())
+            {
+                System.out.println("Collided with weapon pick-up, switching weapon to: " + weaponPickup.getType());
+                player.switchWeapon(weaponPickup.getType());
+                audio.playSound(R.raw.pickup, 1);
+            }
+        }
+
         // Update bullets
         for (int n = 0; n < bullets.size(); n++) {
             Bullet bullet = bullets.get(n);
@@ -492,11 +510,12 @@ public class SceneGame extends Scene {
                 if(bullet.collidesWith(zombie))
                 {
                     zombie.damage(bullet.getDamage());
-                    audio.playSound(R.raw.zombie_hit, 1);
+                    audio.playSound(R.raw.hit, 1);
                     bullet.endLife();
 
                     if(!zombie.isAlive())
                     {
+                        audio.playSound(R.raw.zombie_hit, 1);
                         zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }
@@ -590,11 +609,11 @@ public class SceneGame extends Scene {
     private void initUI()
     {
         Texture hotbar_texture = TextureHelper.loadTexture(context, R.drawable.hotbar_scaled, true);
-        hotbar = new Image(new UIDimension((viewWidth / 2.0f) - (hotbar_texture.getWidth() / 2.0f), 10.0f,
+        hotbar = new Image(new Dimension2D((viewWidth / 2.0f) - (hotbar_texture.getWidth() / 2.0f), 10.0f,
                 hotbar_texture.getWidth(), hotbar_texture.getHeight()), hotbar_texture);
 
         crosshair = new Image(
-                new UIDimension((viewWidth/2.0f) - 25, (viewHeight/2.0f) - 25, 50, 50),
+                new Dimension2D((viewWidth/2.0f) - 25, (viewHeight/2.0f) - 25, 50, 50),
                 new Colour(1.0f, 1.0f, 1.0f, 0.0f),
                 TextureHelper.loadTexture(context, R.drawable.crosshair, true));
 
@@ -678,7 +697,7 @@ public class SceneGame extends Scene {
             }
         });
 
-        wave_button = new Button(new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
+        wave_button = new Button(new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                 viewHeight - BUTTON_SIZE - BUTTON_PADDING - BUTTON_PADDING - BUTTON_SIZE,
                 BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_wave));
@@ -696,7 +715,7 @@ public class SceneGame extends Scene {
         });
 
         switch_camera_button = new Button(
-                new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
+                new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         viewHeight - BUTTON_SIZE - BUTTON_PADDING, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_camera));
         switch_camera_button.addButtonListener(new TouchListener() {
@@ -736,7 +755,7 @@ public class SceneGame extends Scene {
         });
 
         switch_weapon_button = new Button(
-                new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE - BUTTON_PADDING -
+                new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE - BUTTON_PADDING -
                         BUTTON_SIZE,
                         viewHeight - BUTTON_SIZE - BUTTON_PADDING,
                         BUTTON_SIZE, BUTTON_SIZE),
@@ -755,7 +774,7 @@ public class SceneGame extends Scene {
         });
 
         debug_camera_button_up = new Button(
-                new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
+                new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         BUTTON_PADDING + BUTTON_PADDING + BUTTON_SIZE, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_up));
         debug_camera_button_up.addButtonListener(new TouchListener() {
@@ -774,7 +793,7 @@ public class SceneGame extends Scene {
         });
 
         debug_camera_button_down = new Button(
-                new UIDimension(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
+                new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE,
                         BUTTON_PADDING, BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_down));
         debug_camera_button_down.addButtonListener(new TouchListener() {

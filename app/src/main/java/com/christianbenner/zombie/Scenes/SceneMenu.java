@@ -4,13 +4,17 @@ import android.content.Context;
 import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
+import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
+import com.christianbenner.crispinandroid.render.shaders.ColourShaderProgram;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
+import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
+import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
 import com.christianbenner.crispinandroid.ui.Button;
 import com.christianbenner.crispinandroid.ui.Font;
 import com.christianbenner.crispinandroid.ui.Image;
@@ -18,18 +22,23 @@ import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.ui.Text;
 import com.christianbenner.crispinandroid.ui.TouchEvent;
 import com.christianbenner.crispinandroid.ui.TouchListener;
-import com.christianbenner.crispinandroid.ui.UIDimension;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 import com.christianbenner.crispinandroid.util.Audio;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Constants;
+import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Player;
 import com.christianbenner.zombie.R;
 
+import java.util.ArrayList;
+
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
+import static android.opengl.GLES20.GL_CULL_FACE;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
+import static android.opengl.GLES20.glEnable;
 
 /**
  * Created by Christian Benner on 19/11/2017.
@@ -39,6 +48,7 @@ public class SceneMenu extends Scene {
     private Audio audio;
     private static int audioPos = 0;
     private UIRenderer uiRenderer;
+    private UIRendererGroup transitionOverlayUIGroup;
     private Button playButton;
     private Button endlessButton;
     private Button settingsButton;
@@ -55,30 +65,51 @@ public class SceneMenu extends Scene {
     final private int BUTTON_PADDING = 30;
     final private int TEXT_PADDING = 10;
 
-    private UIDimension titleDimensions;
+    private Dimension2D titleDimensions;
 
     private Camera camera;
     private Renderer renderer;
     private PerFragMultiLightingShader shader;
+    private ColourShaderProgram colourShader;
     private Player player;
+    private ArrayList<Bullet> bullets;
+    private RendererGroup bulletsGroup;
+
+    private float transitionTimer = 0.0f;
+    private final float TRANSITION_TIME_GOAL = 90.0f;
+    private TRANSITION_TYPE transitionType = TRANSITION_TYPE.NONE;
+    private Image transitionOverlay;
+    private float transitionOverlayAlpha = 0.0f;
+
+    enum TRANSITION_TYPE
+    {
+        PLAY,
+        SETTINGS,
+        ENDLESS,
+        NONE
+    }
 
     public SceneMenu(Context context)
     {
         super(context);
         uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        transitionOverlayUIGroup = new UIRendererGroup(uiRenderer);
 
         shader = new PerFragMultiLightingShader(context);
+        colourShader = new ColourShaderProgram(context);
 
         camera = new Camera();
         camera.setPosition(new Geometry.Point(5.0f, 1.0f, 8.9f));
-        camera.setAngles(-3.314f, -0.323f);
+        camera.setAngles(-3.314f, -0.38f);
         renderer = new Renderer(shader, camera);
 
-        player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
-                0.0f, null, null);
+        bullets = new ArrayList<>();
+        bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
+        player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
+                0.0f, bullets, bulletsGroup);
         player.setWaving(true);
-        player.setPosition(new Geometry.Point(5.8f, 0.0f, 7.76f));
+        player.setPosition(new Geometry.Point(4.6f, 0.0f, 7.76f));
         player.addToRenderer(renderer);
     }
 
@@ -97,10 +128,14 @@ public class SceneMenu extends Scene {
         uiShader = new TextureShaderProgram(context);
         uiRenderer.setShader(uiShader);
 
+        colourShader = new ColourShaderProgram(context);
+        transitionOverlayUIGroup.setShader(colourShader);
+
         shader = new PerFragMultiLightingShader(context);
         renderer.setShader(shader);
         camera.viewChanged(width, height);
         renderer.setCamera(camera);
+
         initUI(width, height);
     }
 
@@ -108,14 +143,14 @@ public class SceneMenu extends Scene {
     {
         titleTexture = TextureHelper.loadTexture(context, R.drawable.title);
 
-        title = new Image(new UIDimension((viewWidth / 2.0f) - (titleTexture.getWidth()),
+        title = new Image(new Dimension2D((viewWidth / 2.0f) - (titleTexture.getWidth()),
                 viewHeight - (titleTexture.getHeight() * 2.0f) - 100,
                 titleTexture.getWidth() * 2.0f,
                 titleTexture.getHeight() * 2.0f), titleTexture);
         titleDimensions = title.getDimensions();
 
         playButton = new Button(
-                new UIDimension((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f) - BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
+                new Dimension2D((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f) - BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_play));
         playButton.addButtonListener(new TouchListener() {
             @Override
@@ -124,14 +159,14 @@ public class SceneMenu extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                        gotoScene(Constants.GAME_ID);
+                        transitionType = TRANSITION_TYPE.PLAY;
                         break;
                 }
             }
         });
 
         settingsButton = new Button(
-                new UIDimension((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f),
+                new Dimension2D((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f),
                         (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_settings));
         settingsButton.addButtonListener(new TouchListener() {
@@ -147,7 +182,7 @@ public class SceneMenu extends Scene {
         });
 
         endlessButton = new Button(
-                new UIDimension((viewWidth/2.0f) + (BUTTON_SIZE / 2.0f) + BUTTON_PADDING,
+                new Dimension2D((viewWidth/2.0f) + (BUTTON_SIZE / 2.0f) + BUTTON_PADDING,
                         (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_endless));
         endlessButton.addButtonListener(new TouchListener() {
@@ -185,6 +220,8 @@ public class SceneMenu extends Scene {
       //  endlessText = new Text("PLAY", 2, font, width, uiRenderer, true);
      //   endlessText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
 
+        transitionOverlay = new Image(new Dimension2D(0.0f, 0.0f, viewWidth, viewHeight), new Colour(0.0f, 0.0f, 0.0f, 0.0f));
+
         uiRenderer.addUI(title);
         uiRenderer.addUI(playButton);
         uiRenderer.addUI(settingsButton);
@@ -193,14 +230,27 @@ public class SceneMenu extends Scene {
         uiRenderer.addUI(settingsText);
         uiRenderer.addUI(endlessText);
         uiRenderer.addUI(versionText);
+        transitionOverlayUIGroup.addUI(transitionOverlay);
+        uiRenderer.addRendererGroup(transitionOverlayUIGroup);
     }
 
     @Override
     public void draw() {
+/*        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+        glEnable(GL_ALPHA);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_CULL_FACE);
+        */
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
         glClearColor(red, green, blue, 1.0f);
-        uiRenderer.render();
         renderer.render();
+        uiRenderer.render();
+
     }
 
     float red = 0.0f;
@@ -215,15 +265,43 @@ public class SceneMenu extends Scene {
     float x = 0.0f;
 
     float xPos = 0.0f;
+
     @Override
     public void update(float deltaTime) {
         playButton.update(deltaTime);
         settingsButton.update(deltaTime);
         endlessButton.update(deltaTime);
 
-        xPos -= deltaTime * 1.0f;
-        camera.setPosition(new Geometry.Point(xPos, 0.0f, 0.0f));
         player.update(deltaTime);
+
+        // Handle the transition to the next scene
+        if(transitionType != TRANSITION_TYPE.NONE)
+        {
+            transitionTimer += deltaTime;
+            transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+            if(transitionOverlayAlpha >= 1.0f)
+            {
+                transitionOverlayAlpha = 1.0f;
+            }
+            transitionOverlay.setAlpha(transitionOverlayAlpha);
+
+            if(transitionTimer >= TRANSITION_TIME_GOAL)
+            {
+                // Finished
+                switch (transitionType)
+                {
+                    case PLAY:
+                        gotoScene(Constants.GAME_ID);
+                        break;
+                    case SETTINGS:
+
+                        break;
+                    case ENDLESS:
+
+                        break;
+                }
+            }
+        }
 
         x += deltaTime * 0.03f;
         if(x >= Math.PI)
@@ -234,7 +312,7 @@ public class SceneMenu extends Scene {
         final float SIZE_INC_X = MAX_SIZE_INC * (float)Math.sin(x);
         final float SIZE_INC_Y = SIZE_INC_X * (titleDimensions.h / titleDimensions.w);
 
-        title.setDimensions(new UIDimension(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
+        title.setDimensions(new Dimension2D(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
 
         if(red >= 1.0f)
         {

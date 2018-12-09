@@ -1,19 +1,23 @@
-package com.christianbenner.crispinandroid.ui;
+package com.christianbenner.crispinandroid.util;
 
-/**
- * Created by Christian Benner on 28/03/2018.
- */
-
-public class UIDimension {
+public class Dimension2D {
     public float x;
     public float y;
     public float w;
     public float h;
 
-    public UIDimension(float x, float y, float w, float h)
+    public Dimension2D(float x, float y, float w, float h)
     {
         this.x = x;
         this.y = y;
+        this.w = w;
+        this.h = h;
+    }
+
+    public Dimension2D(Geometry.Point2D xy, float w, float h)
+    {
+        this.x = xy.x;
+        this.y = xy.y;
         this.w = w;
         this.h = h;
     }
@@ -37,4 +41,10 @@ public class UIDimension {
         this.w = width;
         this.h = height;
     }
-}
+
+    @Override
+    public String toString()
+    {
+        return "x: " + x + ", y: " + y + ", w: " + w + ", h: " + h;
+    }
+};

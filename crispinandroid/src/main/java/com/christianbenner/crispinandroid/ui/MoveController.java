@@ -4,10 +4,11 @@ import android.content.Context;
 import android.graphics.PointF;
 import android.opengl.GLES20;
 
-import com.christianbenner.crispinandroid.render.util.VertexArray;
-import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
+import com.christianbenner.crispinandroid.util.Dimension2D;
+import com.christianbenner.crispinandroid.util.Geometry;
 
 /**
  * Created by Christian Benner on 03/04/2018.
@@ -33,7 +34,7 @@ public class MoveController extends Button
 
     public MoveController(Context context, BaseController controller, int textureResource)
     {
-        super(new UIDimension(
+        super(new Dimension2D(
                 controller.getPosition().x + controller.getRadius() -
                         (controller.getRadius() / 2.0f),
                         controller.getPosition().y + controller.getRadius() -

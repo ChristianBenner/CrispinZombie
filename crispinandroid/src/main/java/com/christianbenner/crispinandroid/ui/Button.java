@@ -4,8 +4,9 @@ import android.graphics.PointF;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
-import com.christianbenner.crispinandroid.render.util.VertexArray;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 
 import java.util.ArrayList;
 
@@ -35,7 +36,7 @@ public class Button extends UIBase implements Interactive {
     private int vertexCount;
     private PointF lastPointerPosition;
 
-    public Button(UIDimension dimensions, Colour colour, Texture texture)
+    public Button(Dimension2D dimensions, Colour colour, Texture texture)
     {
         this.dimensions = dimensions;
         this.colour = colour;
@@ -43,17 +44,17 @@ public class Button extends UIBase implements Interactive {
         this.lastPointerPosition = new PointF(0.0f, 0.0f);
     }
 
-    public Button(UIDimension dimensions)
+    public Button(Dimension2D dimensions)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), null);
     }
 
-    public Button(UIDimension dimensions, Colour colour)
+    public Button(Dimension2D dimensions, Colour colour)
     {
         this(dimensions, colour, null);
     }
 
-    public Button(UIDimension dimensions, Texture texture)
+    public Button(Dimension2D dimensions, Texture texture)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), texture);
     }

@@ -2,8 +2,9 @@ package com.christianbenner.crispinandroid.ui;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
-import com.christianbenner.crispinandroid.render.util.VertexArray;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 
 import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glDrawArrays;
@@ -16,24 +17,24 @@ public class Image extends UIBase {
     private VertexArray vertexArray;
     private int vertexCount;
 
-    public Image(UIDimension dimensions, Colour colour, Texture texture)
+    public Image(Dimension2D dimensions, Colour colour, Texture texture)
     {
         this.dimensions = dimensions;
         this.colour = colour;
         this.texture = texture;
     }
 
-    public Image(UIDimension dimensions)
+    public Image(Dimension2D dimensions)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), null);
     }
 
-    public Image(UIDimension dimensions, Colour colour)
+    public Image(Dimension2D dimensions, Colour colour)
     {
         this(dimensions, colour, null);
     }
 
-    public Image(UIDimension dimensions, Texture texture)
+    public Image(Dimension2D dimensions, Texture texture)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), texture);
     }

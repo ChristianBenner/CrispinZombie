@@ -11,10 +11,38 @@ import static java.lang.Math.sin;
  */
 
 public class Geometry {
+   /* public static class Hitbox3D
+    {
+
+    }*/
+
+    // Base class for 3D points
+    public static class Point2D
+    {
+        public float x, y;
+
+        public Point2D()
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Point2D(float x, float y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public Point2D traverse(float x, float y)
+        {
+            return new Point2D(this.x + x, this.y + y);
+        }
+    }
+
     // Code is immutable - whenever we make a change we return a new object,
     // it may be better to mutate floating point arrays with statis functions for top performance
-    public static class Point {
-        public float x, y, z;
+    public static class Point extends Point2D {
+        public float z;
 
         public Point(float x, float y, float z) {
             this.x = x;

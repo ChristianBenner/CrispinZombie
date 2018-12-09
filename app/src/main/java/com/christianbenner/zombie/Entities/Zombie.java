@@ -10,7 +10,7 @@ import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.render.util.UIRendererGroup;
 import com.christianbenner.crispinandroid.ui.Image;
-import com.christianbenner.crispinandroid.ui.UIDimension;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.zombie.Map.Cell;
 import com.christianbenner.zombie.Map.Map;
@@ -46,9 +46,9 @@ public class Zombie extends Humanoid {
         this.player = humanoid;
         this.map = map;
 
-        this.healthbar = new Image(new UIDimension(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
+        this.healthbar = new Image(new Dimension2D(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
                 new Colour(1.0f, 0.0f, 0.0f, 0.0f));
-        this.healthbarLife = new Image(new UIDimension(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
+        this.healthbarLife = new Image(new Dimension2D(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
             new Colour(0.0f, 1.0f, 0.0f, 0.0f));
     }
 
@@ -106,7 +106,7 @@ public class Zombie extends Humanoid {
 
         final int LIFE_PIXELS = (int)((this.life / 100.0f) * HEALTHBAR_WIDTH);
 
-        healthbarLife.setDimensions(new UIDimension(
+        healthbarLife.setDimensions(new Dimension2D(
                 (((ndcCoordinates[0] + 1.0f) / 2.0f) * uiCanvasWidth) - (HEALTHBAR_WIDTH / 2.0f),
                 (((ndcCoordinates[1] + 1.0f) / 2.0f) * uiCanvasHeight) + (HEALTHBAR_HEIGHT / 2.0f),
                 LIFE_PIXELS, HEALTHBAR_HEIGHT));

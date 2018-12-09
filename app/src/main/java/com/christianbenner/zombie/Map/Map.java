@@ -10,6 +10,7 @@ import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.Geometry;
+import com.christianbenner.crispinandroid.util.Hitbox2D;
 import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Weapon;
 import com.christianbenner.zombie.R;
@@ -77,7 +78,7 @@ public class Map
     private final int LIGHT_DATA_ELEMENTS = 6;
 
     // The size of each tile in the map (width and height because tiles are square)
-    private final float TILE_SIZE = 0.5f;
+    public static final float TILE_SIZE = 0.5f;
 
     // The position of the first model in the map
     private final Geometry.Point MAP_START_POSITION = new Geometry.Point(0.0f, 0.0f, 0.0f);
@@ -747,6 +748,20 @@ public class Map
                 wallIndexValues.contains((z * mapWidth) + x));
     }
 
+    // Check if the player is colliding with a weapon pickup
+    public Weapon weaponPickupCollision(Hitbox2D playerHibox)
+    {
+        for(Weapon weapon : weapons)
+        {
+            if(playerHibox.checkCollision(weapon.getHitbox(), true))
+            {
+                return weapon;
+            }
+        }
+
+        return null;
+    }
+
     // Check if a bullet is colliding with any of the walls surrounding it
     public boolean checkCollision(Bullet bullet)
     {
@@ -814,6 +829,12 @@ public class Map
                 new Geometry.Point(TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
 
+
+        return ((bPos.x > wPos.x && bPos.x < wPos.x + wDims.x) ||
+                (bPos.x + bDims.x > wPos.x && bPos.x + bDims.x < wPos.x + wDims.x)) &&
+                ((bPos.z > wPos.z && bPos.z < wPos.z + wDims.z) ||
+                (bPos.z + bDims.z > wPos.z && bPos.z + bDims.z < wPos.z + wDims.z));
+/*
         boolean xInRange = false;
         boolean zInRange = false;
 
@@ -834,7 +855,7 @@ public class Map
             }
         }
 
-        return xInRange && zInRange;
+        return xInRange && zInRange;*/
     }
 
     // Get the map width
