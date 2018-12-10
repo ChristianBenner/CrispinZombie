@@ -29,6 +29,7 @@ import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Constants;
 import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Player;
+import com.christianbenner.zombie.Objects.MenuLevelSelectSlider;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
@@ -48,22 +49,34 @@ public class SceneMenu extends Scene {
     private Audio audio;
     private static int audioPos = 0;
     private UIRenderer uiRenderer;
+    private UIRendererGroup mainMenuUIGroup;
+    private UIRendererGroup levelSelectMenuUIGroup;
+    private UIRendererGroup levelSelectBackgroundUIGroup;
     private UIRendererGroup transitionOverlayUIGroup;
-    private Button playButton;
-    private Button endlessButton;
-    private Button settingsButton;
     private TextureShaderProgram uiShader;
-    private Image title;
-    private Texture titleTexture;
 
-    private Text playText;
-    private Text settingsText;
-    private Text endlessText;
-    private Text versionText;
+    private Texture mainMenuTitleTexture;
+    private Image mainMenuTitle;
+    private Button mainMenuPlayButton;
+    private Button mainMenuEndlessButton;
+    private Button mainMenuSettingsButton;
+    private Text mainMenuPlayText;
+    private Text mainMenuSettingsText;
+    private Text mainMenuEndlessText;
+    private Text mainMenuVersionText;
+
+    private Image levelMenuBackgroundOverlay;
+    private Text levelMenuTitleText;
+    private MenuLevelSelectSlider levelSelectSlider;
+
+    private float levelMenuLevelIconBannerOffset;
 
     final private int BUTTON_SIZE = 300;
     final private int BUTTON_PADDING = 30;
     final private int TEXT_PADDING = 10;
+    final private int LEVEL_SELECT_MENU_TITLE_PADDING = 20;
+    final private int LEVEL_ICON_TEXT_OFFSET = 5;
+    final private int LEVEL_ICON_OFFSET = 20;
 
     private Dimension2D titleDimensions;
 
@@ -76,23 +89,110 @@ public class SceneMenu extends Scene {
     private RendererGroup bulletsGroup;
 
     private float transitionTimer = 0.0f;
-    private final float TRANSITION_TIME_GOAL = 90.0f;
+    private final float TRANSITION_TIME_GOAL = 40.0f;
     private TRANSITION_TYPE transitionType = TRANSITION_TYPE.NONE;
+    private PAGE page = PAGE.MAIN_MENU;
     private Image transitionOverlay;
     private float transitionOverlayAlpha = 0.0f;
+    private boolean transitionBackRequired = false;
+
+    private float viewWidth;
+    private float viewHeight;
+
+    enum PAGE
+    {
+        NONE,
+        MAIN_MENU,
+        LEVEL_SELECT,
+        SETTINGS
+    }
 
     enum TRANSITION_TYPE
     {
+        NONE,
         PLAY,
         SETTINGS,
-        ENDLESS,
-        NONE
+        ENDLESS
     }
+
+    private class LevelIconData
+    {
+            private final int TEXTURE_RESOURCE_ID;
+            private final int MAP_RESOURCE;
+            private final String TITLE;
+
+            public LevelIconData(int textureResourceId, int resourceFile, String title)
+            {
+                this.TEXTURE_RESOURCE_ID = textureResourceId;
+                this.MAP_RESOURCE = resourceFile;
+                this.TITLE = title;
+            }
+
+            public final String getTitle()
+            {
+                return TITLE;
+            }
+
+            public final int getMapResource()
+            {
+                return MAP_RESOURCE;
+            }
+
+            private final int getTextureResourceId()
+            {
+                return TEXTURE_RESOURCE_ID;
+            }
+    }
+
+    private ArrayList<LevelIconData> levelIconsData;
+    private ArrayList<Image> levelIcons;
+    private ArrayList<Text> levelTexts;
+    private boolean draggingCompleted = false;
+    private float previousX = 0.0f;
+    private float dragXAmount = 0.0f;
+    private float iconWidths = 0.0f;
 
     public SceneMenu(Context context)
     {
         super(context);
+
+        levelIconsData = new ArrayList<>();
+        levelIconsData.add(new LevelIconData(R.drawable.demo_map_icon, R.raw.demo_map4, "demo_map"));
+        levelIconsData.add(new LevelIconData(R.drawable.unavailable_map_icon, R.raw.demo_map4, "unavailable1"));
+        levelIconsData.add(new LevelIconData(R.drawable.unavailable_map_icon, R.raw.demo_map4, "unavailable2"));
+
+        levelSelectSlider = new MenuLevelSelectSlider();
+        levelSelectSlider.addTouchListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
+                {
+                    // Allows for the user to look around by dragging there finger
+                    case DOWN:
+                        float normalizedX = (e.getPosition().x / (float) viewWidth) * 2 - 1;
+
+                        if(draggingCompleted == false)
+                        {
+                            previousX = normalizedX;
+                            draggingCompleted = true;
+                        }
+
+                        dragXAmount -= previousX - normalizedX;
+                        previousX = normalizedX;
+
+                        System.out.println("Drag X Amount: " + dragXAmount);
+                        break;
+                    case RELEASE:
+                        draggingCompleted = false;
+                        break;
+                }
+            }
+        });
+
         uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        mainMenuUIGroup = new UIRendererGroup(uiRenderer);
+        levelSelectMenuUIGroup = new UIRendererGroup(uiRenderer);
+        levelSelectBackgroundUIGroup = new UIRendererGroup(uiRenderer);
         transitionOverlayUIGroup = new UIRendererGroup(uiRenderer);
 
         shader = new PerFragMultiLightingShader(context);
@@ -124,11 +224,18 @@ public class SceneMenu extends Scene {
 
     @Override
     public void surfaceChanged(int width, int height) {
-        uiRenderer.createUICanvas(width, height);
-        uiShader = new TextureShaderProgram(context);
-        uiRenderer.setShader(uiShader);
+        this.viewWidth = width;
+        this.viewHeight = height;
 
+        uiRenderer.createUICanvas(width, height);
+
+        uiShader = new TextureShaderProgram(context);
         colourShader = new ColourShaderProgram(context);
+
+        uiRenderer.setShader(uiShader);
+        mainMenuUIGroup.setShader(uiShader);
+        levelSelectMenuUIGroup.setShader(uiShader);
+        levelSelectBackgroundUIGroup.setShader(colourShader);
         transitionOverlayUIGroup.setShader(colourShader);
 
         shader = new PerFragMultiLightingShader(context);
@@ -141,18 +248,19 @@ public class SceneMenu extends Scene {
 
     private void initUI(int viewWidth, int viewHeight)
     {
-        titleTexture = TextureHelper.loadTexture(context, R.drawable.title);
+        // Add the main menu elements
+        mainMenuTitleTexture = TextureHelper.loadTexture(context, R.drawable.title);
 
-        title = new Image(new Dimension2D((viewWidth / 2.0f) - (titleTexture.getWidth()),
-                viewHeight - (titleTexture.getHeight() * 2.0f) - 100,
-                titleTexture.getWidth() * 2.0f,
-                titleTexture.getHeight() * 2.0f), titleTexture);
-        titleDimensions = title.getDimensions();
+        mainMenuTitle = new Image(new Dimension2D((viewWidth / 2.0f) - (mainMenuTitleTexture.getWidth()),
+                viewHeight - (mainMenuTitleTexture.getHeight() * 2.0f) - 100,
+                mainMenuTitleTexture.getWidth() * 2.0f,
+                mainMenuTitleTexture.getHeight() * 2.0f), mainMenuTitleTexture);
+        titleDimensions = mainMenuTitle.getDimensions();
 
-        playButton = new Button(
+        mainMenuPlayButton = new Button(
                 new Dimension2D((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f) - BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_play));
-        playButton.addButtonListener(new TouchListener() {
+        mainMenuPlayButton.addButtonListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
                 switch(e.getEvent())
@@ -165,11 +273,11 @@ public class SceneMenu extends Scene {
             }
         });
 
-        settingsButton = new Button(
+        mainMenuSettingsButton = new Button(
                 new Dimension2D((viewWidth/2.0f) - (BUTTON_SIZE / 2.0f),
                         (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_settings));
-        settingsButton.addButtonListener(new TouchListener() {
+        mainMenuSettingsButton.addButtonListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
                 switch(e.getEvent())
@@ -181,11 +289,11 @@ public class SceneMenu extends Scene {
             }
         });
 
-        endlessButton = new Button(
+        mainMenuEndlessButton = new Button(
                 new Dimension2D((viewWidth/2.0f) + (BUTTON_SIZE / 2.0f) + BUTTON_PADDING,
                         (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f), BUTTON_SIZE, BUTTON_SIZE),
                 TextureHelper.loadTexture(context, R.drawable.button_endless));
-        endlessButton.addButtonListener(new TouchListener() {
+        mainMenuEndlessButton.addButtonListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
                 switch(e.getEvent())
@@ -198,38 +306,82 @@ public class SceneMenu extends Scene {
         });
 
         Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
-        playText = new Text("PLAY", 2, font, viewWidth, uiRenderer, true);
-        playText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        playText.setPosition(new Geometry.Point(-BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
+        mainMenuPlayText = new Text("PLAY", 2, font, viewWidth, uiRenderer, true);
+        mainMenuPlayText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuPlayText.setPosition(new Geometry.Point(-BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        settingsText = new Text("SETTINGS", 2, font, viewWidth, uiRenderer, true);
-        settingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        settingsText.setPosition(new Geometry.Point(0.0f, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
+        mainMenuSettingsText = new Text("SETTINGS", 2, font, viewWidth, uiRenderer, true);
+        mainMenuSettingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuSettingsText.setPosition(new Geometry.Point(0.0f, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        endlessText = new Text("ENDLESS", 2, font, viewWidth, uiRenderer, true);
-        endlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        endlessText.setPosition(new Geometry.Point(BUTTON_PADDING + BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - playText.getHeight() - TEXT_PADDING, 0.0f));
+        mainMenuEndlessText = new Text("ENDLESS", 2, font, viewWidth, uiRenderer, true);
+        mainMenuEndlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuEndlessText.setPosition(new Geometry.Point(BUTTON_PADDING + BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        versionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, viewWidth, uiRenderer, false);
-        versionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
-        versionText.setPosition(new Geometry.Point(viewWidth - 350.0f, 5.0f, 0.0f));
+        mainMenuVersionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, viewWidth, uiRenderer, false);
+        mainMenuVersionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuVersionText.setPosition(new Geometry.Point(viewWidth - 350.0f, 5.0f, 0.0f));
 
-     //   settingsText = new Text("PLAY", 2, font, width, uiRenderer, true);
-      //  settingsText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
+        mainMenuUIGroup.addUI(mainMenuTitle);
+        mainMenuUIGroup.addUI(mainMenuPlayButton);
+        mainMenuUIGroup.addUI(mainMenuSettingsButton);
+        mainMenuUIGroup.addUI(mainMenuEndlessButton);
+        mainMenuUIGroup.addUI(mainMenuPlayText);
+        mainMenuUIGroup.addUI(mainMenuSettingsText);
+        mainMenuUIGroup.addUI(mainMenuEndlessText);
+        mainMenuUIGroup.addUI(mainMenuVersionText);
+        uiRenderer.addRendererGroup(mainMenuUIGroup);
 
-      //  endlessText = new Text("PLAY", 2, font, width, uiRenderer, true);
-     //   endlessText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
 
+        final float LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT = viewHeight / 2.0f;
+
+        // Add the level select menu elements
+        levelMenuTitleText = new Text("LEVEL SELECT", 4, font, viewWidth, uiRenderer, true);
+        levelMenuTitleText.setColour(new Colour(1.0f, 1.0f, 1.0f));
+        levelMenuTitleText.setPosition(new Geometry.Point(0.0f, viewHeight - levelMenuTitleText.getHeight() - LEVEL_SELECT_MENU_TITLE_PADDING, 0.0f));
+
+        levelIcons = new ArrayList<>();
+        levelTexts = new ArrayList<>();
+
+        final float LEVEL_SELECT_LEVEL_ICONS_WIDTH = 960.0f;
+        final float LEVEL_SELECT_LEVEL_ICONS_HEIGHT = 540.0f;
+        final float WIDTH_HEIGHT_RATIO = LEVEL_SELECT_LEVEL_ICONS_WIDTH / LEVEL_SELECT_LEVEL_ICONS_HEIGHT;
+
+        levelMenuLevelIconBannerOffset = (LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT - (LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f)) / 1.5f;
+        iconWidths = LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f * WIDTH_HEIGHT_RATIO;
+
+        for(LevelIconData levelIconData : levelIconsData)
+        {
+            // Load in the image for the icon (height = LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT)
+            levelIcons.add(new Image(new Dimension2D(0.0f, 0.0f, iconWidths,
+                    LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f),
+                    TextureHelper.loadTexture(context, levelIconData.getTextureResourceId())));
+
+            Text tempText = new Text(levelIconData.getTitle(), 2, font, viewWidth, uiRenderer, true);
+            tempText.setColour(new Colour(1f, 1f, 1f));
+            tempText.setPosition(new Geometry.Point(0.0f, 0.0f, 0.0f));
+
+            levelTexts.add(tempText);
+        }
+
+        for(Image levelIcon : levelIcons)
+        {
+            levelSelectMenuUIGroup.addUI(levelIcon);
+        }
+
+        for(Text levelText : levelTexts)
+        {
+            levelSelectMenuUIGroup.addUI(levelText);
+        }
+
+        levelSelectMenuUIGroup.addUI(levelMenuTitleText);
+
+        // Add the level select menu background elements
+        levelMenuBackgroundOverlay = new Image(new Dimension2D(0.0f, viewHeight / 3.0f, viewWidth, LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT), new Colour(0.3f, 0.3f, 0.3f, 0.7f));
+        levelSelectBackgroundUIGroup.addUI(levelMenuBackgroundOverlay);
+
+        // Add the transition overlay element
         transitionOverlay = new Image(new Dimension2D(0.0f, 0.0f, viewWidth, viewHeight), new Colour(0.0f, 0.0f, 0.0f, 0.0f));
-
-        uiRenderer.addUI(title);
-        uiRenderer.addUI(playButton);
-        uiRenderer.addUI(settingsButton);
-        uiRenderer.addUI(endlessButton);
-        uiRenderer.addUI(playText);
-        uiRenderer.addUI(settingsText);
-        uiRenderer.addUI(endlessText);
-        uiRenderer.addUI(versionText);
         transitionOverlayUIGroup.addUI(transitionOverlay);
         uiRenderer.addRendererGroup(transitionOverlayUIGroup);
     }
@@ -268,51 +420,115 @@ public class SceneMenu extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        playButton.update(deltaTime);
-        settingsButton.update(deltaTime);
-        endlessButton.update(deltaTime);
-
-        player.update(deltaTime);
-
-        // Handle the transition to the next scene
-        if(transitionType != TRANSITION_TYPE.NONE)
+        switch (page)
         {
-            transitionTimer += deltaTime;
-            transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-            if(transitionOverlayAlpha >= 1.0f)
-            {
-                transitionOverlayAlpha = 1.0f;
-            }
-            transitionOverlay.setAlpha(transitionOverlayAlpha);
+            case MAIN_MENU:
+                mainMenuPlayButton.update(deltaTime);
+                mainMenuSettingsButton.update(deltaTime);
+                mainMenuEndlessButton.update(deltaTime);
 
-            if(transitionTimer >= TRANSITION_TIME_GOAL)
-            {
-                // Finished
-                switch (transitionType)
+                player.update(deltaTime);
+
+                // Handle the transition to the next scene
+                if(transitionType != TRANSITION_TYPE.NONE)
                 {
-                    case PLAY:
-                        gotoScene(Constants.GAME_ID);
-                        break;
-                    case SETTINGS:
+                    transitionTimer += deltaTime;
+                    transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                    if(transitionOverlayAlpha >= 1.0f)
+                    {
+                        transitionOverlayAlpha = 1.0f;
+                    }
+                    transitionOverlay.setAlpha(transitionOverlayAlpha);
 
-                        break;
-                    case ENDLESS:
+                    if(transitionTimer >= TRANSITION_TIME_GOAL)
+                    {
+                        // Finished
+                        switch (transitionType)
+                        {
+                            case PLAY:
+                                uiRenderer.removeRendererGroup(mainMenuUIGroup);
+                                player.removeFromRenderer(renderer);
 
-                        break;
+                                // Add the level select render group (move transition group
+                                // so that it gets render over the top)
+                                uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+                                uiRenderer.addRendererGroup(levelSelectBackgroundUIGroup);
+                                uiRenderer.addRendererGroup(levelSelectMenuUIGroup);
+                                uiRenderer.addRendererGroup(transitionOverlayUIGroup);
+
+                                page = PAGE.LEVEL_SELECT;
+                                transitionBackRequired = true;
+                                break;
+                            case SETTINGS:
+
+                                break;
+                            case ENDLESS:
+
+                                break;
+                        }
+                    }
                 }
-            }
+
+                x += deltaTime * 0.03f;
+                if(x >= Math.PI)
+                {
+                    x -= Math.PI;
+                }
+
+                final float SIZE_INC_X = MAX_SIZE_INC * (float)Math.sin(x);
+                final float SIZE_INC_Y = SIZE_INC_X * (titleDimensions.h / titleDimensions.w);
+
+                mainMenuTitle.setDimensions(new Dimension2D(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
+                break;
+            case LEVEL_SELECT:
+                if(transitionBackRequired)
+                {
+                    transitionTimer -= deltaTime;
+                    transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                    if(transitionOverlayAlpha <= 0.0f)
+                    {
+                        transitionOverlayAlpha = 0.0f;
+                        transitionBackRequired = false;
+                    }
+
+                    transitionOverlay.setAlpha(transitionOverlayAlpha);
+                }
+
+                // Decrease to the closest center point
+                System.out.println("Drag X Converted: " + (-dragXAmount * viewWidth));
+                final int SELECTED = (int)(((-dragXAmount * viewWidth) + (iconWidths / 2.0f)) / (iconWidths + LEVEL_ICON_OFFSET));
+                final float SELECTED_POSITION = (SELECTED * (iconWidths + LEVEL_ICON_OFFSET)) - (iconWidths / 2.0f);
+
+                System.out.println("Selected: " + SELECTED + ", POS: " + SELECTED_POSITION);
+
+                // Decrease back to 0.0f
+                if(dragXAmount > 0.0f && levelSelectSlider.hasTouchFocus() == false)
+                {
+                    dragXAmount -= 0.05f;
+                    dragXAmount = dragXAmount < 0.0f ? 0.0f : dragXAmount;
+                }
+
+                // Decrease back to 0.0f
+                if(dragXAmount < 0.0f && levelSelectSlider.hasTouchFocus() == false)
+                {
+                    dragXAmount += 0.05f;
+                    dragXAmount = dragXAmount > 0.0f ? 0.0f : dragXAmount;
+                }
+
+                float currentXAndCounting = 0.0f;
+                for(int i = 0; i < levelIcons.size(); i++)
+                {
+                    levelIcons.get(i).setPosition(new Geometry.Point(currentXAndCounting + (viewWidth / 2.0f) - (levelIcons.get(i).getWidth() / 2.0f) + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset, 0.0f));
+                    levelTexts.get(i).setPosition(new Geometry.Point(currentXAndCounting + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset - levelTexts.get(i).getHeight() - LEVEL_ICON_TEXT_OFFSET, 0.0f));
+                    currentXAndCounting += LEVEL_ICON_OFFSET + levelIcons.get(i).getWidth();
+                }
+
+             //   gotoScene(Constants.GAME_ID);
+                break;
+            case SETTINGS:
+
+                break;
         }
-
-        x += deltaTime * 0.03f;
-        if(x >= Math.PI)
-        {
-            x -= Math.PI;
-        }
-
-        final float SIZE_INC_X = MAX_SIZE_INC * (float)Math.sin(x);
-        final float SIZE_INC_Y = SIZE_INC_X * (titleDimensions.h / titleDimensions.w);
-
-        title.setDimensions(new Dimension2D(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
 
         if(red >= 1.0f)
         {
@@ -396,15 +612,30 @@ public class SceneMenu extends Scene {
     public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
         switch(pointerMotionEvent) {
             case CLICK:
-                // Look through the UI and check if the pointer interacts with them
-                if (handlePointerControl(playButton, pointer)) {
-                    return;
-                }
-                if (handlePointerControl(settingsButton, pointer)) {
-                    return;
-                }
-                if (handlePointerControl(endlessButton, pointer)) {
-                    return;
+                switch (page)
+                {
+                    case MAIN_MENU:
+                        // Look through the UI and check if the pointer interacts with them
+                        if (handlePointerControl(mainMenuPlayButton, pointer)) {
+                            return;
+                        }
+                        if (handlePointerControl(mainMenuSettingsButton, pointer)) {
+                            return;
+                        }
+                        if (handlePointerControl(mainMenuEndlessButton, pointer)) {
+                            return;
+                        }
+
+                        break;
+                    case SETTINGS:
+
+                        break;
+                    case LEVEL_SELECT:
+                        if(!levelSelectSlider.hasTouchFocus())
+                        {
+                            pointer.setControlOver(levelSelectSlider);
+                        }
+                        break;
                 }
         }
     }
