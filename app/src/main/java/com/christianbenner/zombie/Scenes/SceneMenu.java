@@ -68,6 +68,7 @@ public class SceneMenu extends Scene {
     private Image levelMenuBackgroundOverlay;
     private Text levelMenuTitleText;
     private MenuLevelSelectSlider levelSelectSlider;
+    private Button selectLevelButton;
 
     private float levelMenuLevelIconBannerOffset;
 
@@ -77,6 +78,9 @@ public class SceneMenu extends Scene {
     final private int LEVEL_SELECT_MENU_TITLE_PADDING = 20;
     final private int LEVEL_ICON_TEXT_OFFSET = 5;
     final private int LEVEL_ICON_OFFSET = 20;
+    final private int BUTTON_GO_OFFSET = 20;
+    final private int GO_BUTTON_WIDTH = 400;
+    final private int GO_BUTTON_HEIGHT = 200;
 
     private Dimension2D titleDimensions;
 
@@ -112,7 +116,8 @@ public class SceneMenu extends Scene {
         NONE,
         PLAY,
         SETTINGS,
-        ENDLESS
+        ENDLESS,
+        SELECTED_MAP
     }
 
     private class LevelIconData
@@ -151,6 +156,7 @@ public class SceneMenu extends Scene {
     private float previousX = 0.0f;
     private float dragXAmount = 0.0f;
     private float iconWidths = 0.0f;
+    private float iconHeights = 0.0f;
 
     public SceneMenu(Context context)
     {
@@ -180,10 +186,10 @@ public class SceneMenu extends Scene {
                         dragXAmount -= previousX - normalizedX;
                         previousX = normalizedX;
 
-                        System.out.println("Drag X Amount: " + dragXAmount);
                         break;
                     case RELEASE:
                         draggingCompleted = false;
+
                         break;
                 }
             }
@@ -340,6 +346,25 @@ public class SceneMenu extends Scene {
         levelMenuTitleText.setColour(new Colour(1.0f, 1.0f, 1.0f));
         levelMenuTitleText.setPosition(new Geometry.Point(0.0f, viewHeight - levelMenuTitleText.getHeight() - LEVEL_SELECT_MENU_TITLE_PADDING, 0.0f));
 
+        selectLevelButton = new Button(
+                new Dimension2D((viewWidth/2.0f) - (GO_BUTTON_WIDTH / 2.0f),
+                        viewHeight / 3.0f - BUTTON_GO_OFFSET - GO_BUTTON_HEIGHT,
+                        GO_BUTTON_WIDTH, GO_BUTTON_HEIGHT),
+                TextureHelper.loadTexture(context, R.drawable.button_go));
+        selectLevelButton.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
+                {
+                    case CLICK:
+                        playSound(context, R.raw.button_click, 1);
+                        transitionType = TRANSITION_TYPE.SELECTED_MAP;
+                        break;
+                }
+            }
+        });
+
+
         levelIcons = new ArrayList<>();
         levelTexts = new ArrayList<>();
 
@@ -349,6 +374,7 @@ public class SceneMenu extends Scene {
 
         levelMenuLevelIconBannerOffset = (LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT - (LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f)) / 1.5f;
         iconWidths = LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f * WIDTH_HEIGHT_RATIO;
+        iconHeights = LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f;
 
         for(LevelIconData levelIconData : levelIconsData)
         {
@@ -375,6 +401,7 @@ public class SceneMenu extends Scene {
         }
 
         levelSelectMenuUIGroup.addUI(levelMenuTitleText);
+        levelSelectMenuUIGroup.addUI(selectLevelButton);
 
         // Add the level select menu background elements
         levelMenuBackgroundOverlay = new Image(new Dimension2D(0.0f, viewHeight / 3.0f, viewWidth, LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT), new Colour(0.3f, 0.3f, 0.3f, 0.7f));
@@ -417,6 +444,7 @@ public class SceneMenu extends Scene {
     float x = 0.0f;
 
     float xPos = 0.0f;
+    float dragVelocity = 0.0f;
 
     @Override
     public void update(float deltaTime) {
@@ -458,6 +486,7 @@ public class SceneMenu extends Scene {
 
                                 page = PAGE.LEVEL_SELECT;
                                 transitionBackRequired = true;
+                                transitionType = TRANSITION_TYPE.NONE;
                                 break;
                             case SETTINGS:
 
@@ -494,33 +523,77 @@ public class SceneMenu extends Scene {
                     transitionOverlay.setAlpha(transitionOverlayAlpha);
                 }
 
-                // Decrease to the closest center point
-                System.out.println("Drag X Converted: " + (-dragXAmount * viewWidth));
-                final int SELECTED = (int)(((-dragXAmount * viewWidth) + (iconWidths / 2.0f)) / (iconWidths + LEVEL_ICON_OFFSET));
-                final float SELECTED_POSITION = (SELECTED * (iconWidths + LEVEL_ICON_OFFSET)) - (iconWidths / 2.0f);
-
-                System.out.println("Selected: " + SELECTED + ", POS: " + SELECTED_POSITION);
-
-                // Decrease back to 0.0f
-                if(dragXAmount > 0.0f && levelSelectSlider.hasTouchFocus() == false)
+                switch(transitionType)
                 {
-                    dragXAmount -= 0.05f;
-                    dragXAmount = dragXAmount < 0.0f ? 0.0f : dragXAmount;
+                    case SELECTED_MAP:
+                        transitionTimer += deltaTime;
+                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                        if(transitionOverlayAlpha >= 1.0f)
+                        {
+                            transitionOverlayAlpha = 1.0f;
+                        }
+                        transitionOverlay.setAlpha(transitionOverlayAlpha);
+
+                        if(transitionTimer >= TRANSITION_TIME_GOAL)
+                        {
+                            gotoScene(Constants.GAME_ID);
+                        }
+                        break;
                 }
 
-                // Decrease back to 0.0f
-                if(dragXAmount < 0.0f && levelSelectSlider.hasTouchFocus() == false)
+                // Decrease to the closest center point
+                System.out.println("Drag X Converted: " + (-dragXAmount * viewWidth));
+                int selected = (int)(((-dragXAmount * viewWidth) + (iconWidths / 2.0f)) / (iconWidths + LEVEL_ICON_OFFSET));
+
+                if(selected < 0)
                 {
-                    dragXAmount += 0.05f;
-                    dragXAmount = dragXAmount > 0.0f ? 0.0f : dragXAmount;
+                    selected = 0;
+                }
+                else if(selected >= levelIconsData.size())
+                {
+                    selected = levelIconsData.size() - 1;
+                }
+
+                final float SELECTED_POSITION = (selected * (iconWidths + LEVEL_ICON_OFFSET));
+
+                //System.out.println("Selected: " + SELECTED + ", POS: " + SELECTED_POSITION);
+
+                // Go to the selected position
+                if(-dragXAmount * viewWidth < SELECTED_POSITION && levelSelectSlider.hasTouchFocus() == false)
+                {
+                    dragXAmount -= 0.01f * deltaTime;
+                    if(dragXAmount < (-SELECTED_POSITION/viewWidth))
+                    {
+                        dragXAmount = (-SELECTED_POSITION/viewWidth);
+                    }
+                }
+
+                if(-dragXAmount * viewWidth > SELECTED_POSITION && levelSelectSlider.hasTouchFocus() == false)
+                {
+                    dragXAmount += 0.01f * deltaTime;
+                    if(dragXAmount > (-SELECTED_POSITION/viewWidth))
+                    {
+                        dragXAmount = (-SELECTED_POSITION/viewWidth);
+                    }
                 }
 
                 float currentXAndCounting = 0.0f;
                 for(int i = 0; i < levelIcons.size(); i++)
                 {
-                    levelIcons.get(i).setPosition(new Geometry.Point(currentXAndCounting + (viewWidth / 2.0f) - (levelIcons.get(i).getWidth() / 2.0f) + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset, 0.0f));
+                   // levelIcons.get(i).setPosition(new Geometry.Point(currentXAndCounting + (viewWidth / 2.0f) - (levelIcons.get(i).getWidth() / 2.0f) + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset, 0.0f));
                     levelTexts.get(i).setPosition(new Geometry.Point(currentXAndCounting + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset - levelTexts.get(i).getHeight() - LEVEL_ICON_TEXT_OFFSET, 0.0f));
-                    currentXAndCounting += LEVEL_ICON_OFFSET + levelIcons.get(i).getWidth();
+
+                    if(i != selected)
+                    {
+                        levelIcons.get(i).setDimensions(new Dimension2D(currentXAndCounting + (viewWidth / 2.0f) - (levelIcons.get(i).getWidth() / 2.0f) + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset, iconWidths / 1.5f,
+                                iconHeights / 1.5f));
+                    }
+                    else
+                    {
+                        levelIcons.get(i).setDimensions(new Dimension2D(currentXAndCounting + (viewWidth / 2.0f) - (levelIcons.get(i).getWidth() / 2.0f) + (dragXAmount * viewWidth), (viewHeight / 3.0f) + levelMenuLevelIconBannerOffset, iconWidths,
+                                iconHeights));
+                    }
+                    currentXAndCounting += LEVEL_ICON_OFFSET + iconWidths;
                 }
 
              //   gotoScene(Constants.GAME_ID);
@@ -631,6 +704,10 @@ public class SceneMenu extends Scene {
 
                         break;
                     case LEVEL_SELECT:
+                        if (handlePointerControl(selectLevelButton, pointer)) {
+                            return;
+                        }
+
                         if(!levelSelectSlider.hasTouchFocus())
                         {
                             pointer.setControlOver(levelSelectSlider);
