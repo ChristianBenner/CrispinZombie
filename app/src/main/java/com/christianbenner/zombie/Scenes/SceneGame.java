@@ -210,7 +210,8 @@ public class SceneGame extends Scene {
         bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
         player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
-                MOVE_SPEED, bullets, bulletsGroup);
+                MOVE_SPEED, bullets, bulletsGroup, demoMap);
+
         player.setPosition(PLAYER_START_POSITION);
 
         zombies = new ArrayList<>();
@@ -218,7 +219,7 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 2.0f, player,
                 new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
-       /* zombies.add(new Zombie(context,
+        zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 1.9f, player,
                 new Geometry.Point(6.0f, 0.0f, 0.0f), demoMap));
@@ -238,7 +239,7 @@ public class SceneGame extends Scene {
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 1.2f, player,
-                new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));*/
+                new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));
 
         TEST_LIGHT = new Light();
         TEST_LIGHT2 = new Light();
@@ -467,6 +468,7 @@ public class SceneGame extends Scene {
         }
     }
 
+
     @Override
     public void update(float deltaTime) {
     //    System.out.println("DEBUG CAM POS: " + debugCamera.getPosition());
@@ -524,7 +526,26 @@ public class SceneGame extends Scene {
         {
             zombie.update(deltaTime);
         }
+
         player.update(deltaTime);
+        player.checkTileCollisions();
+
+        // This part pushes the zombie away from other zombies, players and walls
+        // Calculate how far the zombie is to the player
+        for(Zombie z : zombies)
+        {
+            z.checkHumanoidCollision(player);
+            z.checkTileCollisions();
+
+            for(Zombie other : zombies)
+            {
+                if(z != other)
+                {
+                    z.checkHumanoidCollision(other);
+                }
+            }
+        }
+
         // Check if the player interacts with weapons on the floor
      //   for(Weapon weapons : demoMap.getWeapons())
       //  {

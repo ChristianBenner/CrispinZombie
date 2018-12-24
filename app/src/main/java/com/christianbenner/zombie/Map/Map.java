@@ -80,6 +80,9 @@ public class Map
     // The size of each tile in the map (width and height because tiles are square)
     public static final float TILE_SIZE = 0.5f;
 
+    // The position offset of the center of the tile
+    public static final Geometry.Vector TILE_POSITION_OFFSET = new Geometry.Vector(TILE_SIZE / 2.0f, 0.0f, -TILE_SIZE / 2.0f);
+
     // The position of the first model in the map
     private final Geometry.Point MAP_START_POSITION = new Geometry.Point(0.0f, 0.0f, 0.0f);
 
@@ -679,11 +682,46 @@ public class Map
         return neighbours;
     }
 
+    // Find all the neighbours around a specified cell, returns a list of cells
+    public LinkedList<Cell> getSurroundingCollidableTiles(int cellX, int cellZ)
+    {
+        // List of neighbouring cells
+        LinkedList<Cell> neighbours = new LinkedList<>();
+
+        // Check if the cell is in range
+        if(cellX < 0 || cellX >= mapWidth ||
+                cellZ < 0 || cellZ >= mapHeight)
+        {
+            return null;
+        }
+
+        int x = cells[cellZ][cellX].getPositionX(); int z = cells[cellZ][cellX].getPositionZ();
+
+        if(isValidCollidablendex(x, z)) neighbours.add(cells[z][x]);     // Current
+        if(isValidCollidablendex(x, z-1)) neighbours.add(cells[z-1][x]);     // Above
+        if(isValidCollidablendex(x+1, z-1)) neighbours.add(cells[z-1][x+1]); // Top right
+        if(isValidCollidablendex(x+1, z)) neighbours.add(cells[z][x+1]);     // Right
+        if(isValidCollidablendex(x+1, z+1)) neighbours.add(cells[z+1][x+1]); // Bottom Right
+        if(isValidCollidablendex(x, z+1)) neighbours.add(cells[z+1][x]);     // Bottom
+        if(isValidCollidablendex(x-1, z+1)) neighbours.add(cells[z+1][x-1]); // Bottom left
+        if(isValidCollidablendex(x-1, z)) neighbours.add(cells[z][x-1]);     // Left
+        if(isValidCollidablendex(x-1, z-1)) neighbours.add(cells[z-1][x-1]); // Top left
+
+        return neighbours;
+    }
+
     // Check if the co-ordinates are in the map boundaries (in array range) and the cell is not
     // a collidable type
     private boolean isValidNonCollidablendex(int x, int z)
     {
         return ((x >= 0 && x < mapWidth && z >= 0 && z < mapHeight) && !cells[z][x].isCollidable());
+    }
+
+    // Check if the co-ordinates are in the map boundaries (in array range) and the cell is
+    // a collidable type
+    private boolean isValidCollidablendex(int x, int z)
+    {
+        return ((x >= 0 && x < mapWidth && z >= 0 && z < mapHeight) && cells[z][x].isCollidable());
     }
 
     // Heuristic cost estimate is the X distance + Y distance from one node to the goal node
@@ -874,5 +912,25 @@ public class Map
     public Geometry.Point getModelPosition(Cell cell)
     {
         return models[cell.getPositionZ()][cell.getPositionX()].getPosition();
+    }
+
+    // Used only for debugging
+    @Deprecated
+    public RendererModel getModel(Cell cell)
+    {
+        return models[cell.getPositionZ()][cell.getPositionX()];
+    }
+
+    // Used only for debugging
+    @Deprecated
+    public void setColourAllTiles(Colour colour)
+    {
+        for(int z = 0; z < mapHeight; z++)
+        {
+            for(int x = 0; x < mapWidth; x++)
+            {
+                models[z][x].setColour(colour);
+            }
+        }
     }
 }

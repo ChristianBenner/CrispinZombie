@@ -7,6 +7,7 @@ import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.util.Audio;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Hitbox2D;
+import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
@@ -23,8 +24,13 @@ public class Player extends Humanoid
     private Random randomNumGenerator;
     private Hitbox2D hitbox;
 
-    public Player(Context context, Texture texture, float movementSpeed, ArrayList<Bullet> bullets, RendererGroup bulletModels) {
-        super(context, texture, movementSpeed);
+    public Player(Context context,
+                  Texture texture,
+                  float movementSpeed,
+                  ArrayList<Bullet> bullets,
+                  RendererGroup bulletModels, Map map)
+    {
+        super(context, texture, movementSpeed, map);
         this.bulletListReference = bullets;
         this.bulletModelsReference = bulletModels;
         this.currentWeapon = Weapon.WeaponType.HANDS;

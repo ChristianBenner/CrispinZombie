@@ -218,7 +218,7 @@ public class SceneMenu extends Scene {
         bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
         player = new Player(context, TextureHelper.loadTexture(context, R.drawable.player, true),
-                0.0f, bullets, bulletsGroup);
+                0.0f, bullets, bulletsGroup, null);
         player.setWaving(true);
         player.setPosition(new Geometry.Point(4.6f, 0.0f, 7.76f));
         player.addToRenderer(renderer);

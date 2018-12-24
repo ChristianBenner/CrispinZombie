@@ -2,11 +2,16 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
+import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.util.Geometry;
+import com.christianbenner.zombie.Map.Cell;
+import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
+
+import java.util.LinkedList;
 
 /**
  * Created by chris on 10/01/2018.
@@ -55,6 +60,9 @@ public class Humanoid {
     float waveAngle = 0.0f;
 
     private boolean waving = false;
+    private final float RADII = 0.2f;
+
+    protected Map map;
 
     protected final Geometry.Point leftLegRotationAxis =
             new Geometry.Point(-0.05f, 0.35f, 0f );
@@ -67,16 +75,77 @@ public class Humanoid {
     protected final Geometry.Point rightArmWaveRotationAxis =
             new Geometry.Point(0.15f, 0.65f, 0f );
 
-    public Humanoid(Context context, Texture texture, float movementSpeed)
+    public Humanoid(Context context, Texture texture, float movementSpeed, Map map)
     {
         this.context = context;
         this.movementSpeed = movementSpeed;
         this.texture = texture;
 
+        this.map = map;
+
         position = new Geometry.Point(0.0f, 0.0f, 0.0f);
         velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
         facingAngle = 0.0f;
         createParts();
+    }
+
+    public void checkHumanoidCollision(Humanoid other)
+    {
+        // Calculate distance to player
+        final float DISTANCE = position.distance(other.getPosition());
+
+        if(DISTANCE < RADII + RADII)
+        {
+            // Move the zombie away from the player
+            final Geometry.Vector DIRECTION = new Geometry.Vector(
+                    other.getPosition().x - position.x, other.getPosition().y - position.y, other.getPosition().z - position.z);
+
+            // Scale the vector to 0-1
+            final Geometry.Vector MAG_VECTOR = DIRECTION.scale(-1.0f / DIRECTION.length());
+            final Geometry.Vector MOVEMENT_VECTOR = MAG_VECTOR.scale(RADII + RADII - DISTANCE);
+
+            // Add the movement to the position
+            position.x += MOVEMENT_VECTOR.x;
+            position.z += MOVEMENT_VECTOR.z;
+        }
+    }
+
+    public void checkTileCollisions()
+    {
+        // Get the tiles surrounding the humanoid
+        LinkedList<Cell> surroundingTiles = map.getSurroundingCollidableTiles(
+                (int)(getPosition().x * 2f), (int)((getPosition().z * 2f) + 1.0f));
+
+        // If there are no tiles
+        if(surroundingTiles == null)
+        {
+            return;
+        }
+
+        // Run the collision on each cell
+        for(Cell cell : surroundingTiles)
+        {
+            // Determine the position of the cell
+            final Geometry.Point CELL_POSITION = map.getModelPosition(cell);//.translate(map.TILE_POSITION_OFFSET);
+
+            // Calculate distance to player
+            final float DISTANCE = position.distance(CELL_POSITION);
+
+            if(DISTANCE < Map.TILE_SIZE + RADII)
+            {
+                // Move the zombie away from the player
+                final Geometry.Vector DIRECTION = new Geometry.Vector(
+                        CELL_POSITION.x - position.x, CELL_POSITION.y - position.y, CELL_POSITION.z - position.z);
+
+                // Scale the vector to 0-1
+                final Geometry.Vector MAG_VECTOR = DIRECTION.scale(-1.0f / DIRECTION.length());
+                final Geometry.Vector MOVEMENT_VECTOR = MAG_VECTOR.scale(RADII + Map.TILE_SIZE - DISTANCE);
+
+                // Add the movement to the position
+                position.x += MOVEMENT_VECTOR.x;
+                position.z += MOVEMENT_VECTOR.z;
+            }
+        }
     }
 
     public void removeFromRenderer(Renderer renderer)

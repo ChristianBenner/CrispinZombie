@@ -24,7 +24,6 @@ import java.util.LinkedList;
 public class Zombie extends Humanoid {
     private Humanoid player;
     private final float ARM_ANGLE = -90.0f;
-    private Map map;
 
     private Image healthbar;
     private Image healthbarLife;
@@ -41,10 +40,9 @@ public class Zombie extends Humanoid {
 
     public Zombie(Context context, Texture texture, float movementSpeed, Humanoid humanoid, Geometry.Point position, Map map)
     {
-        super(context, texture, movementSpeed);
+        super(context, texture, movementSpeed, map);
         setPosition(position);
         this.player = humanoid;
-        this.map = map;
 
         this.healthbar = new Image(new Dimension2D(0, 0, HEALTHBAR_WIDTH, HEALTHBAR_HEIGHT),
                 new Colour(1.0f, 0.0f, 0.0f, 0.0f));
@@ -146,6 +144,12 @@ public class Zombie extends Humanoid {
         return cappedAngle;
     }
 
+    public void setXZ(float x, float z)
+    {
+        position.x = x;
+        position.z = z;
+    }
+
     public void update(float deltaTime)
     {
         // Get path to player DEBUG
@@ -159,18 +163,16 @@ public class Zombie extends Humanoid {
         Geometry.Vector velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
         if(path != null)
         {
-            Geometry.Vector tilePosOffset = new Geometry.Vector(0.25f, 0.0f, -0.25f);
-
             Geometry.Point tilePos;
             if(path.size() - 2 < 0)
             {
                 // We are at the players cell
-                tilePos = map.getModelPosition(path.getLast()).translate(tilePosOffset);
+                tilePos = map.getModelPosition(path.getLast()).translate(map.TILE_POSITION_OFFSET);
                 lastValid = path.getLast();
             }
             else
             {
-                tilePos = map.getModelPosition(path.get(path.size()-2)).translate(tilePosOffset);
+                tilePos = map.getModelPosition(path.get(path.size()-2)).translate(map.TILE_POSITION_OFFSET);
                 lastValid = path.get(path.size()-2);
             }
 
@@ -236,14 +238,6 @@ public class Zombie extends Humanoid {
             final float TARGET_ANGLE_DEGREES = capAngle(((ANGLE_RADS / (float)Math.PI) * 180.0f) + 90.0f);
             facingAngle = capAngle(facingAngle);
 
-            System.out.println("FACING: " + facingAngle);
-            System.out.println("TARGET: " + TARGET_ANGLE_DEGREES);
-
-            //facingAngle = TARGET_ANGLE_DEGREES;
-
-            // Check if we should rotate smoothly or if we are in range to snap to the target angle
-            System.out.println("DIFFERENCE BETWEEN: " + Math.abs(facingAngle - TARGET_ANGLE_DEGREES));
-
             if(Math.abs(facingAngle - Math.abs(TARGET_ANGLE_DEGREES)) <= 5.0f)
             {
                 facingAngle = TARGET_ANGLE_DEGREES;
@@ -275,38 +269,8 @@ public class Zombie extends Humanoid {
                 {
                     facingAngle -= 5.0f;
                 }
-
-                System.out.println("ZMOVE: " + facingAngle + " - " + TARGET_ANGLE_DEGREES);
             }
         }
-
-        // This part pushes the zombie away from other zombies, players and walls
-        // Calculate how far the zombie is to the player
-      //  final Geometry.Point DISTANCE = position.distance3D(player.getPosition());
-      //  System.out.println("DISTANCE TO PLAYER: " + DISTANCE);
-
-        final float PLAYER_RADII = 0.4f;
-        final float TILE_RADII = 0.7f;
-        final float ZOMBIE_RADII = 0.4f;
-
-        // Calculate distance to player
-        final float DISTANCE = position.distance(player.getPosition());
-        System.out.println("DISTANCE: " + DISTANCE);
-
-        if(DISTANCE < ZOMBIE_RADII + PLAYER_RADII)
-        {
-            // Move the zombie away from the player
-            final Geometry.Vector DIRECTION = new Geometry.Vector(
-                    player.getPosition().x - position.x, player.getPosition().y - position.y, player.getPosition().z - position.z);
-
-            // Scale the vector to 0-1
-            final Geometry.Vector MAG_VECTOR = DIRECTION.scale(-1.0f / DIRECTION.length());
-            final Geometry.Vector MOVEMENT_VECTOR = MAG_VECTOR.scale(ZOMBIE_RADII + PLAYER_RADII - DISTANCE);
-            position.x += MOVEMENT_VECTOR.x;
-            position.z += MOVEMENT_VECTOR.z;
-        }
-
-
 
         // How much the limbs should move (depends on how far the joystick is dragged)
         float limbMovementFactor = (velocity.length() / movementSpeed);
