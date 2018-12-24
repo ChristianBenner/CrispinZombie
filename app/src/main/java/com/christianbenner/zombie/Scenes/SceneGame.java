@@ -9,6 +9,7 @@ import com.christianbenner.crispinandroid.render.data.RendererGroupType;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.ColourShaderProgram;
+import com.christianbenner.crispinandroid.render.shaders.PerFragLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
@@ -37,6 +38,7 @@ import com.christianbenner.zombie.Map.Map;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import static android.opengl.GLES20.GL_ALPHA;
 import static android.opengl.GLES20.GL_BLEND;
@@ -49,6 +51,7 @@ import static android.opengl.GLES20.GL_SRC_ALPHA;
 import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
+import static android.opengl.GLES20.glDisable;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
@@ -82,6 +85,7 @@ public class SceneGame extends Scene {
     private Light TEST_LIGHT;
     private Light TEST_LIGHT2;
     private RendererModel box;
+    private RendererModel zombiehead;
     private Player player;
     //private RendererModel sniper;
 
@@ -107,6 +111,7 @@ public class SceneGame extends Scene {
     private PerFragMultiLightingShader shader;
     private TextureShaderProgram uiShader;
     private ColourShaderProgram colourShader;
+    private PerFragLightingShader lightingShader;
 
     // UI
     private Button debug_camera_button_up;
@@ -139,6 +144,9 @@ public class SceneGame extends Scene {
     private Light muzzleFlareLight = null;
     private float muzzleFlareLightTimer;
     private boolean muzzleFlareProcess = false;
+    private final int MUSIC_SELECTION;
+
+    private ArrayList<RendererModel> zheads;
 
     public SceneGame(Context context) {
         super(context);
@@ -196,6 +204,7 @@ public class SceneGame extends Scene {
       //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
+        zombiehead = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.marbletex2));
 
         bullets = new ArrayList<>();
         bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
@@ -209,7 +218,7 @@ public class SceneGame extends Scene {
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 2.0f, player,
                 new Geometry.Point(4.0f, 0.0f, 0.0f), demoMap));
-        zombies.add(new Zombie(context,
+       /* zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 1.9f, player,
                 new Geometry.Point(6.0f, 0.0f, 0.0f), demoMap));
@@ -229,7 +238,7 @@ public class SceneGame extends Scene {
         zombies.add(new Zombie(context,
                 TextureHelper.loadTexture(context, R.drawable.zombie, true),
                 MOVE_SPEED / 1.2f, player,
-                new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));
+                new Geometry.Point(14.0f, 0.0f, 0.0f), demoMap));*/
 
         TEST_LIGHT = new Light();
         TEST_LIGHT2 = new Light();
@@ -249,8 +258,17 @@ public class SceneGame extends Scene {
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
 
+        zheads = new ArrayList<>();
+        for(int i = 0; i < 100; i++)
+        {
+            RendererModel model = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.marbletex2));
+            zheads.add(model);
+            renderer.addModel(model);
+        }
+
         //renderer.addModel(sniper);
         renderer.addModel(box);
+        renderer.addModel(zombiehead);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
         renderer.addLight(muzzleFlareLight);
@@ -272,6 +290,9 @@ public class SceneGame extends Scene {
 
         musicQueue[0] = R.raw.button_click;
         musicQueue[1] = R.raw.button_click;
+
+        final Random MUSIC_RANDOMIZER = new Random();
+        MUSIC_SELECTION = MUSIC_RANDOMIZER.nextInt(2);
     }
 
     @Override
@@ -294,12 +315,21 @@ public class SceneGame extends Scene {
             }
         });*/
 
-        playMusic(context, R.raw.zombies);
+    //    playMusic(context, R.raw.zombies);
+        switch(MUSIC_SELECTION)
+        {
+            case 0:
+                playMusic(context, R.raw.gameplay_decay);
+                break;
+            case 1:
+                playMusic(context, R.raw.gameplay_deep_noise);
+                break;
+        }
     }
+
     private Text text;
     @Override
     public void surfaceChanged(int width, int height) {
-
         viewWidth = width;
         viewHeight = height;
         uiRenderer.createUICanvas(width, height);
@@ -332,6 +362,8 @@ public class SceneGame extends Scene {
 
         shader = new PerFragMultiLightingShader(context);
         renderer.setShader(shader);
+
+
         if(debugView)
         {
             renderer.setCamera(debugCamera);
@@ -359,6 +391,18 @@ public class SceneGame extends Scene {
         box.rotate(boxRotationAngle, 1.0f, 0.0f, 0.0f);
         box.setScale(0.25f);
 
+        zombiehead.newIdentity();
+        zombiehead.setPosition(new Geometry.Point(1f, 2.0f, 0.0f));
+        zombiehead.rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
+        zombiehead.setScale(0.1f);
+
+        for(int i = 0; i < zheads.size(); i++)
+        {
+            zheads.get(i).newIdentity();
+            zheads.get(i).setPosition(new Geometry.Point(1f + (i * 2.0f), 2.0f, 0.0f));
+            zheads.get(i).rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
+            zheads.get(i).setScale(0.1f);
+        }
         renderer.render();
 
         colourShader.useProgram();
@@ -473,14 +517,14 @@ public class SceneGame extends Scene {
             cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, cameraTextTimer));
         }
 
-        player.update(deltaTime);
+
 
         // Update zombies
         for(Zombie zombie : zombies)
         {
             zombie.update(deltaTime);
         }
-
+        player.update(deltaTime);
         // Check if the player interacts with weapons on the floor
      //   for(Weapon weapons : demoMap.getWeapons())
       //  {
@@ -494,7 +538,7 @@ public class SceneGame extends Scene {
             {
                 System.out.println("Collided with weapon pick-up, switching weapon to: " + weaponPickup.getType());
                 player.switchWeapon(weaponPickup.getType());
-                audio.playSound(R.raw.pickup, 1);
+              //  audio.playSound(R.raw.pickup, 1);
             }
         }
 
@@ -510,12 +554,12 @@ public class SceneGame extends Scene {
                 if(bullet.collidesWith(zombie))
                 {
                     zombie.damage(bullet.getDamage());
-                    audio.playSound(R.raw.hit, 1);
+                //    audio.playSound(R.raw.hit, 1);
                     bullet.endLife();
 
                     if(!zombie.isAlive())
                     {
-                        audio.playSound(R.raw.zombie_hit, 1);
+                       // audio.playSound(R.raw.zombie_hit, 1);
                         zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }

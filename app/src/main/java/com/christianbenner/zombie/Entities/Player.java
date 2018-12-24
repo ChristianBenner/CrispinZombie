@@ -110,7 +110,8 @@ public class Player extends Humanoid
                     bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
                             unitVectorDirection, 0.4f, 150.0f, 20.0f);
 
-                    final int FILE_TO_PLAY = randomNumGenerator.nextInt(4);
+                    audio.playSound(R.raw.temp_assault_rifle, 1);
+                  /*  final int FILE_TO_PLAY = randomNumGenerator.nextInt(4);
                     switch (FILE_TO_PLAY)
                     {
                         case 0:
@@ -125,7 +126,7 @@ public class Player extends Humanoid
                         case 3:
                             audio.playSound(R.raw.ar4, 1);
                             break;
-                    }
+                    }*/
 
                   //  audio.playSound(R.raw.temp_assault_rifle, 1);
             //        audio.playSound(R.raw.ting, 2);

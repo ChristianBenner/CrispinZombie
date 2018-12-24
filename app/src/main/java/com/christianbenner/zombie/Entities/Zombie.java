@@ -127,6 +127,25 @@ public class Zombie extends Humanoid {
         uiRendererGroup.removeUI(healthbarLife);
     }
 
+    // Returns the same angle in the range of 0 to 360 degrees
+    private float capAngle(float angle)
+    {
+        float cappedAngle = angle;
+
+        // If the angle is from -360 to 0 degrees, add 360 degrees
+        if(cappedAngle < 0.0f && cappedAngle >= -360.0f)
+        {
+            cappedAngle += 360.0f;
+        }
+        else
+        {
+            // How many turns has the angle exceeded 360 degrees by
+            cappedAngle -= 360.0f * Math.abs((int)angle / 360);
+        }
+
+        return cappedAngle;
+    }
+
     public void update(float deltaTime)
     {
         // Get path to player DEBUG
@@ -188,11 +207,10 @@ public class Zombie extends Humanoid {
             // Go to last valid cell
             if(lastValid != null)
             {
-                Geometry.Vector tilePosOffset = new Geometry.Vector(0.25f, 0.0f, -0.25f);
-                Geometry.Point tilePos = map.getModelPosition(lastValid).translate(tilePosOffset);
+                final Geometry.Vector TILE_POS_OFFSET = new Geometry.Vector(0.25f, 0.0f, -0.25f);
+                Geometry.Point tilePos = map.getModelPosition(lastValid).translate(TILE_POS_OFFSET);
                 Geometry.Vector difference = new Geometry.Vector(tilePos.x - position.x,
                         0.0f, tilePos.z - position.z);
-          //      System.out.println("Difference: " + difference);
 
                 // Need to check if dividing my 0
                 Geometry.Vector direction;
@@ -205,111 +223,51 @@ public class Zombie extends Humanoid {
                     direction = difference.scale(1.0f / difference.length());
                 }
 
-       //         System.out.println("Direction: " + direction);
-
                 velocity = direction.scale(movementSpeed);
-      //          System.out.println("Velocity: " + velocity);
                 translate(velocity);
             }
-
         }
 
-       /* Geometry.Vector velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
-        if(path != null)
-        {
-            Geometry.Vector tileOffset = new Geometry.Vector(-0.5f, 0.0f, 1.0f);
-            Geometry.Point tilePos = map.getModelPosition(path.getLast()).translate(tileOffset);
-
-            Geometry.Vector difference = new Geometry.Vector(tilePos.x - position.x,
-                    0.0f, tilePos.z - position.z);
-
-            System.out.println("Difference: " + difference);
-
-            // If the difference is a certain amount, stop moving towards the player and play attack animation
-
-
-            Geometry.Vector direction = difference.scale(1.0f / difference.length());
-            velocity = direction.scale(movementSpeed);
-
-            Geometry.Vector velocity2 = new Geometry.Vector(-velocity.z, 0.0f, velocity.x);
-            translate(velocity2);
-
-            System.out.println("Velocity: " + velocity2);
-        }*/
-
-
-        // Move to the player
-        // Calculate direction from player location and zombie location
-        Geometry.Point playerPosition = player.getPosition();
-        Geometry.Vector difference = new Geometry.Vector(playerPosition.x - position.x,
-                0.0f, playerPosition.z - position.z);
-
-        // If the difference is a certain amount, stop moving towards the player and play attack animation
-
-
-        Geometry.Vector direction = difference.scale(1.0f / difference.length());
-   //     Geometry.Vector velocity = direction.scale(movementSpeed);
-       // translate(velocity);
-
+        // This part calculates where the zombie should be facing and smoothly rotates it
         // Work out the facing angle from the velocity
         final float ANGLE_RADS = (float)Math.atan2(-velocity.z, velocity.x);
         if(ANGLE_RADS != 0.0)
         {
-            // Convert angle to degrees - this is the target direction we should turn to at
-            // a specific rate
-            final float TARGET_ANGLE_DEGREES = ((ANGLE_RADS / (float)Math.PI) * 180.0f) + 90.0f;
+            final float TARGET_ANGLE_DEGREES = capAngle(((ANGLE_RADS / (float)Math.PI) * 180.0f) + 90.0f);
+            facingAngle = capAngle(facingAngle);
 
+            System.out.println("FACING: " + facingAngle);
+            System.out.println("TARGET: " + TARGET_ANGLE_DEGREES);
 
+            //facingAngle = TARGET_ANGLE_DEGREES;
 
-         //   System.out.println("FACING ANGLE: " + facingAngle + ", TARGET ANGLE: " + TARGET_ANGLE_DEGREES);
-            final int NUM_REPEATS = (int)facingAngle / 360;
-         //   System.out.println("NUM REPEATS: " + NUM_REPEATS);
+            // Check if we should rotate smoothly or if we are in range to snap to the target angle
+            System.out.println("DIFFERENCE BETWEEN: " + Math.abs(facingAngle - TARGET_ANGLE_DEGREES));
 
-            facingAngle -= facingAngle * Math.abs(NUM_REPEATS);
-
-            if(facingAngle < 0.0f)
+            if(Math.abs(facingAngle - Math.abs(TARGET_ANGLE_DEGREES)) <= 5.0f)
             {
-                facingAngle = 360.0f + facingAngle;
-            }
-
-            final boolean INCREASE_ANGLE = (TARGET_ANGLE_DEGREES - facingAngle) < (TARGET_ANGLE_DEGREES / 2.0f);
-
-            final float ANGLE_OPTION_ONE = Math.abs(facingAngle - TARGET_ANGLE_DEGREES);
-            final float ANGLE_OPTION_TWO = Math.abs((facingAngle + 360.0f) - TARGET_ANGLE_DEGREES);
-
-            final float ao1 = facingAngle - TARGET_ANGLE_DEGREES;
-            final float ao2 = 360 - Math.abs(ao1);
-            boolean increase = false;
-            if(Math.abs(ao1) < ao2)
-            {
-                if(ao1 < 0.0f)
-                {
-                    increase = false;
-                }
-                else
-                {
-                    increase = true;
-                }
+                facingAngle = TARGET_ANGLE_DEGREES;
             }
             else
             {
-                increase = false;
-            }
+                // At this point the facing angle is in range 0-360 degrees and we need to move it to
+                // the target angle in the direction closest
+                final float MAX_ANGLE = Math.max(facingAngle, TARGET_ANGLE_DEGREES);
+                final float MIN_ANGLE = Math.min(facingAngle, TARGET_ANGLE_DEGREES);
+                final float ANGLE_TO_MOVE = MAX_ANGLE - MIN_ANGLE;
 
-            if(ANGLE_OPTION_ONE < ANGLE_OPTION_TWO)
-            {
+                boolean clockwiseMotion = false;
+                if(MAX_ANGLE == TARGET_ANGLE_DEGREES)
+                {
+                    clockwiseMotion = true;
+                }
 
-            }
+                if(ANGLE_TO_MOVE > 180)
+                {
+                    clockwiseMotion = !clockwiseMotion;
+                }
 
-          //  final boolean SHOULD_INCREASE_ANGLE = >
-          //          Math.abs((facingAngle + 360.0f) - TARGET_ANGLE_DEGREES);
-
-
-
-
-            if(Math.abs(TARGET_ANGLE_DEGREES - facingAngle) > 5.5f)
-            {
-                if(increase)
+                if(clockwiseMotion)
                 {
                     facingAngle += 5.0f;
                 }
@@ -317,29 +275,38 @@ public class Zombie extends Humanoid {
                 {
                     facingAngle -= 5.0f;
                 }
-            }
-            else
-            {
-                facingAngle = TARGET_ANGLE_DEGREES;
-            }
-            facingAngle = TARGET_ANGLE_DEGREES;
-           /* if(Math.abs(TARGET_ANGLE_DEGREES - facingAngle) < 2.0f)
-            {
-                if(TARGET_ANGLE_DEGREES > facingAngle)
-                {
-                    facingAngle += 1.0f;
-                } else if (TARGET_ANGLE_DEGREES < facingAngle)
-                {
-                    facingAngle -= 1.0f;
-                }
-            }
-            else
-            {
-                facingAngle = TARGET_ANGLE_DEGREES;
-            }*/
 
-
+                System.out.println("ZMOVE: " + facingAngle + " - " + TARGET_ANGLE_DEGREES);
+            }
         }
+
+        // This part pushes the zombie away from other zombies, players and walls
+        // Calculate how far the zombie is to the player
+      //  final Geometry.Point DISTANCE = position.distance3D(player.getPosition());
+      //  System.out.println("DISTANCE TO PLAYER: " + DISTANCE);
+
+        final float PLAYER_RADII = 0.4f;
+        final float TILE_RADII = 0.7f;
+        final float ZOMBIE_RADII = 0.4f;
+
+        // Calculate distance to player
+        final float DISTANCE = position.distance(player.getPosition());
+        System.out.println("DISTANCE: " + DISTANCE);
+
+        if(DISTANCE < ZOMBIE_RADII + PLAYER_RADII)
+        {
+            // Move the zombie away from the player
+            final Geometry.Vector DIRECTION = new Geometry.Vector(
+                    player.getPosition().x - position.x, player.getPosition().y - position.y, player.getPosition().z - position.z);
+
+            // Scale the vector to 0-1
+            final Geometry.Vector MAG_VECTOR = DIRECTION.scale(-1.0f / DIRECTION.length());
+            final Geometry.Vector MOVEMENT_VECTOR = MAG_VECTOR.scale(ZOMBIE_RADII + PLAYER_RADII - DISTANCE);
+            position.x += MOVEMENT_VECTOR.x;
+            position.z += MOVEMENT_VECTOR.z;
+        }
+
+
 
         // How much the limbs should move (depends on how far the joystick is dragged)
         float limbMovementFactor = (velocity.length() / movementSpeed);

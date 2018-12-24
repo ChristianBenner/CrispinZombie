@@ -107,6 +107,11 @@ public class Geometry {
             return (float)Math.sqrt((double)((dX * dX) + (dY * dY) + (dZ * dZ)));
         }
 
+        public Point distance3D(Point target)
+        {
+            return new Point(target.x - x, target.y - y, target.z - z);
+        }
+
         @Override
         public String toString()
         {

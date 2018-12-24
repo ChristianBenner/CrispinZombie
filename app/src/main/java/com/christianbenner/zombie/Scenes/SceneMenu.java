@@ -33,6 +33,7 @@ import com.christianbenner.zombie.Objects.MenuLevelSelectSlider;
 import com.christianbenner.zombie.R;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_CULL_FACE;
@@ -69,6 +70,7 @@ public class SceneMenu extends Scene {
     private Text levelMenuTitleText;
     private MenuLevelSelectSlider levelSelectSlider;
     private Button selectLevelButton;
+    private Button levelSelectBackButton;
 
     private float levelMenuLevelIconBannerOffset;
 
@@ -117,7 +119,8 @@ public class SceneMenu extends Scene {
         PLAY,
         SETTINGS,
         ENDLESS,
-        SELECTED_MAP
+        SELECTED_MAP,
+        LEVEL_SELECT_TO_MENU
     }
 
     private class LevelIconData
@@ -157,6 +160,8 @@ public class SceneMenu extends Scene {
     private float dragXAmount = 0.0f;
     private float iconWidths = 0.0f;
     private float iconHeights = 0.0f;
+
+    private final int MUSIC_SELECTION;
 
     public SceneMenu(Context context)
     {
@@ -217,6 +222,9 @@ public class SceneMenu extends Scene {
         player.setWaving(true);
         player.setPosition(new Geometry.Point(4.6f, 0.0f, 7.76f));
         player.addToRenderer(renderer);
+
+        final Random MUSIC_RANDOMIZER = new Random();
+        MUSIC_SELECTION = MUSIC_RANDOMIZER.nextInt(2);
     }
 
     @Override
@@ -224,7 +232,18 @@ public class SceneMenu extends Scene {
         // Create audio
         audio = Audio.getInstance();
         audio.initMusicChannel(context);
-        audio.playMusic(R.raw.hibymaeson, audioPos);
+
+        switch(MUSIC_SELECTION)
+        {
+            case 0:
+                audio.playMusic(R.raw.menu_echoes_of_time, audioPos);
+                break;
+            case 1:
+                audio.playMusic(R.raw.menu_gloom_horizon, audioPos);
+                break;
+        }
+
+     //   audio.playMusic(R.raw.hibymaeson, audioPos);
        // audio.playMusic(R.raw.no_words, audioPos);
     }
 
@@ -400,8 +419,26 @@ public class SceneMenu extends Scene {
             levelSelectMenuUIGroup.addUI(levelText);
         }
 
+        levelSelectBackButton = new Button(
+                new Dimension2D(BUTTON_PADDING, viewHeight - (BUTTON_SIZE / 2.1f) - BUTTON_PADDING,
+                        BUTTON_SIZE, BUTTON_SIZE / 2.1f),
+                TextureHelper.loadTexture(context, R.drawable.button_back_long));
+        levelSelectBackButton.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
+                {
+                    case CLICK:
+                        audio.playSound(R.raw.button_click, 1);
+                        transitionType = TRANSITION_TYPE.LEVEL_SELECT_TO_MENU;
+                        break;
+                }
+            }
+        });
+
         levelSelectMenuUIGroup.addUI(levelMenuTitleText);
         levelSelectMenuUIGroup.addUI(selectLevelButton);
+        levelSelectMenuUIGroup.addUI(levelSelectBackButton);
 
         // Add the level select menu background elements
         levelMenuBackgroundOverlay = new Image(new Dimension2D(0.0f, viewHeight / 3.0f, viewWidth, LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT), new Colour(0.3f, 0.3f, 0.3f, 0.7f));
@@ -448,6 +485,9 @@ public class SceneMenu extends Scene {
 
     @Override
     public void update(float deltaTime) {
+
+      //  System.out.println("TT: " + transitionType);
+
         switch (page)
         {
             case MAIN_MENU:
@@ -460,40 +500,54 @@ public class SceneMenu extends Scene {
                 // Handle the transition to the next scene
                 if(transitionType != TRANSITION_TYPE.NONE)
                 {
-                    transitionTimer += deltaTime;
-                    transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                    if(transitionOverlayAlpha >= 1.0f)
+                    if(transitionType == TRANSITION_TYPE.LEVEL_SELECT_TO_MENU)
                     {
-                        transitionOverlayAlpha = 1.0f;
-                    }
-                    transitionOverlay.setAlpha(transitionOverlayAlpha);
-
-                    if(transitionTimer >= TRANSITION_TIME_GOAL)
-                    {
-                        // Finished
-                        switch (transitionType)
+                        transitionTimer -= deltaTime;
+                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                        if(transitionOverlayAlpha <= 0.0f)
                         {
-                            case PLAY:
-                                uiRenderer.removeRendererGroup(mainMenuUIGroup);
-                                player.removeFromRenderer(renderer);
+                            transitionOverlayAlpha = 0.0f;
+                            transitionType = TRANSITION_TYPE.NONE;
+                        }
+                        transitionOverlay.setAlpha(transitionOverlayAlpha);
+                    }
+                    else
+                    {
+                        transitionTimer += deltaTime;
+                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                        if(transitionOverlayAlpha >= 1.0f)
+                        {
+                            transitionOverlayAlpha = 1.0f;
+                        }
+                        transitionOverlay.setAlpha(transitionOverlayAlpha);
 
-                                // Add the level select render group (move transition group
-                                // so that it gets render over the top)
-                                uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
-                                uiRenderer.addRendererGroup(levelSelectBackgroundUIGroup);
-                                uiRenderer.addRendererGroup(levelSelectMenuUIGroup);
-                                uiRenderer.addRendererGroup(transitionOverlayUIGroup);
+                        if(transitionTimer >= TRANSITION_TIME_GOAL)
+                        {
+                            // Finished
+                            switch (transitionType)
+                            {
+                                case PLAY:
+                                    uiRenderer.removeRendererGroup(mainMenuUIGroup);
+                                    player.removeFromRenderer(renderer);
 
-                                page = PAGE.LEVEL_SELECT;
-                                transitionBackRequired = true;
-                                transitionType = TRANSITION_TYPE.NONE;
-                                break;
-                            case SETTINGS:
+                                    // Add the level select render group (move transition group
+                                    // so that it gets render over the top)
+                                    uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+                                    uiRenderer.addRendererGroup(levelSelectBackgroundUIGroup);
+                                    uiRenderer.addRendererGroup(levelSelectMenuUIGroup);
+                                    uiRenderer.addRendererGroup(transitionOverlayUIGroup);
 
-                                break;
-                            case ENDLESS:
+                                    page = PAGE.LEVEL_SELECT;
+                                    transitionBackRequired = true;
+                                    transitionType = TRANSITION_TYPE.NONE;
+                                    break;
+                                case SETTINGS:
 
-                                break;
+                                    break;
+                                case ENDLESS:
+
+                                    break;
+                            }
                         }
                     }
                 }
@@ -510,6 +564,9 @@ public class SceneMenu extends Scene {
                 mainMenuTitle.setDimensions(new Dimension2D(titleDimensions.x - (SIZE_INC_X / 2.0f), titleDimensions.y + (SIZE_INC_Y / 2.0f), titleDimensions.w + SIZE_INC_X, titleDimensions.h + SIZE_INC_Y));
                 break;
             case LEVEL_SELECT:
+                selectLevelButton.update(deltaTime);
+                levelSelectBackButton.update(deltaTime);
+
                 if(transitionBackRequired)
                 {
                     transitionTimer -= deltaTime;
@@ -538,6 +595,30 @@ public class SceneMenu extends Scene {
                         {
                             gotoScene(Constants.GAME_ID);
                         }
+                        break;
+                    case LEVEL_SELECT_TO_MENU:
+                        transitionTimer += deltaTime;
+                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                        if(transitionOverlayAlpha >= 1.0f)
+                        {
+                            transitionOverlayAlpha = 1.0f;
+                        }
+                        transitionOverlay.setAlpha(transitionOverlayAlpha);
+
+                        if(transitionTimer >= TRANSITION_TIME_GOAL)
+                        {
+                           // uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+                            uiRenderer.removeRendererGroup(levelSelectBackgroundUIGroup);
+                            uiRenderer.removeRendererGroup(levelSelectMenuUIGroup);
+                            uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+
+                            uiRenderer.addRendererGroup(mainMenuUIGroup);
+                            uiRenderer.addRendererGroup(transitionOverlayUIGroup);
+                            player.addToRenderer(renderer);
+
+                            page = PAGE.MAIN_MENU;
+                        }
+
                         break;
                 }
 
@@ -708,10 +789,16 @@ public class SceneMenu extends Scene {
                             return;
                         }
 
+                        if(handlePointerControl(levelSelectBackButton, pointer))
+                        {
+                            return;
+                        }
+
                         if(!levelSelectSlider.hasTouchFocus())
                         {
                             pointer.setControlOver(levelSelectSlider);
                         }
+
                         break;
                 }
         }
