@@ -404,6 +404,7 @@ public class SceneGame extends Scene {
             zheads.get(i).rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
             zheads.get(i).setScale(0.1f);
         }
+
         renderer.render();
 
         colourShader.useProgram();
@@ -578,9 +579,14 @@ public class SceneGame extends Scene {
                 //    audio.playSound(R.raw.hit, 1);
                     bullet.endLife();
 
+                    if(bullet.getType() == Bullet.BulletType.FISTS)
+                    {
+                        audio.playSound(R.raw.temp_punch_hit, 1);
+                    }
+
                     if(!zombie.isAlive())
                     {
-                       // audio.playSound(R.raw.zombie_hit, 1);
+                        audio.playSound(R.raw.zombie_hit, 1);
                         zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }

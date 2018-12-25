@@ -2,6 +2,7 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
+import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.model.Model;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
@@ -33,6 +34,16 @@ public class Bullet {
     // The height of the bullet
     public final float DEPTH_MULTIPLIER = 0.2f;
 
+    // The type of bullet
+    public enum BulletType
+    {
+        DEFAULT,
+        FISTS,
+        RPG
+    }
+
+    private BulletType bulletType = BulletType.DEFAULT;
+
     // Create a bullet that needs to be updated to be projected with a specific speed and
     // direction. The life value is an amount that decays over time. Actual time can't be used
     // here because if the game runs slower on some devices the bullets will de-spawn at
@@ -55,6 +66,21 @@ public class Bullet {
         model.newIdentity();
         model.setPosition(position);
         model.setScale(WIDTH_MULTIPLIER);
+    }
+
+    public void setBulletType(BulletType type)
+    {
+        this.bulletType = type;
+    }
+
+    public void setAlpha(float alpha)
+    {
+        this.model.setAlpha(alpha);
+    }
+
+    public BulletType getType()
+    {
+        return this.bulletType;
     }
 
     public float getDamage()

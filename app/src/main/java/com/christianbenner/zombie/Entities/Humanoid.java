@@ -89,7 +89,7 @@ public class Humanoid {
         createParts();
     }
 
-    public void checkHumanoidCollision(Humanoid other)
+    public void checkHumanoidCollision(final Humanoid other)
     {
         // Calculate distance to player
         final float DISTANCE = position.distance(other.getPosition());
@@ -126,7 +126,7 @@ public class Humanoid {
         for(Cell cell : surroundingTiles)
         {
             // Determine the position of the cell
-            final Geometry.Point CELL_POSITION = map.getModelPosition(cell);//.translate(map.TILE_POSITION_OFFSET);
+            final Geometry.Point CELL_POSITION = map.getModelPosition(cell);
 
             // Calculate distance to player
             final float DISTANCE = position.distance(CELL_POSITION);

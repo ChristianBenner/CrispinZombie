@@ -94,13 +94,22 @@ public class SceneMenu extends Scene {
     private ArrayList<Bullet> bullets;
     private RendererGroup bulletsGroup;
 
-    private float transitionTimer = 0.0f;
-    private final float TRANSITION_TIME_GOAL = 40.0f;
-    private TRANSITION_TYPE transitionType = TRANSITION_TYPE.NONE;
     private PAGE page = PAGE.MAIN_MENU;
+    private PAGE switchingToPage = PAGE.NONE;
+    private boolean transitioning = false;
+    private boolean transitionFadeOut = true;
+
     private Image transitionOverlay;
     private float transitionOverlayAlpha = 0.0f;
-    private boolean transitionBackRequired = false;
+    private float transitionTimer = 0.0f;
+    private final float TRANSITION_TIME_GOAL = 40.0f;
+
+
+/*
+    private TRANSITION_TYPE transitionType = TRANSITION_TYPE.NONE;
+
+
+    private boolean transitionBackRequired = false;*/
 
     private float viewWidth;
     private float viewHeight;
@@ -110,10 +119,12 @@ public class SceneMenu extends Scene {
         NONE,
         MAIN_MENU,
         LEVEL_SELECT,
-        SETTINGS
+        SETTINGS,
+        GAMEPLAY,
+        ENDLESS
     }
 
-    enum TRANSITION_TYPE
+/*    enum TRANSITION_TYPE
     {
         NONE,
         PLAY,
@@ -121,7 +132,7 @@ public class SceneMenu extends Scene {
         ENDLESS,
         SELECTED_MAP,
         LEVEL_SELECT_TO_MENU
-    }
+    }*/
 
     private class LevelIconData
     {
@@ -292,7 +303,7 @@ public class SceneMenu extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                        transitionType = TRANSITION_TYPE.PLAY;
+                        transitionToPage(PAGE.LEVEL_SELECT);
                         break;
                 }
             }
@@ -377,7 +388,7 @@ public class SceneMenu extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                        transitionType = TRANSITION_TYPE.SELECTED_MAP;
+                        transitionToPage(PAGE.GAMEPLAY);
                         break;
                 }
             }
@@ -430,7 +441,7 @@ public class SceneMenu extends Scene {
                 {
                     case CLICK:
                         audio.playSound(R.raw.button_click, 1);
-                        transitionType = TRANSITION_TYPE.LEVEL_SELECT_TO_MENU;
+                        transitionToPage(PAGE.MAIN_MENU);
                         break;
                 }
             }
@@ -483,10 +494,109 @@ public class SceneMenu extends Scene {
     float xPos = 0.0f;
     float dragVelocity = 0.0f;
 
+    private void transitionToPage(PAGE page)
+    {
+        switchingToPage = page;
+        transitionFadeOut = true;
+    }
+
+    private void transitionPage()
+    {
+        // Handle the render groups for each page
+        switch(page)
+        {
+            case MAIN_MENU:
+                switch(switchingToPage)
+                {
+                    case LEVEL_SELECT:
+                        // Remove the current page render groups
+                        uiRenderer.removeRendererGroup(mainMenuUIGroup);
+                        player.removeFromRenderer(renderer);
+
+                        // Add the next page render groups (level select page)
+                        uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+                        uiRenderer.addRendererGroup(levelSelectBackgroundUIGroup);
+                        uiRenderer.addRendererGroup(levelSelectMenuUIGroup);
+                        uiRenderer.addRendererGroup(transitionOverlayUIGroup);
+                        break;
+                    case SETTINGS:
+                        // todo
+                        break;
+                    case ENDLESS:
+                        // todo
+                        break;
+                }
+                break;
+            case LEVEL_SELECT:
+                switch(switchingToPage)
+                {
+                    case MAIN_MENU:
+                        // Remove the current page render groups
+                        uiRenderer.removeRendererGroup(levelSelectBackgroundUIGroup);
+                        uiRenderer.removeRendererGroup(levelSelectMenuUIGroup);
+                        uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
+
+                        // Add the next page render groups (main menu page)
+                        uiRenderer.addRendererGroup(mainMenuUIGroup);
+                        uiRenderer.addRendererGroup(transitionOverlayUIGroup);
+                        player.addToRenderer(renderer);
+                        break;
+                    case GAMEPLAY:
+                        gotoScene(Constants.GAME_ID);
+                        break;
+                }
+                break;
+        }
+
+        page = switchingToPage;
+        transitionFadeOut = false;
+    }
+
     @Override
     public void update(float deltaTime) {
 
       //  System.out.println("TT: " + transitionType);
+        if(switchingToPage != PAGE.NONE)
+        {
+            if(transitionFadeOut)
+            {
+                // Increase the alpha of the transition overlay
+                transitionTimer += deltaTime;
+
+                // Calculate the alpha value of the overlay
+                transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                transitionOverlayAlpha = transitionOverlayAlpha >= 1.0f ? 1.0f :
+                        transitionOverlayAlpha;
+                transitionOverlay.setAlpha(transitionOverlayAlpha);
+
+                // Determine if the scene has faded out
+                final boolean COMPLETED_FADE_OUT = transitionOverlayAlpha == 1.0f;
+                if(COMPLETED_FADE_OUT)
+                {
+                    // Switch the scene
+                    transitionPage();
+                }
+            }
+            else
+            {
+                // Decrease the alpha of the transition overlay
+                transitionTimer -= deltaTime;
+
+                // Calculate the alpha value of the overlay
+                transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
+                transitionOverlayAlpha = transitionOverlayAlpha <= 0.0f ? 0.0f :
+                        transitionOverlayAlpha;
+                transitionOverlay.setAlpha(transitionOverlayAlpha);
+
+                // Determine whether the transitioning has completed
+                final boolean COMPLETED_FADE_IN = transitionOverlayAlpha == 0.0f;
+                if (COMPLETED_FADE_IN)
+                {
+                    switchingToPage = PAGE.NONE;
+                    transitionFadeOut = true;
+                }
+            }
+        }
 
         switch (page)
         {
@@ -496,61 +606,6 @@ public class SceneMenu extends Scene {
                 mainMenuEndlessButton.update(deltaTime);
 
                 player.update(deltaTime);
-
-                // Handle the transition to the next scene
-                if(transitionType != TRANSITION_TYPE.NONE)
-                {
-                    if(transitionType == TRANSITION_TYPE.LEVEL_SELECT_TO_MENU)
-                    {
-                        transitionTimer -= deltaTime;
-                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                        if(transitionOverlayAlpha <= 0.0f)
-                        {
-                            transitionOverlayAlpha = 0.0f;
-                            transitionType = TRANSITION_TYPE.NONE;
-                        }
-                        transitionOverlay.setAlpha(transitionOverlayAlpha);
-                    }
-                    else
-                    {
-                        transitionTimer += deltaTime;
-                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                        if(transitionOverlayAlpha >= 1.0f)
-                        {
-                            transitionOverlayAlpha = 1.0f;
-                        }
-                        transitionOverlay.setAlpha(transitionOverlayAlpha);
-
-                        if(transitionTimer >= TRANSITION_TIME_GOAL)
-                        {
-                            // Finished
-                            switch (transitionType)
-                            {
-                                case PLAY:
-                                    uiRenderer.removeRendererGroup(mainMenuUIGroup);
-                                    player.removeFromRenderer(renderer);
-
-                                    // Add the level select render group (move transition group
-                                    // so that it gets render over the top)
-                                    uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
-                                    uiRenderer.addRendererGroup(levelSelectBackgroundUIGroup);
-                                    uiRenderer.addRendererGroup(levelSelectMenuUIGroup);
-                                    uiRenderer.addRendererGroup(transitionOverlayUIGroup);
-
-                                    page = PAGE.LEVEL_SELECT;
-                                    transitionBackRequired = true;
-                                    transitionType = TRANSITION_TYPE.NONE;
-                                    break;
-                                case SETTINGS:
-
-                                    break;
-                                case ENDLESS:
-
-                                    break;
-                            }
-                        }
-                    }
-                }
 
                 x += deltaTime * 0.03f;
                 if(x >= Math.PI)
@@ -566,61 +621,6 @@ public class SceneMenu extends Scene {
             case LEVEL_SELECT:
                 selectLevelButton.update(deltaTime);
                 levelSelectBackButton.update(deltaTime);
-
-                if(transitionBackRequired)
-                {
-                    transitionTimer -= deltaTime;
-                    transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                    if(transitionOverlayAlpha <= 0.0f)
-                    {
-                        transitionOverlayAlpha = 0.0f;
-                        transitionBackRequired = false;
-                    }
-
-                    transitionOverlay.setAlpha(transitionOverlayAlpha);
-                }
-
-                switch(transitionType)
-                {
-                    case SELECTED_MAP:
-                        transitionTimer += deltaTime;
-                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                        if(transitionOverlayAlpha >= 1.0f)
-                        {
-                            transitionOverlayAlpha = 1.0f;
-                        }
-                        transitionOverlay.setAlpha(transitionOverlayAlpha);
-
-                        if(transitionTimer >= TRANSITION_TIME_GOAL)
-                        {
-                            gotoScene(Constants.GAME_ID);
-                        }
-                        break;
-                    case LEVEL_SELECT_TO_MENU:
-                        transitionTimer += deltaTime;
-                        transitionOverlayAlpha = transitionTimer / TRANSITION_TIME_GOAL;
-                        if(transitionOverlayAlpha >= 1.0f)
-                        {
-                            transitionOverlayAlpha = 1.0f;
-                        }
-                        transitionOverlay.setAlpha(transitionOverlayAlpha);
-
-                        if(transitionTimer >= TRANSITION_TIME_GOAL)
-                        {
-                           // uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
-                            uiRenderer.removeRendererGroup(levelSelectBackgroundUIGroup);
-                            uiRenderer.removeRendererGroup(levelSelectMenuUIGroup);
-                            uiRenderer.removeRendererGroup(transitionOverlayUIGroup);
-
-                            uiRenderer.addRendererGroup(mainMenuUIGroup);
-                            uiRenderer.addRendererGroup(transitionOverlayUIGroup);
-                            player.addToRenderer(renderer);
-
-                            page = PAGE.MAIN_MENU;
-                        }
-
-                        break;
-                }
 
                 // Decrease to the closest center point
                 System.out.println("Drag X Converted: " + (-dragXAmount * viewWidth));

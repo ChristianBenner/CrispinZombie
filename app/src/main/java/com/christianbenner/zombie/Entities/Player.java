@@ -52,7 +52,7 @@ public class Player extends Humanoid
         bulletWaitCount++;
         // Todo: On gunshot spawn a light for a couple ms
 
-        Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(0.0f, 0.25f, 0.0f));
+        Geometry.Point bulletSpawnPos = getPosition().translate(new Geometry.Vector(-0.1f, 0.0f, 0.1f));
 
         Bullet[] bulletsToAdd = null;
 
@@ -63,6 +63,11 @@ public class Player extends Humanoid
                 if(bulletWaitCount > 30) {
                     audio.playSound(R.raw.temp_punch, 1);
                     bulletWaitCount = 0;
+
+                    bulletsToAdd = new Bullet[1];
+                    bulletsToAdd[0] = new Bullet(context, bulletSpawnPos,
+                            unitVectorDirection, 0.08f, 7.0f, 25.0f);
+                    bulletsToAdd[0].setAlpha(0.0f);
                 }
                 break;
             case PISTOL:

@@ -113,3 +113,4 @@ crispinengine/src/androidTest/java/com/games/crispin/crispinengine/ExampleInstru
 crispinengine/src/main/AndroidManifest.xml
 crispinengine/src/main/res/values/strings.xml
 crispinengine/src/test/java/com/games/crispin/crispinengine/ExampleUnitTest.java
+app/src/main/res/raw/temp_punch_hit.mp3
