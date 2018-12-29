@@ -114,3 +114,25 @@ crispinengine/src/main/AndroidManifest.xml
 crispinengine/src/main/res/values/strings.xml
 crispinengine/src/test/java/com/games/crispin/crispinengine/ExampleUnitTest.java
 app/src/main/res/raw/temp_punch_hit.mp3
+app/src/main/AndroidManifest.xml
+import-summary.txt
+openal/src/main/AndroidManifest.xml
+openal/src/main/java/org/pielot/openal/Buffer.java
+openal/src/main/java/org/pielot/openal/OpenAlBridge.java
+openal/src/main/java/org/pielot/openal/SoundEnv.java
+openal/src/main/java/org/pielot/openal/Source.java
+openal/src/main/jni/Android with tremolo lib.mk
+openal/src/main/jni/Android.mk
+openal/src/main/jni/Application.mk
+openal/src/main/jni/openalwrapper.c
+openal/src/main/jni/openalwrapper.h
+openal/src/main/jni/org_haptimap_offis_openal_OpenAl.h
+openal/src/main/jni/org_pielot_openal_OpenAlBridge.c
+openal/src/main/jni/org_pielot_openal_OpenAlBridge.h
+openal/src/main/jniLibs/armeabi/libopenalwrapper.so
+openal/src/main/res/drawable-hdpi/ic_launcher.png
+openal/src/main/res/drawable-ldpi/ic_launcher.png
+openal/src/main/res/drawable-mdpi/ic_launcher.png
+openal/src/main/res/layout/main.xml
+openal/src/main/res/values/strings.xml
+app/src/main/AndroidManifest.xml

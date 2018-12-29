@@ -116,12 +116,19 @@ public class RendererGroup {
         {
             boolean boundData = false;
             boolean boundTexture = false;
+
             for(RendererModel model : models)
             {
                 if(boundData == false)
                 {
                     model.bindData(shader);
                     boundData = true;
+
+                    if(model.isTexelsLoaded() && boundTexture == false)
+                    {
+                        shader.setTextureUniforms(model.getTextureId());
+                        boundTexture = true;
+                    }
                 }
 
                 // Calculate the mv and mvp matrix for the model
@@ -134,11 +141,6 @@ public class RendererGroup {
                 shader.setMVMatrixUniform(mvMatrix);
                 shader.setMVPMatrixUniform(mvpMatrix);
                 shader.setColourUniforms(model.getColour());
-                if(model.isTexelsLoaded() && boundTexture == false)
-                {
-                    shader.setTextureUniforms(model.getTextureId());
-                    boundTexture = true;
-                }
 
                 // Draw Model
                 glDrawArrays(GL_TRIANGLES, 0, model.getVertexCount());

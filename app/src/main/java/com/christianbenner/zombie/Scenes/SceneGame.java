@@ -86,6 +86,8 @@ public class SceneGame extends Scene {
     private Light TEST_LIGHT2;
     private RendererModel box;
     private RendererModel zombiehead;
+
+
     private Player player;
     //private RendererModel sniper;
 
@@ -147,6 +149,8 @@ public class SceneGame extends Scene {
     private final int MUSIC_SELECTION;
 
     private ArrayList<RendererModel> zheads;
+
+    private RendererGroup ztorso;
 
     public SceneGame(Context context) {
         super(context);
@@ -259,13 +263,17 @@ public class SceneGame extends Scene {
         shader = new PerFragMultiLightingShader(context);
         renderer = new Renderer(shader, camera);
 
+        ztorso = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
+
         zheads = new ArrayList<>();
         for(int i = 0; i < 100; i++)
         {
-            RendererModel model = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.marbletex2));
+            RendererModel model = new RendererModel(context, R.raw.wilbert_torso, TextureHelper.loadTexture(context, R.drawable.marbletex2));
             zheads.add(model);
-            renderer.addModel(model);
+            ztorso.addModel(model);
         }
+
+        renderer.addGroup(ztorso);
 
         //renderer.addModel(sniper);
         renderer.addModel(box);
@@ -409,12 +417,7 @@ public class SceneGame extends Scene {
 
         colourShader.useProgram();
 
-        for(int i = 0; i < zombies.size(); i++)
-        {
-
-        }
-
-        for(int i = 0; i < zombies.size(); i++)
+            for(int i = 0; i < zombies.size(); i++)
         {
             if(zombies.get(i).isAlive())
             {
@@ -520,8 +523,6 @@ public class SceneGame extends Scene {
             cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, cameraTextTimer));
         }
 
-
-
         // Update zombies
         for(Zombie zombie : zombies)
         {
@@ -576,17 +577,19 @@ public class SceneGame extends Scene {
                 if(bullet.collidesWith(zombie))
                 {
                     zombie.damage(bullet.getDamage());
-                //    audio.playSound(R.raw.hit, 1);
                     bullet.endLife();
 
                     if(bullet.getType() == Bullet.BulletType.FISTS)
                     {
-                        audio.playSound(R.raw.temp_punch_hit, 1);
+                        audio.playSound(R.raw.temp_punch_hit);
+                    }
+                    else {
+                      //  audio.playSound(R.raw.hit, 1);
                     }
 
                     if(!zombie.isAlive())
                     {
-                        audio.playSound(R.raw.zombie_hit, 1);
+                        audio.playSound(R.raw.zombie_hit);
                         zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }
@@ -596,7 +599,7 @@ public class SceneGame extends Scene {
             if(demoMap.checkCollision(bullet))
             {
                 // Collision sound effect
-                audio.playSound(R.raw.wood_collide, 1);
+                audio.playSound(R.raw.wood_collide);
                 bullet.endLife();
             }
 

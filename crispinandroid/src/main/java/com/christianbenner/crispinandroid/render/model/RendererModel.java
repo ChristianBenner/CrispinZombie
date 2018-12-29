@@ -240,19 +240,19 @@ public class RendererModel extends Model {
 
     public void bindData(ShaderProgram shader)
     {
-        if(shader.getPositionAttributeLocation() != -1 && verticesLoaded)
+        if(verticesLoaded && shader.getPositionAttributeLocation() != -1)
         {
             vertexArray.setVertexAttribPointer(vertexStartPosition, shader.getPositionAttributeLocation(),
                     FLOATS_PER_VERTEX, stride);
         }
 
-        if(shader.getTextureCoordinatesAttributeLocation() != -1 && texelsLoaded)
+        if(texelsLoaded && shader.getTextureCoordinatesAttributeLocation() != -1)
         {
             vertexArray.setVertexAttribPointer(texelStartPosition, shader.getTextureCoordinatesAttributeLocation(),
                     FLOATS_PER_TEXEL, stride);
         }
 
-        if(shader.getNormalAttributeLocation() != -1 && normalsLoaded)
+        if(normalsLoaded && shader.getNormalAttributeLocation() != -1)
         {
             vertexArray.setVertexAttribPointer(normalStartPosition, shader.getNormalAttributeLocation(),
                     FLOATS_PER_NORMAL, stride);

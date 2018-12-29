@@ -70,6 +70,11 @@ public class Audio {
         soundInnit = true;
     }
 
+    public void playSound(final int resourceId)
+    {
+        playSound(resourceId, 0);
+    }
+
     public void playSound(final int resourceId, int priority)
     {
         boolean exists = soundList.containsKey(resourceId);

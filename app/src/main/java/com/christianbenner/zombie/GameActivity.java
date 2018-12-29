@@ -10,6 +10,11 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.christianbenner.zombie.Scenes.RendererManager;
+import com.christianbenner.zombie.Scenes.SceneGame;
+import com.christianbenner.zombie.Scenes.SceneIntro;
+import com.christianbenner.zombie.Scenes.SceneMenu;
+
+import java.util.concurrent.Callable;
 
 /**
  * Created by Christian Benner on 12/11/2017.
@@ -18,7 +23,7 @@ import com.christianbenner.zombie.Scenes.RendererManager;
 public class GameActivity extends Activity
 {
     private GLSurfaceView glSurfaceView;
-    private RendererManager renderer;
+    private SceneSwitcher sceneSwitcher;
     private boolean rendererSet = false;
 
     @Override
@@ -33,9 +38,33 @@ public class GameActivity extends Activity
             // Set the program to use GL ES 2.0
             glSurfaceView.setEGLContextClientVersion(2);
 
+            final Context context = this;
+
             // Add renderer to the surface view
-            renderer = new RendererManager(this);
-            glSurfaceView.setRenderer(renderer);
+            sceneSwitcher = new SceneSwitcher(this, new SceneIntro(context), new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    sceneSwitcher.destroyCurrentScene();
+
+                    // Allocate a new scene
+                    switch (sceneSwitcher.getNextScene())
+                    {
+                        case Constants.INTRO_ID:
+                            sceneSwitcher.setCurrentScene(new SceneIntro(context));
+                            break;
+                        case Constants.MENU_ID:
+                            sceneSwitcher.setCurrentScene(new SceneMenu(context));
+                            break;
+                        case Constants.GAME_ID:
+                            sceneSwitcher.setCurrentScene(new SceneGame(context));
+                            break;
+                    }
+
+                    return 0;
+                }
+            });
+
+            glSurfaceView.setRenderer(sceneSwitcher);
             rendererSet = true;
 
             glSurfaceView.setOnTouchListener(new View.OnTouchListener() {
@@ -45,7 +74,7 @@ public class GameActivity extends Activity
                         glSurfaceView.queueEvent(new Runnable() {
                             @Override
                             public void run() {
-                                renderer.motionEvent(v, event);
+                                sceneSwitcher.motionEvent(v, event);
                             }
                         });
                     }
@@ -81,7 +110,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onPause();
-            renderer.onPause();
+       //     renderer.onPause();
         }
     }
 
@@ -91,7 +120,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onResume();
-            renderer.onResume();
+       //     renderer.onResume();
         }
     }
 
@@ -102,7 +131,7 @@ public class GameActivity extends Activity
         if(rendererSet)
         {
             glSurfaceView.onPause();
-            renderer.onRestart();
+       //     renderer.onRestart();
         }
     }
 
@@ -112,7 +141,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onPause();
-            renderer.onPause();
+       //     renderer.onPause();
         }
     }
 
@@ -123,7 +152,7 @@ public class GameActivity extends Activity
         if(rendererSet)
         {
             glSurfaceView.destroyDrawingCache();
-            renderer.onDestroy();
+       //     renderer.onDestroy();
         }
     }
 }
