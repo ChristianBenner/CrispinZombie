@@ -23,15 +23,15 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 
 public class PerVertexLightingTextureShader extends ShaderProgram {
     // Uniform locations
-    private final int uMVPMatrixLocation;
-    private final int uMVMatrixLocation;
-    private final int uTextureUnitLocation;
-    private final int uLightLocation;
-    private final int uColourLocation;
-    private final int uAmbientDistance;
-    private final int uMinAmbient;
-    private final int uMaxAmbient;
-    private final int uAmbientLightColour;
+    private int uMVPMatrixLocation;
+    private int uMVMatrixLocation;
+    private int uTextureUnitLocation;
+    private int uLightLocation;
+    private int uColourLocation;
+    private int uAmbientDistance;
+    private int uMinAmbient;
+    private int uMaxAmbient;
+    private int uAmbientLightColour;
 
     private final String mvpMatrix = "u_MVPMatrix";
     private final String mvMatrix = "u_MVMatrix";
@@ -39,14 +39,17 @@ public class PerVertexLightingTextureShader extends ShaderProgram {
     private final String normal = "a_Normal";
 
     // Attribute locations
-    private final int aPositionLocation;
-    private final int aTextureCoordinatesLocation;
-    private final int aNormal;
+    private int aPositionLocation;
+    private int aTextureCoordinatesLocation;
+    private int aNormal;
 
     public PerVertexLightingTextureShader(Context context) {
         super(context, R.raw.lighting_texture_pervertex_vertex,
                 R.raw.lighting_texture_pervertex_frag);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMVPMatrixLocation = glGetUniformLocation(program, mvpMatrix);
         uMVMatrixLocation = glGetUniformLocation(program, mvMatrix);

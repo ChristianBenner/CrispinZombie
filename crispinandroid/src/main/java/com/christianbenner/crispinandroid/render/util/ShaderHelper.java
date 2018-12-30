@@ -119,20 +119,20 @@ public class ShaderHelper {
                     + "\nLog:" + glGetProgramInfoLog(programObjectId));
         }
 
+        System.out.println("Results of validating program: " + validateStatus[0]
+                + "\nLog:" + glGetProgramInfoLog(programObjectId));
+
         return validateStatus[0] != 0;
     }
 
-    public static int buildProgram(String vertexShaderCode,
-                                   String fragmentShaderCode){
-        int program;
-        int vertexShader = ShaderHelper.compileVertexShader(vertexShaderCode);
-        int fragmentShader = ShaderHelper.compileFragmentShader(fragmentShaderCode);
-        program = ShaderHelper.linkProgram(vertexShader, fragmentShader);
+    public static void buildProgram(String vertexShaderCode,
+                                   String fragmentShaderCode,
+                                   ShaderProgram program){
 
-        if(LoggerConfig.ON){
-            ShaderHelper.validateProgram(program);
-        }
+        program.vertexShader = ShaderHelper.compileVertexShader(vertexShaderCode);
+        program.fragmentShader = ShaderHelper.compileFragmentShader(fragmentShaderCode);
+        program.program = ShaderHelper.linkProgram(program.vertexShader, program.fragmentShader);
 
-        return program;
+        //ShaderHelper.validateProgram(program.program);
     }
 }

@@ -30,6 +30,7 @@ import com.christianbenner.crispinandroid.ui.TouchListener;
 import com.christianbenner.crispinandroid.util.Dimension2D;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
+import com.christianbenner.zombie.Constants;
 import com.christianbenner.zombie.Entities.Bullet;
 import com.christianbenner.zombie.Entities.Player;
 import com.christianbenner.zombie.Entities.Weapon;
@@ -153,7 +154,7 @@ public class SceneGame extends Scene {
     private RendererGroup ztorso;
 
     public SceneGame(Context context) {
-        super(context);
+        super(context, Constants.GAME_ID);
 
         // Create the demo map
         demoMap = new Map(context, R.raw.demo_map4);
@@ -288,7 +289,7 @@ public class SceneGame extends Scene {
 
         demoMap.addToRenderer(renderer);
 
-        uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        uiRenderer = new UIRenderer();
         debugViewUIGroup = new UIRendererGroup(uiRenderer, debugView);
         healthbarsUIGroup = new UIRendererGroup(uiRenderer);
 
@@ -341,11 +342,10 @@ public class SceneGame extends Scene {
     public void surfaceChanged(int width, int height) {
         viewWidth = width;
         viewHeight = height;
-        uiRenderer.createUICanvas(width, height);
         camera.viewChanged(width, height);
         debugCamera.viewChanged(width, height);
 
-        uiRenderer.createUICanvas(width, height);
+        uiRenderer.setCanvasSize(width, height);
         uiShader = new TextureShaderProgram(context);
         uiRenderer.setShader(uiShader);
 

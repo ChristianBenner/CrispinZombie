@@ -18,16 +18,16 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 
 public class PerFragLightingShader extends ShaderProgram {
     // Uniform locations
-    private final int uMVPMatrixLocation;
-    private final int uMVMatrixLocation;
-    private final int uLightLocation;
-    private final int uColourLocation;
-    private final int uAmbientDistance;
-    private final int uMinAmbient;
-    private final int uMaxAmbient;
-    private final int uAmbientLightColour;
-    private final int uLightsLocation;
-    private final int uLightCountLocation;
+    private int uMVPMatrixLocation;
+    private int uMVMatrixLocation;
+    private int uLightLocation;
+    private int uColourLocation;
+    private int uAmbientDistance;
+    private int uMinAmbient;
+    private int uMaxAmbient;
+    private int uAmbientLightColour;
+    private int uLightsLocation;
+    private int uLightCountLocation;
 
     private final String mvpMatrix = "u_MVPMatrix";
     private final String mvMatrix = "u_MVMatrix";
@@ -35,13 +35,16 @@ public class PerFragLightingShader extends ShaderProgram {
     private final String normal = "a_Normal";
 
     // Attribute locations
-    private final int aPositionLocation;
-    private final int aNormal;
+    private int aPositionLocation;
+    private int aNormal;
 
     public PerFragLightingShader(Context context) {
         super(context, R.raw.lighting_perfrag_vertex,
                 R.raw.lighting_perfrag_frag);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMVPMatrixLocation = glGetUniformLocation(program, mvpMatrix);
         uMVMatrixLocation = glGetUniformLocation(program, mvMatrix);

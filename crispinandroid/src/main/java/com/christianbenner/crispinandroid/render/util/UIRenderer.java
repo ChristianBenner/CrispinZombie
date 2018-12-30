@@ -41,7 +41,7 @@ public class UIRenderer {
     private float[] modelMatrix = new float[16];
 
     // Constructor for Rendering UI only
-    public UIRenderer(Context context, int textureAtlas, int textureDetails)
+    public UIRenderer()
     {
         shader = null;
 
@@ -49,10 +49,10 @@ public class UIRenderer {
         groups = new ArrayList<>();
     }
 
-    public void createUICanvas(int width, int height)
+    public void setCanvasSize(int width, int height)
     {
         // On creation of a new UI canvas we should remove the old UI elements
-        removeAll();
+        //removeAll();
 
         // Set the width and height of the canvas
         this.canvasWidth = (float)width;
@@ -107,6 +107,14 @@ public class UIRenderer {
             }
         }
     }
+
+    float[] ortho =
+    {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
 
     public void render()
     {

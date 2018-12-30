@@ -23,18 +23,21 @@ public class TextureShaderProgram extends ShaderProgram {
     // GLSL Program
 
     // Uniform locations
-    private final int uMatrixLocation;
-    private final int uTextureUnitLocation;
-    private final int uColor;
+    private int uMatrixLocation;
+    private int uTextureUnitLocation;
+    private int uColor;
 
     // Attribute locations
-    private final int aPositionLocation;
-    private final int aTextureCoordinatesLocation;
+    private int aPositionLocation;
+    private int aTextureCoordinatesLocation;
 
     public TextureShaderProgram(Context context) {
         super(context, R.raw.texture_vertex,
                 R.raw.texture_fragment);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMatrixLocation = glGetUniformLocation(program, ShaderConstants.U_MATRIX);
         uTextureUnitLocation = glGetUniformLocation(program, ShaderConstants.U_TEXTURE_UNIT);

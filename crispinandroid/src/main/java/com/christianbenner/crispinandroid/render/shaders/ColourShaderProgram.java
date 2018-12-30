@@ -18,13 +18,16 @@ import static com.christianbenner.crispinandroid.render.shaders.ShaderConstants.
  */
 
 public class ColourShaderProgram extends ShaderProgram {
-    int uMatrixLocation;
-    int uColor;
-    int aPositionLocation;
+    private int uMatrixLocation;
+    private int uColor;
+    private int aPositionLocation;
 
     public ColourShaderProgram(Context context) {
         super(context, R.raw.colour_vertex, R.raw.colour_fragment);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMatrixLocation = glGetUniformLocation(program, U_MATRIX);
         uColor = glGetUniformLocation(program, U_COLOUR);

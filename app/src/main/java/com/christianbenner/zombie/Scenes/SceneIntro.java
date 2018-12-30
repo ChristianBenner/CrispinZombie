@@ -7,7 +7,10 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.objects.FlexibleSquare;
+import com.christianbenner.crispinandroid.render.shaders.ColourShaderProgram;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
+import com.christianbenner.crispinandroid.render.util.ShaderProgram;
+import com.christianbenner.crispinandroid.render.util.VertexArray;
 import com.christianbenner.crispinandroid.ui.Pointer;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
@@ -18,13 +21,18 @@ import static android.opengl.GLES20.GL_ALPHA;
 import static android.opengl.GLES20.GL_BLEND;
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
+import static android.opengl.GLES20.GL_DEPTH_TEST;
 import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
 import static android.opengl.GLES20.GL_SRC_ALPHA;
+import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
+import static android.opengl.GLES20.glDisable;
+import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glViewport;
+import static com.christianbenner.crispinandroid.Constants.BYTES_PER_FLOAT;
 
 /**
  * Created by Christian Benner on 19/11/2017.
@@ -58,7 +66,7 @@ public class SceneIntro extends Scene {
 
     public SceneIntro(Context context)
     {
-        super(context);
+        super(context, Constants.INTRO_ID);
     }
 
     @Override
@@ -142,6 +150,9 @@ public class SceneIntro extends Scene {
 
         // Render the version text
        // version.render();
+
+
+
     }
 
     @Override
@@ -171,7 +182,7 @@ public class SceneIntro extends Scene {
             if(timePassed >= 300.0f)
             {
                 timePassed = 0.0f;
-                gotoScene(Constants.MENU_ID);
+                gotoScene(Constants.TEST_ID);
             }
         }
     }

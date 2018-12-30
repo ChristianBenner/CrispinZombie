@@ -16,9 +16,9 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 public class PerFragMultiLightingShader extends ShaderProgram {
 
     // Attribute locations
-    private final int aPositionLocation;
-    private final int aNormal;
-    private final int aTextureCoordinatesLocation;
+    private int aPositionLocation;
+    private int aNormal;
+    private int aTextureCoordinatesLocation;
 
     public PerFragMultiLightingShader(Context context) {
         super(context, R.raw.multi_lighting_perfrag_vertex,
@@ -27,6 +27,11 @@ public class PerFragMultiLightingShader extends ShaderProgram {
         // Retrieve uniform locations
 
 
+
+    }
+
+    public void getShaderVars()
+    {
         // Retrieve attribute locations
         aPositionLocation = glGetAttribLocation(program, ShaderConstants.A_POSITION);
         aTextureCoordinatesLocation =

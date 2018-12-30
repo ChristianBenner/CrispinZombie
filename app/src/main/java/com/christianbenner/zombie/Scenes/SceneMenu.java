@@ -176,7 +176,7 @@ public class SceneMenu extends Scene {
 
     public SceneMenu(Context context)
     {
-        super(context);
+        super(context, Constants.MENU_ID);
 
         levelIconsData = new ArrayList<>();
         levelIconsData.add(new LevelIconData(R.drawable.demo_map_icon, R.raw.demo_map4, "demo_map"));
@@ -211,7 +211,7 @@ public class SceneMenu extends Scene {
             }
         });
 
-        uiRenderer = new UIRenderer(context, R.drawable.arial_font, R.raw.arial_font_fnt);
+        uiRenderer = new UIRenderer();
         mainMenuUIGroup = new UIRendererGroup(uiRenderer);
         levelSelectMenuUIGroup = new UIRendererGroup(uiRenderer);
         levelSelectBackgroundUIGroup = new UIRendererGroup(uiRenderer);
@@ -263,7 +263,7 @@ public class SceneMenu extends Scene {
         this.viewWidth = width;
         this.viewHeight = height;
 
-        uiRenderer.createUICanvas(width, height);
+        uiRenderer.setCanvasSize(width, height);
 
         uiShader = new TextureShaderProgram(context);
         colourShader = new ColourShaderProgram(context);

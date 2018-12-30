@@ -1,17 +1,12 @@
-package com.christianbenner.zombie;
+package com.christianbenner.crispinandroid.util;
 
-import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.Scene;
-import com.christianbenner.zombie.Scenes.SceneGame;
-import com.christianbenner.zombie.Scenes.SceneIntro;
-import com.christianbenner.zombie.Scenes.SceneMenu;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -22,13 +17,10 @@ import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
 
 public class SceneSwitcher implements GLSurfaceView.Renderer {
-    private final static int STARTING_SCENE = Constants.INTRO_ID;
     private static final int FRAMES_TO_CALCULATE = 15;
     private static final float TARGET_UPDATE_RATE = 60.0f;
 
-    private int currentSceneType;
     private Scene currentScene;
-    private final Context context;
 
     private int viewWidth;
     private int viewHeight;
@@ -39,9 +31,8 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
 
     private final Callable<Integer> initSceneFunc;
 
-    public SceneSwitcher(Context context, Scene startScene, Callable<Integer> initSceneFunc)
+    public SceneSwitcher(Scene startScene, Callable<Integer> initSceneFunc)
     {
-        this.context = context;
         this.initSceneFunc = initSceneFunc;
 
         this.deltaTime = 1.0f;
@@ -52,18 +43,9 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
         this.viewHeight = 0;
 
         this.currentScene = startScene;
-        this.currentSceneType = this.STARTING_SCENE;
     }
 
-    public void initScene()
-    {
-        try {
-            initSceneFunc.call();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    // Call the destroy function on the current scene
     public void destroyCurrentScene()
     {
         // If the current scene is loaded, destroy it first
@@ -73,16 +55,23 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
         }
     }
 
-    public int getNextScene()
+    // If the scene is finished, get the ID of the next, if not, get the current ID
+    public int getSceneToLoad()
     {
         if(currentScene != null)
         {
-            return currentScene.getNextSceneId();
+            if(currentScene.isSceneFinished())
+            {
+                return currentScene.getNextSceneId();
+            }
+
+            return currentScene.getSceneId();
         }
 
         return 0;
     }
 
+    // Set the current scene
     public void setCurrentScene(Scene scene)
     {
         this.currentScene = scene;
@@ -130,8 +119,16 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
 
             if(currentScene.getNextSceneId() != 0)
             {
-                initScene();
-                currentSceneType = currentScene.getNextSceneId();
+                currentScene.destroy();
+
+                try {
+                    initSceneFunc.call();
+                } catch (Exception e) {
+                    System.err.println("SceneSwitcher: ERROR FAILED TO SWITCH SCENE");
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+
                 currentScene.surfaceCreatedCall();
                 currentScene.surfaceChanged(viewWidth, viewHeight);
             }
@@ -155,5 +152,25 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
         {
             System.err.println("There is nothing to handle the motion event. No scene is running");
         }
+    }
+
+    public void onPause(){
+        currentScene.pause();
+    }
+
+    public void onResume(){
+        currentScene.resume();
+    }
+
+    public void onRestart(){
+        currentScene.restart();
+    }
+
+    public void onStop(){
+        currentScene.destroy();
+    }
+
+    public void onDestroy(){
+        currentScene.destroy();
     }
 }

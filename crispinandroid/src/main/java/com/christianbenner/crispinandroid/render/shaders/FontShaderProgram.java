@@ -24,9 +24,9 @@ import static android.opengl.GLES20.glUniformMatrix4fv;
 
 public class FontShaderProgram extends ShaderProgram {
     // Uniform locations
-    private final int uMatrixLocation;
-    private final int uTextureUnitLocation;
-    private final int uColor;
+    private int uMatrixLocation;
+    private int uTextureUnitLocation;
+    private int uColor;
 
     // Uniform Variables
     private final String U_COLOR = "u_Color";
@@ -36,15 +36,18 @@ public class FontShaderProgram extends ShaderProgram {
     private final String A_TEXTURE_COORDINATES = "a_TextureCoordinates";
 
     // Attribute locations
-    private final int aPositionLocation;
-    private final int aTextureCoordinatesLocation;
+    private int aPositionLocation;
+    private int aTextureCoordinatesLocation;
 
     private float[] modelMatrix = new float[16];
 
     public FontShaderProgram(Context context) {
         super(context, R.raw.font_vertex,
                 R.raw.font_fragment);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMatrixLocation = glGetUniformLocation(program, U_MATRIX);
         uTextureUnitLocation = glGetUniformLocation(program, U_TEXTURE_UNIT);

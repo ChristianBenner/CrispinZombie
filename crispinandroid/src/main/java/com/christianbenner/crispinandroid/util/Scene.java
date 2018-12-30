@@ -45,9 +45,10 @@ public abstract class Scene {
     protected abstract void destroy();
 
     protected Context context;
-    public Scene(Context context)
+    public Scene(Context context, int id)
     {
         this.context = context;
+        this.sceneId = id;
     }
 
     // This is required because every time the surface destroyed OpenGL wipes the textures

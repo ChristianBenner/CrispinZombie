@@ -22,14 +22,17 @@ import static com.christianbenner.crispinandroid.render.shaders.ShaderConstants.
 
 public class ChangingColourShaderProgram extends ShaderProgram
 {
-    private final int uMatrixLocation;
-    private final int uColourLocation;
-    private final int aPositionLocation;
-    private final int uTimeLocation;
+    private int uMatrixLocation;
+    private int uColourLocation;
+    private int aPositionLocation;
+    private int uTimeLocation;
 
     public ChangingColourShaderProgram(Context context) {
         super(context, R.raw.changing_colour_vertex, R.raw.changing_colour_fragment);
+    }
 
+    public void getShaderVars()
+    {
         // Retrieve uniform locations
         uMatrixLocation = glGetUniformLocation(program, U_MATRIX);
         uTimeLocation = glGetUniformLocation(program, U_TIME);

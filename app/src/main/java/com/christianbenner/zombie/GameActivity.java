@@ -9,10 +9,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
-import com.christianbenner.zombie.Scenes.RendererManager;
+import com.christianbenner.crispinandroid.util.SceneSwitcher;
 import com.christianbenner.zombie.Scenes.SceneGame;
 import com.christianbenner.zombie.Scenes.SceneIntro;
 import com.christianbenner.zombie.Scenes.SceneMenu;
+import com.christianbenner.zombie.Scenes.TestScene;
 
 import java.util.concurrent.Callable;
 
@@ -38,25 +39,27 @@ public class GameActivity extends Activity
             // Set the program to use GL ES 2.0
             glSurfaceView.setEGLContextClientVersion(2);
 
-            final Context context = this;
+            // The application context available to the callable below
+            final Context APPLICATION_CONTEXT = this;
 
             // Add renderer to the surface view
-            sceneSwitcher = new SceneSwitcher(this, new SceneIntro(context), new Callable<Integer>() {
+            sceneSwitcher = new SceneSwitcher(new SceneIntro(APPLICATION_CONTEXT), new Callable<Integer>() {
                 @Override
-                public Integer call() throws Exception {
-                    sceneSwitcher.destroyCurrentScene();
-
+                public Integer call() {
                     // Allocate a new scene
-                    switch (sceneSwitcher.getNextScene())
+                    switch (sceneSwitcher.getSceneToLoad())
                     {
                         case Constants.INTRO_ID:
-                            sceneSwitcher.setCurrentScene(new SceneIntro(context));
+                            sceneSwitcher.setCurrentScene(new SceneIntro(APPLICATION_CONTEXT));
                             break;
                         case Constants.MENU_ID:
-                            sceneSwitcher.setCurrentScene(new SceneMenu(context));
+                            sceneSwitcher.setCurrentScene(new SceneMenu(APPLICATION_CONTEXT));
                             break;
                         case Constants.GAME_ID:
-                            sceneSwitcher.setCurrentScene(new SceneGame(context));
+                            sceneSwitcher.setCurrentScene(new SceneGame(APPLICATION_CONTEXT));
+                            break;
+                        case Constants.TEST_ID:
+                            sceneSwitcher.setCurrentScene(new TestScene(APPLICATION_CONTEXT));
                             break;
                     }
 
@@ -110,7 +113,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onPause();
-       //     renderer.onPause();
+            sceneSwitcher.onPause();
         }
     }
 
@@ -120,7 +123,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onResume();
-       //     renderer.onResume();
+            sceneSwitcher.onResume();
         }
     }
 
@@ -131,7 +134,7 @@ public class GameActivity extends Activity
         if(rendererSet)
         {
             glSurfaceView.onPause();
-       //     renderer.onRestart();
+            sceneSwitcher.onRestart();
         }
     }
 
@@ -141,7 +144,7 @@ public class GameActivity extends Activity
 
         if(rendererSet){
             glSurfaceView.onPause();
-       //     renderer.onPause();
+            sceneSwitcher.onStop();
         }
     }
 
@@ -152,7 +155,7 @@ public class GameActivity extends Activity
         if(rendererSet)
         {
             glSurfaceView.destroyDrawingCache();
-       //     renderer.onDestroy();
+            sceneSwitcher.onDestroy();
         }
     }
 }

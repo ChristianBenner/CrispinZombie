@@ -14,6 +14,7 @@ import static android.opengl.GLES20.GL_TEXTURE0;
 import static android.opengl.GLES20.GL_TEXTURE_2D;
 import static android.opengl.GLES20.glActiveTexture;
 import static android.opengl.GLES20.glBindTexture;
+import static android.opengl.GLES20.glDeleteProgram;
 import static android.opengl.GLES20.glDeleteShader;
 import static android.opengl.GLES20.glGetUniformLocation;
 import static android.opengl.GLES20.glUniform1i;
@@ -33,27 +34,40 @@ public abstract class ShaderProgram {
     protected float maxAmbient = ShaderConstants.DEFAULT_MAX_AMBIENT;
     private ArrayList<Light> lights;
 
-    protected final int uLightColourArrayLocation;
-    protected final int uLightPositionArrayLocation;
-    protected final int uLightCountLocation;
-    protected final int uLightAmbientData;
-    protected final int uTextureUnitLocation;
-    protected final int uMVMatrixLocation;
-    protected final int uMVPMatrixLocation;
-    protected final int uMatrix;
-    protected final int uColourLocation;
+    protected int uLightColourArrayLocation;
+    protected int uLightPositionArrayLocation;
+    protected int uLightCountLocation;
+    protected int uLightAmbientData;
+    protected int uTextureUnitLocation;
+    protected int uMVMatrixLocation;
+    protected int uMVPMatrixLocation;
+    protected int uMatrix;
+    protected int uColourLocation;
 
     // Shader program
     protected int program;
+    protected int vertexShader;
+    protected int fragmentShader;
+
+    private String vertexShaderCode;
+    private String fragmentShaderCode;
+
     protected ShaderProgram(Context context, int vertexShaderResourceId,
                             int fragmentShaderResourceID){
         // Read shaders to string
-        String vertexShaderCode = TextResourceReader
+        vertexShaderCode = TextResourceReader
                 .readTextFileFromResource(context, vertexShaderResourceId);
-        String fragmentShaderCode = TextResourceReader
+        fragmentShaderCode = TextResourceReader
                 .readTextFileFromResource(context, fragmentShaderResourceID);
 
-        program = ShaderHelper.buildProgram(vertexShaderCode, fragmentShaderCode);
+        onSurfaceCreated();
+    }
+
+    public abstract void getShaderVars();
+
+    public void onSurfaceCreated()
+    {
+        ShaderHelper.buildProgram(vertexShaderCode, fragmentShaderCode, this);
 
         uLightColourArrayLocation =
                 glGetUniformLocation(program, ShaderConstants.U_LIGHT_COLOURS_ARRAY);
@@ -68,6 +82,8 @@ public abstract class ShaderProgram {
         uMVPMatrixLocation = glGetUniformLocation(program, ShaderConstants.U_MVP_MATRIX);
         uColourLocation = glGetUniformLocation(program, ShaderConstants.U_COLOUR);
         uMatrix = glGetUniformLocation(program, ShaderConstants.U_MATRIX);
+
+        getShaderVars();
     }
 
     public void setColourUniforms(Colour colour) {
