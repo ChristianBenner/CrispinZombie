@@ -182,7 +182,7 @@ public class SceneIntro extends Scene {
             if(timePassed >= 300.0f)
             {
                 timePassed = 0.0f;
-                gotoScene(Constants.TEST_ID);
+                gotoScene(Constants.MENU_ID);
             }
         }
     }

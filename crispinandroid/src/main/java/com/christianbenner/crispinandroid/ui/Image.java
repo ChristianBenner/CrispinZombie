@@ -24,6 +24,21 @@ public class Image extends UIBase {
         this.texture = texture;
     }
 
+    public Image(Colour colour, Texture texture)
+    {
+        this(new Dimension2D(0.0f, 0.0f, 0.0f, 0.0f), colour, texture);
+    }
+
+    public Image(Colour colour)
+    {
+        this(new Dimension2D(0.0f, 0.0f, 0.0f, 0.0f), colour, null);
+    }
+
+    public Image(Texture texture)
+    {
+        this(new Dimension2D(0.0f, 0.0f, 0.0f, 0.0f), new Colour(1.0f, 1.0f, 1.0f), texture);
+    }
+
     public Image(Dimension2D dimensions)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), null);

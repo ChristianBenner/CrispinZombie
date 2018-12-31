@@ -13,6 +13,7 @@ import com.christianbenner.crispinandroid.util.SceneSwitcher;
 import com.christianbenner.zombie.Scenes.SceneGame;
 import com.christianbenner.zombie.Scenes.SceneIntro;
 import com.christianbenner.zombie.Scenes.SceneMenu;
+import com.christianbenner.zombie.Scenes.SceneMenuRemake;
 import com.christianbenner.zombie.Scenes.TestScene;
 
 import java.util.concurrent.Callable;
@@ -53,7 +54,7 @@ public class GameActivity extends Activity
                             sceneSwitcher.setCurrentScene(new SceneIntro(APPLICATION_CONTEXT));
                             break;
                         case Constants.MENU_ID:
-                            sceneSwitcher.setCurrentScene(new SceneMenu(APPLICATION_CONTEXT));
+                            sceneSwitcher.setCurrentScene(new SceneMenuRemake(APPLICATION_CONTEXT));
                             break;
                         case Constants.GAME_ID:
                             sceneSwitcher.setCurrentScene(new SceneGame(APPLICATION_CONTEXT));

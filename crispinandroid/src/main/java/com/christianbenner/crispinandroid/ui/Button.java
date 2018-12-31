@@ -44,6 +44,21 @@ public class Button extends UIBase implements Interactive {
         this.lastPointerPosition = new PointF(0.0f, 0.0f);
     }
 
+    public Button(Colour colour)
+    {
+        this(new Dimension2D(), colour, null);
+    }
+
+    public Button(Colour colour, Texture texture)
+    {
+        this(new Dimension2D(), colour, texture);
+    }
+
+    public Button(Texture texture)
+    {
+        this(new Dimension2D(), new Colour(1.0f, 1.0f, 1.0f), texture);
+    }
+
     public Button(Dimension2D dimensions)
     {
         this(dimensions, new Colour(1.0f, 1.0f, 1.0f), null);

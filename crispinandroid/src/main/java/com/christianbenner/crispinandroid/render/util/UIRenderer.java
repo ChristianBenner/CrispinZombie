@@ -5,6 +5,7 @@ import android.opengl.Matrix;
 
 import com.christianbenner.crispinandroid.ui.Text;
 import com.christianbenner.crispinandroid.ui.UIBase;
+import com.christianbenner.crispinandroid.util.Dimension2D;
 
 import java.util.ArrayList;
 

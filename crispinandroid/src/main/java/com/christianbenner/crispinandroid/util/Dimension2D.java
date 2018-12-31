@@ -6,6 +6,14 @@ public class Dimension2D {
     public float w;
     public float h;
 
+    public Dimension2D()
+    {
+        x = 0.0f;
+        y = 0.0f;
+        w = 0.0f;
+        h = 0.0f;
+    }
+
     public Dimension2D(float x, float y, float w, float h)
     {
         this.x = x;
