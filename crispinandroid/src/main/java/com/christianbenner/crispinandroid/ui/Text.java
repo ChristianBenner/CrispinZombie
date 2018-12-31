@@ -55,47 +55,58 @@ public class Text extends UIBase {
     private Font font;
     private float fontSize;
 
-    public Text(String text, float fontSize, Font font,
-                float maxLineLength, UIRenderer renderer, boolean centered) {
+    private boolean generatedText = false;
+
+    public Text(String text, float fontSize, Font font, boolean centered) {
+        this.text = text;
         this.fontSize = fontSize;
         this.font = font;
-        this.maxLineVertexWidth = maxLineLength;
-
-        if(renderer.hasUICanvas())
-        {
-            this.canvasWidth = renderer.getCanvasWidth();
-            this.canvasHeight = renderer.getCanvasWidth();
-        }
-        else
-        {
-            System.err.println("[Text] You MUST create a canvas on your UI renderer.");
-            this.canvasWidth = 0.0f;
-            this.canvasHeight = 0.0f;
-        }
-
+        this.maxLineVertexWidth = maxLineSize;
         this.maxLineSize = maxLineVertexWidth / this.canvasWidth;
         this.centerText = centered;
         this.texture = font.getTextureAtlas();
+    }
+
+    public void generateText(float uiCanvasWidth, float uiCanvasHeight, int maxLineLength)
+    {
+        this.canvasWidth = uiCanvasWidth;
+        this.canvasHeight = uiCanvasHeight;
+
+        this.maxLineVertexWidth = maxLineLength;
+        this.maxLineSize = maxLineVertexWidth / this.canvasWidth;
+
         setText(text);
     }
+
     @Override
     public void bindData(ShaderProgram shader) {
-        vertexArray.setVertexAttribPointer(
-                0,
-                shader.getPositionAttributeLocation(),
-                POSITION_COMPONENT_COUNT,
-                POSITION_STRIDE);
+        if(generatedText)
+        {
+            vertexArray.setVertexAttribPointer(
+                    0,
+                    shader.getPositionAttributeLocation(),
+                    POSITION_COMPONENT_COUNT,
+                    POSITION_STRIDE);
 
-        textureArray.setVertexAttribPointer(
-                0,
-                shader.getTextureCoordinatesAttributeLocation(),
-                TEXTURE_COORDINATES_COMPONENT_COUNT,
-                TEXTURE_STRIDE);
+            textureArray.setVertexAttribPointer(
+                    0,
+                    shader.getTextureCoordinatesAttributeLocation(),
+                    TEXTURE_COORDINATES_COMPONENT_COUNT,
+                    TEXTURE_STRIDE);
+        }
+        else {
+            System.err.println("ERROR [TEXT UI]: You must generate the text before rendering it." +
+                    " Use method 'generateText' for the text '" + text + "'");
+        }
+
     }
 
     @Override
     public void draw() {
-        glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        if(generatedText)
+        {
+            glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+        }
     }
 
     public void setText(String text) {
@@ -106,6 +117,7 @@ public class Text extends UIBase {
         this.vertexCount = data.getVertexCount();
         this.vertexWidth = data.getVertexWidth();
         this.vertexHeight = data.getVertexHeight();
+        this.generatedText = true;
     }
 
     @Override

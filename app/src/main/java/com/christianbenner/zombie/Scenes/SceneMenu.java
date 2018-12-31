@@ -342,19 +342,19 @@ public class SceneMenu extends Scene {
         });
 
         Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
-        mainMenuPlayText = new Text("PLAY", 2, font, viewWidth, uiRenderer, true);
+        mainMenuPlayText = new Text("PLAY", 2, font, true);
         mainMenuPlayText.setColour(new Colour(0.25f, 0.25f, 0.25f));
         mainMenuPlayText.setPosition(new Geometry.Point(-BUTTON_PADDING - BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        mainMenuSettingsText = new Text("SETTINGS", 2, font, viewWidth, uiRenderer, true);
+        mainMenuSettingsText = new Text("SETTINGS", 2, font, true);
         mainMenuSettingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
         mainMenuSettingsText.setPosition(new Geometry.Point(0.0f, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        mainMenuEndlessText = new Text("ENDLESS", 2, font, viewWidth, uiRenderer, true);
+        mainMenuEndlessText = new Text("ENDLESS", 2, font, true);
         mainMenuEndlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
         mainMenuEndlessText.setPosition(new Geometry.Point(BUTTON_PADDING + BUTTON_SIZE, (viewHeight / 2.0f) - (BUTTON_SIZE / 2.0f) - mainMenuPlayText.getHeight() - TEXT_PADDING, 0.0f));
 
-        mainMenuVersionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, viewWidth, uiRenderer, false);
+        mainMenuVersionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, false);
         mainMenuVersionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
         mainMenuVersionText.setPosition(new Geometry.Point(viewWidth - 350.0f, 5.0f, 0.0f));
 
@@ -372,7 +372,7 @@ public class SceneMenu extends Scene {
         final float LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT = viewHeight / 2.0f;
 
         // Add the level select menu elements
-        levelMenuTitleText = new Text("LEVEL SELECT", 4, font, viewWidth, uiRenderer, true);
+        levelMenuTitleText = new Text("LEVEL SELECT", 4, font, true);
         levelMenuTitleText.setColour(new Colour(1.0f, 1.0f, 1.0f));
         levelMenuTitleText.setPosition(new Geometry.Point(0.0f, viewHeight - levelMenuTitleText.getHeight() - LEVEL_SELECT_MENU_TITLE_PADDING, 0.0f));
 
@@ -413,7 +413,7 @@ public class SceneMenu extends Scene {
                     LEVEL_SELECT_BACKGROUND_BANNER_HEIGHT * 0.7f),
                     TextureHelper.loadTexture(context, levelIconData.getTextureResourceId())));
 
-            Text tempText = new Text(levelIconData.getTitle(), 2, font, viewWidth, uiRenderer, true);
+            Text tempText = new Text(levelIconData.getTitle(), 2, font, true);
             tempText.setColour(new Colour(1f, 1f, 1f));
             tempText.setPosition(new Geometry.Point(0.0f, 0.0f, 0.0f));
 

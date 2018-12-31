@@ -357,11 +357,11 @@ public class SceneGame extends Scene {
         Font font = new Font(context, R.drawable.arial_font, R.raw.arial_font_fnt);
         if(debugView)
         {
-            cameraText = new Text("Debug Camera", 2, font, width, uiRenderer, true);
+            cameraText = new Text("Debug Camera", 2, font, true);
         }
         else
         {
-            cameraText = new Text("Birds Eye Camera", 2, font, width, uiRenderer, true);
+            cameraText = new Text("Birds Eye Camera", 2, font, true);
         }
 
         cameraText.setPosition(new Geometry.Point(0.0f, height - cameraText.getHeight(), 0.0f));
