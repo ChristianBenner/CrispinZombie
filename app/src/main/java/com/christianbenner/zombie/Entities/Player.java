@@ -24,13 +24,15 @@ public class Player extends Humanoid
     private Random randomNumGenerator;
     private Hitbox2D hitbox;
 
+    Texture tex;
+
     public Player(Context context,
                   Texture texture,
                   float movementSpeed,
                   ArrayList<Bullet> bullets,
-                  RendererGroup bulletModels, Map map)
-    {
+                  RendererGroup bulletModels, Map map) {
         super(context, texture, movementSpeed, map);
+        this.tex = texture;
         this.bulletListReference = bullets;
         this.bulletModelsReference = bulletModels;
         this.currentWeapon = Weapon.WeaponType.HANDS;

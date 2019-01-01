@@ -267,12 +267,12 @@ public class SceneGame extends Scene {
         ztorso = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
         zheads = new ArrayList<>();
-        for(int i = 0; i < 100; i++)
+      /*  for(int i = 0; i < 100; i++)
         {
             RendererModel model = new RendererModel(context, R.raw.wilbert_torso, TextureHelper.loadTexture(context, R.drawable.marbletex2));
             zheads.add(model);
             ztorso.addModel(model);
-        }
+        }*/
 
         renderer.addGroup(ztorso);
 

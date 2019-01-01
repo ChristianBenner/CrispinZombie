@@ -1,5 +1,6 @@
 package com.christianbenner.crispinandroid.ui;
 
+import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.text.TextMesh;
 import com.christianbenner.crispinandroid.render.util.ShaderProgram;
 import com.christianbenner.crispinandroid.render.util.UIRenderer;
@@ -65,6 +66,12 @@ public class Text extends UIBase {
         this.maxLineSize = maxLineVertexWidth / this.canvasWidth;
         this.centerText = centered;
         this.texture = font.getTextureAtlas();
+    }
+
+    public Text(String text, float fontSize, Font font, boolean centered, Colour colour)
+    {
+        this(text, fontSize, font, centered);
+        setColour(colour);
     }
 
     public void generateText(float uiCanvasWidth, float uiCanvasHeight, int maxLineLength)

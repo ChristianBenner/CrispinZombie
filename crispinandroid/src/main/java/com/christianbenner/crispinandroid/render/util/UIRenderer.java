@@ -121,7 +121,7 @@ public class UIRenderer {
     {
         // Used to determine if OpenGL is currently using GL_DEPTH_TEST
         boolean[] depthTest = new boolean[1];
-        glGetBooleanv(GL_CULL_FACE, depthTest, 0);
+        glGetBooleanv(GL_DEPTH_TEST, depthTest, 0);
         glDisable(GL_DEPTH_TEST);
 
         // Enable the shader

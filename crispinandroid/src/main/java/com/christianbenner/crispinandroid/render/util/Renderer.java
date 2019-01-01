@@ -8,6 +8,7 @@ import com.christianbenner.crispinandroid.render.model.RendererModel;
 import java.util.ArrayList;
 
 import static android.opengl.GLES20.GL_ARRAY_BUFFER;
+import static android.opengl.GLES20.GL_INVALID_VALUE;
 import static android.opengl.GLES20.GL_TRIANGLES;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.Matrix.multiplyMM;
@@ -58,7 +59,7 @@ public class Renderer {
 
     private void drawModel(RendererModel model)
     {
-        GLES20.glBindBuffer(GL_ARRAY_BUFFER, model.getVBO());
+      //  GLES20.glBindBuffer(GL_ARRAY_BUFFER, model.getVBO());
         model.bindData(shader);
 
         if(model.isTexelsLoaded())
