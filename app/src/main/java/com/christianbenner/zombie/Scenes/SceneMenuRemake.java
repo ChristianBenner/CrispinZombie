@@ -139,6 +139,7 @@ public class SceneMenuRemake extends Scene {
     private Camera modelViewCamera;
 
     private Font font;
+    private Image menuBackground;
 
     // Main Menu UI Objects
     private Player playerModel;
@@ -194,9 +195,14 @@ public class SceneMenuRemake extends Scene {
         modelViewCamera.setPosition(new Geometry.Point(5.0f, 1.0f, 8.9f));
         modelViewCamera.setAngles(-3.314f, -0.38f);
         modelRenderer = new Renderer(modelShader, modelViewCamera);
+        modelRenderer.setShader(modelShader);
+        modelRenderer.setCamera(modelViewCamera);
 
         // Create the UI Renderer
         uiRenderer = new UIRenderer();
+
+        menuBackground = new Image(TextureHelper.loadTexture(context, R.drawable.menubg));
+        uiRenderer.addUI(menuBackground);
 
         // Create the renderer groups
         mainMenuRendererGroup = new UIRendererGroup(uiRenderer);
@@ -324,7 +330,10 @@ public class SceneMenuRemake extends Scene {
     public void surfaceChanged(int viewWidth, int viewHeight) {
         glViewport(0, 0, viewWidth, viewHeight);
 
+        modelViewCamera.viewChanged(viewWidth, viewHeight);
+
         uiRenderer.setCanvasSize(viewWidth, viewHeight);
+        menuBackground.setDimensions(new Dimension2D(0.0f, 0.0f, viewWidth, viewHeight));
 
         positionMenuPageElements(viewWidth, viewHeight);
         positionLevelSelectPageElements(viewWidth, viewHeight);
@@ -597,16 +606,16 @@ public class SceneMenuRemake extends Scene {
         });
 
         mainMenuPlayText = new Text("PLAY", 2, font, true);
-        mainMenuPlayText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuPlayText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuSettingsText = new Text("SETTINGS", 2, font, true);
-        mainMenuSettingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuSettingsText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuEndlessText = new Text("ENDLESS", 2, font, true);
-        mainMenuEndlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuEndlessText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuVersionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, false);
-        mainMenuVersionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuVersionText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuRendererGroup.addUI(mainMenuTitle);
         mainMenuRendererGroup.addUI(mainMenuPlayButton);

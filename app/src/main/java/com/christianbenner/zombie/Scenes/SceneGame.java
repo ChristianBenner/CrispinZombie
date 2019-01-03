@@ -11,6 +11,7 @@ import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.shaders.ColourShaderProgram;
 import com.christianbenner.crispinandroid.render.shaders.PerFragLightingShader;
 import com.christianbenner.crispinandroid.render.shaders.PerFragMultiLightingShader;
+import com.christianbenner.crispinandroid.render.shaders.PerVertexLightingTextureShader;
 import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
@@ -153,6 +154,8 @@ public class SceneGame extends Scene {
 
     private RendererGroup ztorso;
 
+    private TextureShaderProgram perVertexLightingTextureShader;
+
     public SceneGame(Context context) {
         super(context, Constants.GAME_ID);
 
@@ -265,11 +268,13 @@ public class SceneGame extends Scene {
         renderer = new Renderer(shader, camera);
 
         ztorso = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
+        perVertexLightingTextureShader = new TextureShaderProgram(context);
+        ztorso.setShader(perVertexLightingTextureShader);
 
         zheads = new ArrayList<>();
-      /*  for(int i = 0; i < 100; i++)
+     /*   for(int i = 0; i < 100; i++)
         {
-            RendererModel model = new RendererModel(context, R.raw.wilbert_torso, TextureHelper.loadTexture(context, R.drawable.marbletex2));
+            RendererModel model = new RendererModel(context, R.raw.wilbert_torso_uv, TextureHelper.loadTexture(context, R.drawable.marbletex2));
             zheads.add(model);
             ztorso.addModel(model);
         }*/
@@ -308,6 +313,7 @@ public class SceneGame extends Scene {
     @Override
     protected void surfaceCreated()
     {
+        perVertexLightingTextureShader.onSurfaceCreated();
       //  cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
        // cameraText.setPosition(-1.0f, -1.0f);
 
