@@ -56,11 +56,6 @@ public class RendererGroup {
         this.models.remove(model);
     }
 
-    boolean quad = false;
-    public void enableQuadExperiment()
-    {
-        quad = true;
-    }
     public void render() {
         if(type == RendererGroupType.SAME_BIND) {
             boolean boundData = false;
