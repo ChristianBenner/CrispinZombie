@@ -1,5 +1,11 @@
 package com.christianbenner.zombie.Map;
 
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BL;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BR;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_H;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TL;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TR;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_V;
 import static com.christianbenner.zombie.Map.CellType.WALL;
 
 /**
@@ -87,6 +93,18 @@ public class Cell
         switch (type)
         {
             case WALL:
+                return true;
+            case GRASS_FENCE_BL:
+                return true;
+            case GRASS_FENCE_BR:
+                return true;
+            case GRASS_FENCE_TL:
+                return true;
+            case GRASS_FENCE_TR:
+                return true;
+            case GRASS_FENCE_H:
+                return true;
+            case GRASS_FENCE_V:
                 return true;
         }
 

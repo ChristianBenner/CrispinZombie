@@ -88,6 +88,10 @@ public class Geometry {
                     z + vector.z);
         }
 
+        public Point scale(float scale)
+        {
+            return new Point(x * scale, y * scale, z * scale);
+        }
 
         public Point translateY(float distance) {
             return new Point(x, y + distance, z);

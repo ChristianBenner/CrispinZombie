@@ -136,3 +136,5 @@ openal/src/main/res/drawable-mdpi/ic_launcher.png
 openal/src/main/res/layout/main.xml
 openal/src/main/res/values/strings.xml
 app/src/main/AndroidManifest.xml
+app/src/main/res/raw/buyitem.mp3
+app/src/main/res/raw/doorsound.mp3

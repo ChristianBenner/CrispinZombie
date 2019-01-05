@@ -2,10 +2,10 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
-import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.util.Renderer;
+import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.zombie.Map.Cell;
 import com.christianbenner.zombie.Map.Map;
@@ -29,7 +29,9 @@ public class Humanoid {
 
     // The renderer models for each part of the human
     protected RendererModel leg_left;
-    protected RendererModel leg_right;
+ //   protected RendererModel leg_right;
+    protected RendererModel leg_right_lower;
+    protected RendererModel leg_right_upper;
     protected RendererModel arm_right;
     protected RendererModel arm_left;
     protected RendererModel body;
@@ -110,6 +112,43 @@ public class Humanoid {
         }
     }
 
+    private final float DOOR_BUY_RADII = 0.8f;
+    public boolean checkDoorCollision(Door door)
+    {
+        if(!door.isOpen())
+        {
+            // Calculate distance to player
+            final Geometry.Point DOOR_POS = door.getPosition().
+                    translate(new Geometry.Vector(0.25f, 0.0f, -0.25f));
+            final float DISTANCE = position.distance(DOOR_POS);
+
+            // If the door isn't open, push the player away
+            if(DISTANCE < RADII + RADII)
+            {
+                // Move the zombie away from the player
+                final Geometry.Vector DIRECTION = new Geometry.Vector(
+                        DOOR_POS.x - position.x, DOOR_POS.y - position.y, DOOR_POS.z - position.z);
+
+                // Scale the vector to 0-1
+                final Geometry.Vector MAG_VECTOR = DIRECTION.scale(-1.0f / DIRECTION.length());
+                final Geometry.Vector MOVEMENT_VECTOR = MAG_VECTOR.scale(RADII + RADII - DISTANCE);
+
+                // Add the movement to the position
+                position.x += MOVEMENT_VECTOR.x;
+                position.z += MOVEMENT_VECTOR.z;
+            }
+
+            // If the player is in range to buy the door, return true so that the scene can display
+            // the buy UI
+            if(DISTANCE < RADII + DOOR_BUY_RADII)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void checkTileCollisions()
     {
         // Get the tiles surrounding the humanoid
@@ -151,7 +190,9 @@ public class Humanoid {
     public void removeFromRenderer(Renderer renderer)
     {
         renderer.removeModel(leg_left);
-        renderer.removeModel(leg_right);
+     //   renderer.removeModel(leg_right);
+        renderer.removeModel(leg_right_lower);
+        renderer.removeModel(leg_right_upper);
         renderer.removeModel(arm_left);
         renderer.removeModel(arm_right);
         renderer.removeModel(body);
@@ -161,19 +202,23 @@ public class Humanoid {
     private void createParts()
     {
         leg_left = new RendererModel(context, R.raw.left_leg_clean, texture);
-        leg_right = new RendererModel(context, R.raw.right_leg_clean, texture);
+     //   leg_right = new RendererModel(context, R.raw.right_leg_clean, texture);
+        leg_right_lower = new RendererModel(context, R.raw.wilbert_right_leg_lower, TextureHelper.loadTexture(context, R.drawable.box));
+        leg_right_upper = new RendererModel(context, R.raw.wilbert_right_leg_upper, TextureHelper.loadTexture(context, R.drawable.box));
         arm_left = new RendererModel(context, R.raw.left_arm_clean, texture);
         arm_right = new RendererModel(context, R.raw.right_arm_clean, texture);
-        body = new RendererModel(context, R.raw.body_clean, texture);
-        head = new RendererModel(context, R.raw.head_clean, texture);
+        body = new RendererModel(context, R.raw.wilbert_torso, TextureHelper.loadTexture(context, R.drawable.box));
+        head = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.box));
     }
 
     public void addToRenderer(Renderer renderer)
     {
-        renderer.addModel(leg_left);
-        renderer.addModel(leg_right);
-        renderer.addModel(arm_left);
-        renderer.addModel(arm_right);
+     //   renderer.addModel(leg_left);
+     //   renderer.addModel(leg_right);
+     //   renderer.addModel(arm_left);
+     //   renderer.addModel(arm_right);
+     //   renderer.addModel(leg_right_upper);
+     //   renderer.addModel(leg_right_lower);
         renderer.addModel(body);
         renderer.addModel(head);
     }
@@ -197,17 +242,26 @@ public class Humanoid {
     {
         this.position = position;
         leg_left.newIdentity();
-        leg_right.newIdentity();
+    //    leg_right.newIdentity();
+        leg_right_upper.newIdentity();
+        leg_right_lower.newIdentity();
         arm_left.newIdentity();
         arm_right.newIdentity();
         body.newIdentity();
         head.newIdentity();
         leg_left.setPosition(position);
-        leg_right.setPosition(position);
+     //   leg_right.setPosition(position);
+        leg_right_upper.setPosition(position.translate(new Geometry.Vector(-0.06f, 0.35f, -0.04f)));
+        leg_right_lower.setPosition(position.translate(new Geometry.Vector(0.0f, 0.0f, 0.05f)));
         arm_left.setPosition(position);
         arm_right.setPosition(position);
-        body.setPosition(position);
-        head.setPosition(position);
+        body.setPosition(position.translateY(0.65f));
+        head.setPosition(position.translateY(0.95f));
+
+        leg_right_upper.setScale(0.006f);
+        leg_right_lower.setScale(0.008f);
+        head.setScale(0.01f);
+        body.setScale(0.007f);
     }
 
     public void setVelocity(Geometry.Vector vector)
@@ -218,16 +272,6 @@ public class Humanoid {
     public void translate(Geometry.Vector vector)
     {
         setPosition(this.position.translate(vector));
-    }
-
-    private void rotate(float angle)
-    {
-        leg_left.rotate(angle, 0.0f, 1.0f, 0.0f);
-        leg_right.rotate(angle, 0.0f, 1.0f, 0.0f);
-        arm_left.rotate(angle, 0.0f, 1.0f, 0.0f);
-        arm_right.rotate(angle, 0.0f, 1.0f, 0.0f);
-        body.rotate(angle, 0.0f, 1.0f, 0.0f);
-        head.rotate(angle, 0.0f, 1.0f, 0.0f);
     }
 
     public void setWaving(boolean state)
@@ -275,17 +319,21 @@ public class Humanoid {
 
         // Rotate all the parts to face the right way
         leg_left.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
-        leg_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+    //    leg_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+        leg_right_lower.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+        leg_right_upper.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         arm_left.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         arm_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         body.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
-        head.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+        head.rotate(facingAngle + 180.0f, 0.0f, 1.0f, 0.0f);
 
         // Rotate the arms and legs to move
         if(velocity.length() > 0.0f)
         {
             leg_left.rotateAroundPos(leftLegRotationAxis, limbAngle, 1.0f, 0.0f, 0.0f);
-            leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+           // leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+            leg_right_lower.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+           // leg_right_upper.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
             arm_left.rotateAroundPos(leftArmRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
 
             if(!waving)

@@ -32,6 +32,7 @@ import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Constants;
 import com.christianbenner.zombie.Entities.Bullet;
+import com.christianbenner.zombie.Entities.Door;
 import com.christianbenner.zombie.Entities.Player;
 import com.christianbenner.zombie.Entities.Weapon;
 import com.christianbenner.zombie.Entities.Zombie;
@@ -52,7 +53,6 @@ import static android.opengl.GLES20.GL_SRC_ALPHA;
 import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
-import static android.opengl.GLES20.glDisable;
 import static android.opengl.GLES20.glEnable;
 import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.rotateM;
@@ -74,7 +74,7 @@ public class SceneGame extends Scene {
     private final Geometry.Point DEBUG_CAMERA_START_POSITION =
             new Geometry.Point(0.0f, 1.0f, 0.0f);
     private final Geometry.Point PLAYER_START_POSITION =
-            new Geometry.Point(5.0f, 0.0f, 5.0f);
+            new Geometry.Point(3.0f, 0.0f, 3.5f);
     static final float CROSSHAIR_OFFSET = 100.0f;
     private final int MUSIC_TRACKS = 2;
 
@@ -129,6 +129,9 @@ public class SceneGame extends Scene {
     private BaseController baseAimController;
     private MoveController aimController;
     private Image crosshair;
+    private Button buy_door_button;
+    boolean showBuyUI = false;
+    boolean buyDoorButtonInRenderer = false;
 
     // Properties and timers
     private boolean debugView;
@@ -209,7 +212,7 @@ public class SceneGame extends Scene {
       //  sniper.setScale(0.1f);
 
         box = new RendererModel(context, R.raw.box, TextureHelper.loadTexture(context, R.drawable.box));
-        zombiehead = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.marbletex2));
+      //  zombiehead = new RendererModel(context, R.raw.zhead, TextureHelper.loadTexture(context, R.drawable.button_go));
 
         bullets = new ArrayList<>();
         bulletsGroup = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
@@ -267,18 +270,26 @@ public class SceneGame extends Scene {
         ztorso = new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX);
 
         zheads = new ArrayList<>();
-      /*  for(int i = 0; i < 100; i++)
+/*        for(int i = 0; i < 100; i++)
         {
-            RendererModel model = new RendererModel(context, R.raw.wilbert_torso, TextureHelper.loadTexture(context, R.drawable.marbletex2));
+            RendererModel model = new RendererModel(context, R.raw.wilbert_torso_test2, TextureHelper.loadTexture(context, R.drawable.button_go));
             zheads.add(model);
             ztorso.addModel(model);
         }*/
+
+        for(int i = 0; i < zheads.size(); i++)
+        {
+            zheads.get(i).newIdentity();
+            zheads.get(i).setPosition(new Geometry.Point(1f + (i * 2.0f), 2.0f, 0.0f));
+            zheads.get(i).rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
+            zheads.get(i).setScale(0.1f);
+        }
 
         renderer.addGroup(ztorso);
 
         //renderer.addModel(sniper);
         renderer.addModel(box);
-        renderer.addModel(zombiehead);
+    //    renderer.addModel(zombiehead);
         renderer.addLight(TEST_LIGHT);
         renderer.addLight(TEST_LIGHT2);
         renderer.addLight(muzzleFlareLight);
@@ -399,19 +410,11 @@ public class SceneGame extends Scene {
         box.setPosition(new Geometry.Point(1f, 0.0f, 0.0f));
         box.rotate(boxRotationAngle, 1.0f, 0.0f, 0.0f);
         box.setScale(0.25f);
-
+/*
         zombiehead.newIdentity();
         zombiehead.setPosition(new Geometry.Point(1f, 2.0f, 0.0f));
         zombiehead.rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
-        zombiehead.setScale(0.1f);
-
-        for(int i = 0; i < zheads.size(); i++)
-        {
-            zheads.get(i).newIdentity();
-            zheads.get(i).setPosition(new Geometry.Point(1f + (i * 2.0f), 2.0f, 0.0f));
-            zheads.get(i).rotate(boxRotationAngle, 0.0f, 1.0f, 0.0f);
-            zheads.get(i).setScale(0.1f);
-        }
+        zombiehead.setScale(0.1f);*/
 
         renderer.render();
 
@@ -472,6 +475,7 @@ public class SceneGame extends Scene {
         }
     }
 
+    private boolean updateDoor = false;
 
     @Override
     public void update(float deltaTime) {
@@ -511,6 +515,7 @@ public class SceneGame extends Scene {
         switch_weapon_button.update(deltaTime);
         switch_camera_button.update(deltaTime);
         wave_button.update(deltaTime);
+        buy_door_button.update(deltaTime);
 
         if(cameraTextTimer > 0.0f)
         {
@@ -548,6 +553,43 @@ public class SceneGame extends Scene {
             }
         }
 
+        final ArrayList<Door> DOORS = demoMap.getDoors();
+        showBuyUI = false;
+        for(Door door : DOORS)
+        {
+            for(Zombie zombie : zombies)
+            {
+                zombie.checkDoorCollision(door);
+            }
+
+            if(player.checkDoorCollision(door))
+            {
+                // Show buy icon
+                showBuyUI = true;
+            }
+
+            door.update(deltaTime);
+        }
+
+        if(showBuyUI)
+        {
+            // Activate the buy UI
+            if(buyDoorButtonInRenderer == false)
+            {
+                uiRenderer.addUI(buy_door_button);
+                buyDoorButtonInRenderer = true;
+            }
+        }
+        else
+        {
+            // De-activate the buy UI
+            if(buyDoorButtonInRenderer)
+            {
+                uiRenderer.removeUI(buy_door_button);
+                buyDoorButtonInRenderer = false;
+            }
+        }
+
         // Check if the player interacts with weapons on the floor
      //   for(Weapon weapons : demoMap.getWeapons())
       //  {
@@ -581,7 +623,7 @@ public class SceneGame extends Scene {
 
                     if(bullet.getType() == Bullet.BulletType.FISTS)
                     {
-                        audio.playSound(R.raw.temp_punch_hit);
+                      //  audio.playSound(R.raw.temp_punch_hit);
                     }
                     else {
                       //  audio.playSound(R.raw.hit, 1);
@@ -654,6 +696,7 @@ public class SceneGame extends Scene {
                 if(handlePointerControl(wave_button, pointer)) { return; }
                 if(handlePointerControl(moveController, pointer)) { return; }
                 if(handlePointerControl(aimController, pointer)) { return; }
+                if(showBuyUI && handlePointerControl(buy_door_button, pointer)) { return; }
                 if(debugView)
                 {
                     if(handlePointerControl(debug_camera_button_up, pointer)) { return; }
@@ -880,6 +923,32 @@ public class SceneGame extends Scene {
                         break;
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
+                        break;
+                }
+            }
+        });
+
+        buy_door_button = new Button(new Dimension2D(viewWidth - BUTTON_PADDING - BUTTON_SIZE - BUTTON_PADDING -
+                BUTTON_SIZE - BUTTON_PADDING - BUTTON_SIZE,
+                viewHeight - BUTTON_SIZE - BUTTON_PADDING,
+                BUTTON_SIZE, BUTTON_SIZE),
+                TextureHelper.loadTexture(context, R.drawable.button_buy_door));
+        buy_door_button.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch(e.getEvent())
+                {
+                    case CLICK:
+                        final ArrayList<Door> DOORS = demoMap.getDoors();
+                        for(Door door : DOORS)
+                        {
+                            if(player.checkDoorCollision(door))
+                            {
+                                door.setOpen(true);
+                                playSound(context, R.raw.buyitem, 0);
+                                playSound(context, R.raw.doorsound, 0);
+                            }
+                        }
                         break;
                 }
             }

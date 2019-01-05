@@ -12,6 +12,7 @@ import com.christianbenner.crispinandroid.render.util.TextureHelper;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Hitbox2D;
 import com.christianbenner.zombie.Entities.Bullet;
+import com.christianbenner.zombie.Entities.Door;
 import com.christianbenner.zombie.Entities.Weapon;
 import com.christianbenner.zombie.R;
 
@@ -23,6 +24,12 @@ import java.util.LinkedList;
 
 import static com.christianbenner.zombie.Map.CellType.COBBLE;
 import static com.christianbenner.zombie.Map.CellType.GRASS;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BL;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BR;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_H;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TL;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TR;
+import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_V;
 import static com.christianbenner.zombie.Map.CellType.WALL;
 
 /**
@@ -76,6 +83,8 @@ public class Map
     private final int COMMA = 44;
     private final int WEAPON_DATA_ELEMENTS = 3;
     private final int LIGHT_DATA_ELEMENTS = 6;
+    private final int DOOR_DATA_FLOAT_ELEMENTS = 3;
+    private final int DOOR_DATA_INT_ELEMENTS = 2;
 
     // The size of each tile in the map (width and height because tiles are square)
     public static final float TILE_SIZE = 0.5f;
@@ -98,6 +107,9 @@ public class Map
     // Weapons loaded in from mapdata
     private ArrayList<Weapon> weapons = new ArrayList<>();
 
+    // Doors loaded in from mapdata
+    private ArrayList<Door> doors = new ArrayList<>();
+
     // Construct the map object
     public Map(Context context, int resourceId)
     {
@@ -117,6 +129,11 @@ public class Map
             System.err.println("Failed to load the map");
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<Door> getDoors()
+    {
+        return this.doors;
     }
 
     // Set the renderer of the map
@@ -171,6 +188,30 @@ public class Map
                                     TILE_SIZE, -TILE_SIZE / 2.0f);
                             scale.y = TILE_SIZE;
                             break;
+                        case GRASS_FENCE_BL:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_bl;
+                            break;
+                        case GRASS_FENCE_TL:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_tl;
+                             break;
+                        case GRASS_FENCE_TR:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_tr;
+                            break;
+                        case GRASS_FENCE_BR:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_br;
+                            break;
+                        case GRASS_FENCE_H:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_horizontal;
+                            break;
+                        case GRASS_FENCE_V:
+                            objResourceId = R.raw.tile;
+                            texResourceId = R.drawable.grass_fence_vertical;
+                            break;
                         default:
                             // Any undefined models will be loaded as a tile with error texture
                             System.err.println("Unrecognized tile type! Missing code in Map.java");
@@ -206,6 +247,14 @@ public class Map
             rWeapons.addModel(weapon.getModel());
         }
         renderer.addGroup(rWeapons);
+
+        // Add the doors to the renderer
+        RendererGroup rDoors = new RendererGroup(RendererGroupType.SAME_BIND);
+        for(Door door : doors)
+        {
+            rDoors.addModel(door.getModel());
+        }
+        renderer.addGroup(rDoors);
 
         // Add all the renderer groups to the renderer
         for(RendererGroup group : renderGroups.values())
@@ -373,7 +422,7 @@ public class Map
             }
             else
             {
-                System.err.println("Error processing weapon data: " + s);
+                System.err.println("MAP LOADER: Error processing weapon data: " + s);
             }
         }
     }
@@ -403,7 +452,7 @@ public class Map
             }
             else
             {
-                System.err.println("Error processing weapon data: " + s);
+                System.err.println("MAP LOADER: Error processing weapon data: " + s);
             }
         }
     }
@@ -421,6 +470,44 @@ public class Map
     private void processDoorData(String data)
     {
         System.out.println("DOOR DATA: " + data);
+
+        doors.clear();
+
+        ArrayList<String> dataEntities = seperateDataEntities(data);
+        for(String s : dataEntities)
+        {
+            // Fetch the data from the entity
+            ArrayList<Float> floats = new ArrayList<>();
+            ArrayList<Integer> ints = new ArrayList<>();
+            String type = processDataTagEntity(s, floats, ints);
+
+            // Expecting a certain amount of data
+            if(floats.size() == DOOR_DATA_FLOAT_ELEMENTS && ints.size() == DOOR_DATA_INT_ELEMENTS)
+            {
+                Door.TYPE doorType = Door.TYPE.WOOD;
+                int textureResource = R.drawable.box;
+
+                if(type.compareTo("WOOD") == 0)
+                {
+                    doorType = Door.TYPE.WOOD;
+                    textureResource = R.drawable.box;
+                }
+                else if(type.compareTo("STEEL") == 0)
+                {
+                    doorType = Door.TYPE.STEEL;
+                    textureResource = R.drawable.button_go;
+                }
+
+                doors.add(new Door(doorType, new Geometry.Point(
+                        floats.get(0), floats.get(1), floats.get(2)), ints.get(0), ints.get(1),
+                        new RendererModel(context, R.raw.door4,
+                                TextureHelper.loadTexture(context, textureResource))));
+            }
+            else
+            {
+                System.err.println("MAP LOADER: Error processing door data: " + s);
+            }
+        }
     }
 
     private void processGrassData(String data)
@@ -678,6 +765,26 @@ public class Map
         if(isValidNonCollidablendex(x-1, z+1)) neighbours.add(cells[z+1][x-1]); // Bottom left
         if(isValidNonCollidablendex(x-1, z)) neighbours.add(cells[z][x-1]);     // Left
         if(isValidNonCollidablendex(x-1, z-1)) neighbours.add(cells[z-1][x-1]); // Top left
+
+        // Check if any closed doors are in the non collidable neighbours list
+        for(Door door : doors)
+        {
+            if(!door.isOpen())
+            {
+                // Check if the pos of the door is one of the neighbours
+                final int posX = (int)(door.getPosition().x * 2.0f);
+                final int posZ = (int)(door.getPosition().z * 2.0f);
+
+                for(int i = 0; i < neighbours.size(); i++)
+                {
+                    if(neighbours.get(i).getPositionX() == posX && neighbours.get(i).getPositionZ() == posZ)
+                    {
+                        neighbours.remove(i);
+                        i--;
+                    }
+                }
+            }
+        }
 
         return neighbours;
     }

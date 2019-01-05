@@ -4,9 +4,6 @@ import android.opengl.GLSurfaceView;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.christianbenner.crispinandroid.render.util.TextureHelper;
-import com.christianbenner.crispinandroid.util.Scene;
-
 import java.util.concurrent.Callable;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -87,8 +84,13 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
         this.viewWidth = width;
         this.viewHeight = height;
 
+        this.deltaTime = 1.0f;
+
         currentScene.surfaceChanged(width, height);
     }
+
+    private long timeStart = 0;
+    private int frames = 0;
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -111,6 +113,22 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
 
                 //  System.out.println("Debug : DeltaTime (" + deltaTime + ")");
                 updateCount = 0;
+            }
+
+            if(timeStart == 0)
+            {
+                timeStart = System.currentTimeMillis();
+            }
+            else
+            {
+                frames++;
+
+                if(System.currentTimeMillis() - timeStart >= 1000)
+                {
+                    System.out.println("FPS: " + frames);
+                    timeStart = System.currentTimeMillis();
+                    frames = 0;
+                }
             }
 
             updateCount++;

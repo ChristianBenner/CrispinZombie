@@ -35,7 +35,6 @@ import java.util.Random;
 import static android.opengl.GLES20.GL_ALPHA;
 import static android.opengl.GLES20.GL_BLEND;
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
-import static android.opengl.GLES20.GL_DECR;
 import static android.opengl.GLES20.GL_DEPTH_TEST;
 import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
 import static android.opengl.GLES20.GL_SRC_ALPHA;
@@ -173,9 +172,10 @@ public class SceneMenuRemake extends Scene {
 
     // Transition Overlay UI Objects
     private Image transitionOverlay;
-    private float transitionOverlayAlpha = 0.0f;
-    private float transitionTimer = 0.0f;
-    private boolean transitionFadeOut = true;
+    private boolean startSceneFadeIn = true;
+    private float transitionOverlayAlpha = startSceneFadeIn ? 1.0f : 0.0f;
+    private float transitionTimer = startSceneFadeIn ? TRANSITION_TIME_GOAL : 0.0f;
+    private boolean transitionFadeOut = startSceneFadeIn ? false : true;
 
     // Current page
     private PAGE currentPage = START_PAGE;
@@ -229,7 +229,7 @@ public class SceneMenuRemake extends Scene {
         initLevelSelectPage();
 
         // Add the transition overlay element
-        transitionOverlay = new Image(new Colour(0.0f, 0.0f, 0.0f, 0.0f));
+        transitionOverlay = new Image(new Colour(0.0f, 0.0f, 0.0f, 1.0f));
         transitionOverlayUIGroup.addUI(transitionOverlay);
 
         // Add the transition overlay element
@@ -339,7 +339,7 @@ public class SceneMenuRemake extends Scene {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_DEPTH_TEST);
-        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         uiRenderer.render();
         modelRenderer.render();
@@ -347,7 +347,7 @@ public class SceneMenuRemake extends Scene {
 
     @Override
     public void update(float deltaTime) {
-        if(switchingToPage != PAGE.NONE)
+        if(switchingToPage != PAGE.NONE || startSceneFadeIn)
         {
             if(transitionFadeOut)
             {
@@ -361,8 +361,7 @@ public class SceneMenuRemake extends Scene {
                 transitionOverlay.setAlpha(transitionOverlayAlpha);
 
                 // Determine if the scene has faded out
-                final boolean COMPLETED_FADE_OUT = transitionOverlayAlpha == 1.0f;
-                if(COMPLETED_FADE_OUT)
+                if(transitionOverlayAlpha == 1.0f)
                 {
                     // Switch the scene
                     transitionPage();
@@ -380,11 +379,11 @@ public class SceneMenuRemake extends Scene {
                 transitionOverlay.setAlpha(transitionOverlayAlpha);
 
                 // Determine whether the transitioning has completed
-                final boolean COMPLETED_FADE_IN = transitionOverlayAlpha == 0.0f;
-                if (COMPLETED_FADE_IN)
+                if (transitionOverlayAlpha == 0.0f)
                 {
                     switchingToPage = PAGE.NONE;
                     transitionFadeOut = true;
+                    startSceneFadeIn = false;
                 }
             }
         }
@@ -597,16 +596,16 @@ public class SceneMenuRemake extends Scene {
         });
 
         mainMenuPlayText = new Text("PLAY", 2, font, true);
-        mainMenuPlayText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuPlayText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuSettingsText = new Text("SETTINGS", 2, font, true);
-        mainMenuSettingsText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuSettingsText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuEndlessText = new Text("ENDLESS", 2, font, true);
-        mainMenuEndlessText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuEndlessText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuVersionText = new Text("Version: " + Constants.VERSION_STRING, 2, font, false);
-        mainMenuVersionText.setColour(new Colour(0.25f, 0.25f, 0.25f));
+        mainMenuVersionText.setColour(new Colour(0.85f, 0.85f, 0.85f));
 
         mainMenuRendererGroup.addUI(mainMenuTitle);
         mainMenuRendererGroup.addUI(mainMenuPlayButton);

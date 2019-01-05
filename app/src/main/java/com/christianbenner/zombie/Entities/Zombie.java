@@ -295,7 +295,9 @@ public class Zombie extends Humanoid {
 
         // Rotate all the parts to face the right way
         leg_left.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
-        leg_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+    //    leg_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+        leg_right_lower.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
+        leg_right_upper.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         arm_left.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         arm_right.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
         body.rotate(facingAngle, 0.0f, 1.0f, 0.0f);
@@ -305,7 +307,9 @@ public class Zombie extends Humanoid {
         if(velocity.length() > 0.0f)
         {
             leg_left.rotateAroundPos(leftLegRotationAxis, limbAngle, 1.0f, 0.0f, 0.0f);
-            leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+        //    leg_right.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+            leg_right_lower.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
+            //leg_right_upper.rotateAroundPos(leftLegRotationAxis, -limbAngle, 1.0f, 0.0f, 0.0f);
             arm_left.rotateAroundPos(leftArmRotationAxis, ARM_ANGLE, 1.0f, 0.0f, 0.0f);
             arm_right.rotateAroundPos(rightArmRotationAxis, ARM_ANGLE, 1.0f, 0.0f, 0.0f);
         }

@@ -12,7 +12,6 @@ import android.widget.Toast;
 import com.christianbenner.crispinandroid.util.SceneSwitcher;
 import com.christianbenner.zombie.Scenes.SceneGame;
 import com.christianbenner.zombie.Scenes.SceneIntro;
-import com.christianbenner.zombie.Scenes.SceneMenu;
 import com.christianbenner.zombie.Scenes.SceneMenuRemake;
 import com.christianbenner.zombie.Scenes.TestScene;
 
