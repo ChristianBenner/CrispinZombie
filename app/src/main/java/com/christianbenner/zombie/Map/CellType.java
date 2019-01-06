@@ -13,10 +13,5 @@ public class CellType
     public static final byte GRASS = 97;
     public static final byte COBBLE = 98;
     public static final byte WALL = 99;
-    public static final byte GRASS_FENCE_BL = 100;
-    public static final byte GRASS_FENCE_TL = 101;
-    public static final byte GRASS_FENCE_TR = 102;
-    public static final byte GRASS_FENCE_BR = 103;
-    public static final byte GRASS_FENCE_H = 104;
-    public static final byte GRASS_FENCE_V = 105;
+    public static final byte BRICK_WALL = 100;
 }

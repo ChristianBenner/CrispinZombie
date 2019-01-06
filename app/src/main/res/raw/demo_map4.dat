@@ -1,6 +1,6 @@
 // TYPE(X,Y,Z)
 WEAPONS{
-SNIPER(6.0,0.1,2.0);
+SNIPER(8.0,0.1,2.0);
 PISTOL(3.0,0.1,4.0);
 MACHINE_GUN(11.5,0.1,5.0);
 }
@@ -21,8 +21,12 @@ POS(1.0,0.0,0.0);
 }
 // TYPE(X,Y,Z,ROTATION,COST)
 DOORS{
-WOOD(7.0,0.0,6.5,0,1000);
-STEEL(2.0,0.0,1.0,1,2500);
+WOOD(7.0,0.0,3.0,0,1000);
+WOOD(1.5,0.0,1.5,1,2500);
+WOOD(2.0,0.0,1.5,3,2500);
+WOOD(2.0,0.0,5.0,2,2500);
+STEEL(10.5,0.0,5.0,7,2500);
+STEEL(10.5,0.0,5.5,6,2500);
 }
 // SHAPE(X,Y,W,H)
 GRASS{
@@ -31,19 +35,19 @@ RECT(0.0,0.0,10.0,10.0);
 // RAW DATA
 MAPDATA{
 b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b
-b.a.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.c.a.a.b
-b.a.c.c.a.c.a.a.a.a.c.c.c.c.c.c.c.c.c.a.a.a.a.a.a.a.a.c.a.a.b
-b.a.c.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
-b.a.c.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
-b.a.c.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.c.a.a.a.a.a.c.c.c.c.a.a.b
-b.a.c.a.a.c.c.c.c.a.c.c.c.a.a.a.c.c.c.a.a.a.a.a.a.a.a.a.a.a.b
-b.a.c.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.a.b
-b.a.c.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.c.c.c.c.c.c.c.a.b
-b.a.c.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.a.a.a.b
-b.a.c.c.c.c.c.c.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.a.c.a.b
-b.a.a.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.c.c.a.b
-b.a.a.a.a.a.a.a.c.a.a.a.c.a.a.a.c.a.a.a.a.c.a.a.a.a.a.c.a.a.b
-b.a.a.a.a.a.a.a.a.a.a.a.c.c.a.c.c.a.a.a.a.c.c.c.c.c.a.c.a.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.c.c.c.c.c.c.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.a.c.a.a.a.a.a.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.a.c.a.a.a.a.a.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.a.c.a.a.b
+b.a.c.a.a.c.a.a.a.a.a.a.c.a.a.a.a.a.c.a.a.a.a.a.c.c.c.c.a.a.b
+b.a.c.a.a.c.c.c.c.a.a.a.c.c.a.c.c.c.c.a.a.a.a.a.a.a.a.a.a.a.b
+b.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b
+b.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.d.d.d.d.d.d.d.d.a.b
+b.a.c.a.a.a.a.a.c.a.a.a.a.a.a.a.a.a.a.a.a.d.a.a.a.a.a.a.d.a.b
+b.a.c.c.a.c.c.c.c.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.d.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.d.d.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.d.a.a.a.a.a.d.a.a.b
+b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.d.d.d.d.d.d.d.a.a.b
 b.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.a.b
 b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b
 }

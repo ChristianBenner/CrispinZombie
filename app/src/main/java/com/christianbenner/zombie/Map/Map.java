@@ -22,14 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import static com.christianbenner.zombie.Map.CellType.BRICK_WALL;
 import static com.christianbenner.zombie.Map.CellType.COBBLE;
 import static com.christianbenner.zombie.Map.CellType.GRASS;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BL;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_BR;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_H;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TL;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_TR;
-import static com.christianbenner.zombie.Map.CellType.GRASS_FENCE_V;
 import static com.christianbenner.zombie.Map.CellType.WALL;
 
 /**
@@ -188,33 +183,17 @@ public class Map
                                     TILE_SIZE, -TILE_SIZE / 2.0f);
                             scale.y = TILE_SIZE;
                             break;
-                        case GRASS_FENCE_BL:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_bl;
-                            break;
-                        case GRASS_FENCE_TL:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_tl;
-                             break;
-                        case GRASS_FENCE_TR:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_tr;
-                            break;
-                        case GRASS_FENCE_BR:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_br;
-                            break;
-                        case GRASS_FENCE_H:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_horizontal;
-                            break;
-                        case GRASS_FENCE_V:
-                            objResourceId = R.raw.tile;
-                            texResourceId = R.drawable.grass_fence_vertical;
+                        case BRICK_WALL:
+                            objResourceId = R.raw.box;
+                            texResourceId = R.drawable.brick;
+                            positionOffset = new Geometry.Vector(TILE_SIZE / 2.0f,
+                                    TILE_SIZE, -TILE_SIZE / 2.0f);
+                            scale.y = TILE_SIZE;
                             break;
                         default:
                             // Any undefined models will be loaded as a tile with error texture
-                            System.err.println("Unrecognized tile type! Missing code in Map.java");
+                            System.err.println("Unrecognized tile type: " + cells[z][x].getType() +
+                                    " Missing code in Map.java");
                             objResourceId = R.raw.tile;
                             texResourceId = R.drawable.unknown_texture;
                             break;
@@ -490,12 +469,12 @@ public class Map
                 if(type.compareTo("WOOD") == 0)
                 {
                     doorType = Door.TYPE.WOOD;
-                    textureResource = R.drawable.box;
+                    textureResource = R.drawable.door_wood;
                 }
                 else if(type.compareTo("STEEL") == 0)
                 {
                     doorType = Door.TYPE.STEEL;
-                    textureResource = R.drawable.button_go;
+                    textureResource = R.drawable.door_steel;
                 }
 
                 doors.add(new Door(doorType, new Geometry.Point(
@@ -924,14 +903,26 @@ public class Map
         if(isValidWall(x-1, z) && bulletWallCollision(bullet, models[z][x-1])) { return true; }     // Left
         if(isValidWall(x-1, z-1) && bulletWallCollision(bullet, models[z-1][x-1])) { return true; } // Top Left
 
+        // Check if any closed doors are in the collidable neighbours list
+        for(Door door : doors)
+        {
+            if(!door.isOpen())
+            {
+                if(bulletDoorCollision(bullet, door))
+                {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
     // Do circular collisions
-    private boolean bulletCollidesWithSphericalWall(Bullet bullet, RendererModel wall)
+    private boolean bulletCollidesWithSphericalWall(Bullet bullet, Geometry.Point wallPosition)
     {
         final Geometry.Point bPos = bullet.getPosition();
-        final Geometry.Point wPos = wall.getPosition().translate(new Geometry.Vector(-(TILE_SIZE/2.0f), 0.0f, 0.0f));
+        final Geometry.Point wPos = wallPosition.translate(new Geometry.Vector(-(TILE_SIZE/2.0f), 0.0f, 0.0f));
 
         final Geometry.Point bDims =
                 new Geometry.Point(bullet.DEPTH_MULTIPLIER, 0.5f, bullet.DEPTH_MULTIPLIER);
@@ -973,34 +964,52 @@ public class Map
         final Geometry.Point wDims =
                 new Geometry.Point(TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-
-
         return ((bPos.x > wPos.x && bPos.x < wPos.x + wDims.x) ||
                 (bPos.x + bDims.x > wPos.x && bPos.x + bDims.x < wPos.x + wDims.x)) &&
                 ((bPos.z > wPos.z && bPos.z < wPos.z + wDims.z) ||
                 (bPos.z + bDims.z > wPos.z && bPos.z + bDims.z < wPos.z + wDims.z));
+    }
+
+    private boolean bulletDoorCollision(Bullet bullet, Door door)
+    {
+        final Geometry.Point bPos = bullet.getPosition();
+        final Geometry.Point wPos = door.getPosition().translate(new Geometry.Vector(0.0f, 0.0f, -0.25f));
+
+        final Geometry.Point bDims =
+                new Geometry.Point(bullet.DEPTH_MULTIPLIER, 0.125f, bullet.DEPTH_MULTIPLIER);
+        final Geometry.Point wDims =
+                new Geometry.Point(TILE_SIZE, TILE_SIZE, TILE_SIZE);
 /*
-        boolean xInRange = false;
-        boolean zInRange = false;
-
-        // Test if the X co-ordinate is in range
-        if((bPos.x > wPos.x && bPos.x < wPos.x + wDims.x) ||
-                (bPos.x + bDims.x > wPos.x && bPos.x + bDims.x < wPos.x + wDims.x))
+        // Figure out via rotation which bounds to use
+        final float X_LEFT_OFFSET;
+        final float X_RIGHT_OFFSET;
+        final float Z_LOWER_OFFSET;
+        final float Z_UPPER_OFFSET;
+        if(door.isHorizontal())
         {
-            xInRange = true;
+            X_LEFT_OFFSET = Door.HORIZONTAL_X_LEFT;
+            X_RIGHT_OFFSET = Door.HORIZONTAL_X_RIGHT;
+            Z_LOWER_OFFSET = Door.HORIZONTAL_Z_LOWER;
+            Z_UPPER_OFFSET = Door.HORIZONTAL_Z_UPPER;
+        }
+        else
+        {
+            X_LEFT_OFFSET = -Door.VERTICAL_X_LEFT;
+            X_RIGHT_OFFSET = Door.VERTICAL_X_RIGHT;
+            Z_LOWER_OFFSET = Door.VERTICAL_Z_LOWER;
+            Z_UPPER_OFFSET = Door.VERTICAL_Z_UPPER;
         }
 
-        if(xInRange)
-        {
-            // Test for Z in range
-            if((bPos.z > wPos.z && bPos.z < wPos.z + wDims.z) ||
-                    (bPos.z + bDims.z > wPos.z && bPos.z + bDims.z < wPos.z + wDims.z))
-            {
-                zInRange = true;
-            }
-        }
+        return ((bPos.x > wPos.x + X_LEFT_OFFSET && bPos.x < wPos.x + wDims.x + X_RIGHT_OFFSET) ||
+                (bPos.x + bDims.x > wPos.x + X_LEFT_OFFSET && bPos.x + bDims.x < wPos.x + wDims.x + X_RIGHT_OFFSET)) &&
+                ((bPos.z > wPos.z + Z_UPPER_OFFSET && bPos.z < wPos.z + wDims.z + Z_LOWER_OFFSET) ||
+                        (bPos.z + bDims.z > wPos.z + Z_UPPER_OFFSET && bPos.z + bDims.z < wPos.z + wDims.z + Z_LOWER_OFFSET));
+                        */
 
-        return xInRange && zInRange;*/
+        return ((bPos.x > wPos.x && bPos.x < wPos.x + wDims.x) ||
+                (bPos.x + bDims.x > wPos.x && bPos.x + bDims.x < wPos.x + wDims.x)) &&
+                ((bPos.z > wPos.z && bPos.z < wPos.z + wDims.z) ||
+                        (bPos.z + bDims.z > wPos.z && bPos.z + bDims.z < wPos.z + wDims.z));
     }
 
     // Get the map width

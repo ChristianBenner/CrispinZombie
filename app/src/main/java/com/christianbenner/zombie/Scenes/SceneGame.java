@@ -826,6 +826,12 @@ public class SceneGame extends Scene {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
                         player.setWaving(!player.isWaving());
+
+                        final ArrayList<Door> doors = demoMap.getDoors();
+                        for(Door door : doors)
+                        {
+                            door.setOpen(false);
+                        }
                         break;
                 }
             }
