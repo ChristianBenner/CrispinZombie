@@ -21,6 +21,9 @@ import static java.lang.Math.sin;
  */
 
 public class Camera implements Interactive {
+    // One radian in degrees
+    private static final float RADIANS_TO_DEGREES = 180.0f / (float)Math.PI;
+
     private ArrayList<TouchListener> touchListeners = new ArrayList<>();
     public void addTouchListener(TouchListener listener) { touchListeners.add(listener); }
     public void removeTouchListener(TouchListener listener) { touchListeners.remove(listener); }
@@ -205,7 +208,7 @@ public class Camera implements Interactive {
         updateLookUp();
     }
 
-    public void setAngles(float horizontalAngle, float verticalAngle)
+    public void setAnglesRads(float horizontalAngle, float verticalAngle)
     {
         this.horizontalAngle = horizontalAngle;
         this.verticalAngle = verticalAngle;
@@ -223,6 +226,11 @@ public class Camera implements Interactive {
         );
 
         updateLookUp();
+    }
+
+    public void setAnglesDegrees(float horizontalAngle, float verticalAngle)
+    {
+        setAnglesRads(horizontalAngle / RADIANS_TO_DEGREES, verticalAngle / RADIANS_TO_DEGREES);
     }
 
     public float getHorizontalAngle()

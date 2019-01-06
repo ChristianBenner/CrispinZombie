@@ -2,6 +2,7 @@ package com.christianbenner.zombie.Entities;
 
 import android.content.Context;
 
+import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.data.Texture;
 import com.christianbenner.crispinandroid.render.model.RendererModel;
 import com.christianbenner.crispinandroid.render.util.Renderer;
@@ -89,6 +90,18 @@ public class Humanoid {
         velocity = new Geometry.Vector(0.0f, 0.0f, 0.0f);
         facingAngle = 0.0f;
         createParts();
+    }
+
+    public void setColour(Colour colour)
+    {
+        body.setColour(colour);
+        head.setColour(colour);
+    }
+
+    public void setAlpha(float alpha)
+    {
+        body.setAlpha(alpha);
+        head.setAlpha(alpha);
     }
 
     public void checkHumanoidCollision(final Humanoid other)

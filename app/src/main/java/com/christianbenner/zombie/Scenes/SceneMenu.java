@@ -222,7 +222,7 @@ public class SceneMenu extends Scene {
 
         camera = new Camera();
         camera.setPosition(new Geometry.Point(5.0f, 1.0f, 8.9f));
-        camera.setAngles(-3.314f, -0.38f);
+        camera.setAnglesRads(-3.314f, -0.38f);
         renderer = new Renderer(shader, camera);
 
         bullets = new ArrayList<>();
@@ -759,6 +759,7 @@ public class SceneMenu extends Scene {
     @Override
     protected void destroy()
     {
+        audio.pause();
         audio.cleanMusic();
     }
 

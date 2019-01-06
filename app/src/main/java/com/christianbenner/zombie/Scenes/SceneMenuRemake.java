@@ -192,7 +192,7 @@ public class SceneMenuRemake extends Scene {
 
         modelViewCamera = new Camera();
         modelViewCamera.setPosition(new Geometry.Point(5.0f, 1.0f, 8.9f));
-        modelViewCamera.setAngles(-3.314f, -0.38f);
+        modelViewCamera.setAnglesRads(-3.314f, -0.38f);
         modelRenderer = new Renderer(modelShader, modelViewCamera);
 
         // Create the UI Renderer
@@ -501,7 +501,8 @@ public class SceneMenuRemake extends Scene {
 
     @Override
     protected void destroy() {
-
+        audio.pause();
+        audio.cleanMusic();
     }
 
     @Override

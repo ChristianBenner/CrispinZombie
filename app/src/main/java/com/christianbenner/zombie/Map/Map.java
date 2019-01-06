@@ -126,9 +126,19 @@ public class Map
         }
     }
 
+    public Cell[][] getCells()
+    {
+        return this.cells;
+    }
+
     public ArrayList<Door> getDoors()
     {
         return this.doors;
+    }
+
+    public HashMap<Integer, RendererGroup> getRenderGroups()
+    {
+        return renderGroups;
     }
 
     // Set the renderer of the map
@@ -243,6 +253,12 @@ public class Map
 
         // Return true because we have successfully set the renderer
         return true;
+    }
+
+    // Add the models in the map to a renderer
+    public void addModelsToRenderer(Renderer renderer)
+    {
+
     }
 
     // Print what the cell data represents
@@ -513,8 +529,49 @@ public class Map
         {
             int locationX = i % mapWidth;
             int locationZ = i / mapWidth;
+
+            final int TYPE = (int)data.charAt(i);
             cells[locationZ][locationX] =
                     new Cell((int)data.charAt(i), locationX, locationZ);
+
+            // Check if the cell is a model
+            final boolean IS_MODEL;
+            final int MODEL_RESOURCE;
+            final int MODEL_TEXTURE_RESOURCE;
+            switch (TYPE)
+            {
+                case WALL:
+                    IS_MODEL = true;
+                    MODEL_RESOURCE = R.raw.box2;
+                    MODEL_TEXTURE_RESOURCE = R.drawable.box;
+                    break;
+                case BRICK_WALL:
+                    IS_MODEL = true;
+                    MODEL_RESOURCE = R.raw.box2;
+                    MODEL_TEXTURE_RESOURCE = R.drawable.brick;
+                    break;
+                default:
+                    IS_MODEL = false;
+                    MODEL_RESOURCE = -1;
+                    MODEL_TEXTURE_RESOURCE = -1;
+                    break;
+            }
+
+            if(IS_MODEL)
+            {
+                // The map doesn't contain any tiles of the type we are adding so create a group
+                if (!renderGroups.containsKey(TYPE)) {
+                    // Add a new group that is SAME_BIND_SAME_TEX because the we are adding
+                    // all the same tile models and textures per group
+                    renderGroups.put(TYPE,
+                            new RendererGroup(RendererGroupType.SAME_BIND_SAME_TEX));
+                }
+
+                RendererModel MODEL = new RendererModel(context, MODEL_RESOURCE,
+                        TextureHelper.loadTexture(context, MODEL_TEXTURE_RESOURCE));
+                MODEL.setPosition(MAP_START_POSITION.translate(new Geometry.Vector(locationX * TILE_SIZE, 0.0f, locationZ * TILE_SIZE)));
+                renderGroups.get(TYPE).addModel(MODEL);
+            }
 
             if(cells[locationZ][locationX].isCollidable())
             {

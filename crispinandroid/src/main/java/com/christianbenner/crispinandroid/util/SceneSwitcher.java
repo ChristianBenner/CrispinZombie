@@ -25,6 +25,8 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
     private float deltaTime;
     private long startNanoTime;
     private int updateCount;
+    private long timePausedInNanos;
+    private long pauseNanoTime;
 
     private final Callable<Integer> initSceneFunc;
 
@@ -85,12 +87,16 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
         this.viewHeight = height;
 
         this.deltaTime = 1.0f;
+        updateCount = 0;
+        startNanoTime = System.nanoTime();
+        timePausedInNanos = 0;
 
         currentScene.surfaceChanged(width, height);
     }
 
     private long timeStart = 0;
     private int frames = 0;
+    private final boolean printFPS = false;
 
     @Override
     public void onDrawFrame(GL10 gl) {
@@ -103,31 +109,31 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
             // Calculate time taken to update
             if(updateCount == 15)
             {
-                // long totalNanoCalc = System.nanoTime() - startNanoTime;
-                // totalNanoCalc -= timePausedInNanos;
-                // long ms = totalNanoCalc / 1000000;
-
                 deltaTime = TARGET_UPDATE_RATE / (1000 /
-                        (((System.nanoTime() - startNanoTime) / 1000000) / (float)FRAMES_TO_CALCULATE));
+                        (((System.nanoTime() - startNanoTime - timePausedInNanos) / 1000000) /
+                                (float)FRAMES_TO_CALCULATE));
                 startNanoTime = System.nanoTime();
 
                 //  System.out.println("Debug : DeltaTime (" + deltaTime + ")");
                 updateCount = 0;
             }
 
-            if(timeStart == 0)
+            if(printFPS)
             {
-                timeStart = System.currentTimeMillis();
-            }
-            else
-            {
-                frames++;
-
-                if(System.currentTimeMillis() - timeStart >= 1000)
+                if(timeStart == 0)
                 {
-                    System.out.println("FPS: " + frames);
                     timeStart = System.currentTimeMillis();
-                    frames = 0;
+                }
+                else
+                {
+                    frames++;
+
+                    if(System.currentTimeMillis() - timeStart >= 1000)
+                    {
+                        System.out.println("FPS: " + frames);
+                        timeStart = System.currentTimeMillis();
+                        frames = 0;
+                    }
                 }
             }
 
@@ -173,10 +179,12 @@ public class SceneSwitcher implements GLSurfaceView.Renderer {
     }
 
     public void onPause(){
+        pauseNanoTime = System.nanoTime();
         currentScene.pause();
     }
 
     public void onResume(){
+        timePausedInNanos = System.nanoTime() - pauseNanoTime;
         currentScene.resume();
     }
 

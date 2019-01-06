@@ -150,8 +150,27 @@ public class Zombie extends Humanoid {
         position.z = z;
     }
 
+/*    private boolean removeFromRenderer = false;
+    private float deathTimer = 60.0f;
+    public boolean isDeathCycleOver()
+    {
+        return removeFromRenderer;
+    }*/
+
     public void update(float deltaTime)
     {
+/*        if(life <= 0.0f)
+        {
+            setColour(new Colour(1.0f, 0.0f, 0.0f));
+            deathTimer -= 1.0f * deltaTime;
+            if(deathTimer <= 0.0f)
+            {
+                removeFromRenderer = true;
+                deathTimer = 0.0f;
+            }
+            setAlpha(deathTimer / 60.0f);
+        }*/
+
         // Get path to player DEBUG
         if(SystemClock.uptimeMillis() - time > PATH_UPDATE_WAIT_MILLIS) {
             time = SystemClock.uptimeMillis();

@@ -32,7 +32,7 @@ public class Door
     private final Geometry.Point POINT_OF_ROTATION;
     private final float ROTATION_Y;
 
-    private static final float SCALE = 0.5f;
+    public static final float SCALE = 0.5f;
     private static final float HORIZONTAL_Z_LOWER = -0.4f * SCALE;
     private static final float HORIZONTAL_Z_UPPER = -0.6f * SCALE;
     private static final float HORIZONTAL_X_LEFT = 0.0f;
@@ -187,7 +187,6 @@ public class Door
     {
         angle = 0.0f;
     }
-
 
     private float angle = 0.0f;
     public void update(float deltaTime)

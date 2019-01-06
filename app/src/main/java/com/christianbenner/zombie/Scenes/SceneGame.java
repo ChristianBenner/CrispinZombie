@@ -168,7 +168,7 @@ public class SceneGame extends Scene {
 
         // Create the camera
         camera = new Camera();
-        camera.setAngles(3.141592f, -(3.141592f/2.0f));
+        camera.setAnglesRads(3.141592f, -(3.141592f/2.0f));
         camera.setPosition(CAMERA_START_POSITION);
 
         // Create the debug camera
@@ -197,7 +197,7 @@ public class SceneGame extends Scene {
                         cameraY -= previousY - normalizedY;
                         previousX = normalizedX;
                         previousY = normalizedY;
-                        debugCamera.setAngles(-cameraX, cameraY);
+                        debugCamera.setAnglesRads(-cameraX, cameraY);
                         break;
                     case RELEASE:
                         doneYet = false;
@@ -420,7 +420,7 @@ public class SceneGame extends Scene {
 
         colourShader.useProgram();
 
-            for(int i = 0; i < zombies.size(); i++)
+        for(int i = 0; i < zombies.size(); i++)
         {
             if(zombies.get(i).isAlive())
             {
