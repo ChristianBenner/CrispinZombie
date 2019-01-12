@@ -52,7 +52,7 @@ public class MoveController extends Button
         radius = controller.getRadius() / 2.0f;
     }
 
-    public void updatePosition(BaseController baseController)
+    public void updatePosition()
     {
         super.setPosition(new Geometry.Point(baseController.getPosition().x +
                 baseController.getRadius() - (baseController.getRadius() / 2.0f),

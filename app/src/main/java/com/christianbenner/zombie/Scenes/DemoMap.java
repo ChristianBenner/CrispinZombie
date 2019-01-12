@@ -47,6 +47,9 @@ public class DemoMap extends Scene {
     private static final float CAMERA_ANGLE_HORIZONTAL_DEGREES = 180.0f;
     private static final float CAMERA_ANGLE_VERTICAL_DEGREES = -90.0f;
 
+    // Movement speed of the gameplay camera
+    private static final float GAMEPLAY_CAMERA_MOVEMENT_SPEED = 0.04f;
+
     // Game-play Rendering
     private Renderer gameplayRenderer;
     private PerFragLightingTextureShader gameplayShader;
@@ -67,6 +70,9 @@ public class DemoMap extends Scene {
     // Aim Controller
     private BaseController baseAimController;
     private MoveController aimController;
+
+    // Delta Time
+    private float deltaTime = 1.0f;
 
     public DemoMap(Context context)
     {
@@ -147,14 +153,16 @@ public class DemoMap extends Scene {
         uiRenderer.render();
     }
 
+    float[] mvMatrix = new float[16];
+    float[] mvpMatrix = new float[16];
+    float[] modelMatrix = new float[16];
+    float[] tilePosBottomLeft = new float[4];
+    float[] tilePosTopRight = new float[4];
+
     // Draws the 2D map (just the floor tiles, not the models in the map)
     private void drawMap()
     {
         gameplayShader.useProgram();
-        float[] mvMatrix = new float[16];
-        float[] mvpMatrix = new float[16];
-        float[] modelMatrix = new float[16];
-
         gameplayShader.setColourUniforms(new Colour(1.0f, 1.0f, 1.0f, 1.0f));
         gameplayShader.setTextureUniforms(TextureHelper.loadTexture(context,
                 R.drawable.mapatlas, true).getTextureId());
@@ -163,18 +171,32 @@ public class DemoMap extends Scene {
         {
             for(int x = 0; x < map.getMapWidth(); x++)
             {
-                Matrix.setIdentityM(modelMatrix, 0);
-                Matrix.translateM(modelMatrix, 0, x * 0.5f, 0.0f, y * 0.5f);
-                multiplyMM(mvMatrix, 0, gameplayCamera.getViewMatrix(), 0,
-                        modelMatrix, 0);
-                multiplyMM(mvpMatrix, 0, gameplayCamera.getProjectionMatrix(), 0,
-                        mvMatrix, 0);
+                // Multiply the MVP by the position of the cell
+                Matrix.multiplyMV(tilePosBottomLeft, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE, 1.0f}, 0);
+                Matrix.multiplyMV(tilePosTopRight, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{(x * map.TILE_SIZE) + map.TILE_SIZE, 0.0f, (y * map.TILE_SIZE) + map.TILE_SIZE, 1.0f}, 0);
 
-                gameplayShader.setMVMatrixUniform(mvMatrix);
-                gameplayShader.setMVPMatrixUniform(mvpMatrix);
+                if(tilePosBottomLeft[0] / tilePosBottomLeft[3] <= 1.1f &&
+                        tilePosBottomLeft[0] / tilePosBottomLeft[3] >= -1.1f &&
+                        tilePosBottomLeft[1] / tilePosBottomLeft[3] <= 1.1f &&
+                        tilePosBottomLeft[1] / tilePosBottomLeft[3] >= -1.1f ||
+                        tilePosTopRight[0] / tilePosTopRight[3] <= 1.1f &&
+                                tilePosTopRight[0] / tilePosTopRight[3] >= -1.1f &&
+                                tilePosTopRight[1] / tilePosTopRight[3] <= 1.1f &&
+                                tilePosTopRight[1] / tilePosTopRight[3] >= -1.1f)
+                {
+                    Matrix.setIdentityM(modelMatrix, 0);
+                    Matrix.translateM(modelMatrix, 0, x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE);
+                    multiplyMM(mvMatrix, 0, gameplayCamera.getViewMatrix(), 0,
+                            modelMatrix, 0);
+                    multiplyMM(mvpMatrix, 0, gameplayCamera.getProjectionMatrix(), 0,
+                            mvMatrix, 0);
 
-                mapCells[y][x].bindData(gameplayShader);
-                mapCells[y][x].draw();
+                    gameplayShader.setMVMatrixUniform(mvMatrix);
+                    gameplayShader.setMVPMatrixUniform(mvpMatrix);
+
+                    mapCells[y][x].bindData(gameplayShader);
+                    mapCells[y][x].draw();
+                }
             }
         }
 
@@ -183,6 +205,8 @@ public class DemoMap extends Scene {
 
     @Override
     public void update(float deltaTime) {
+        this.deltaTime = deltaTime;
+
         moveController.update(deltaTime);
         aimController.update(deltaTime);
     }
@@ -243,6 +267,8 @@ public class DemoMap extends Scene {
                         playSound(context, R.raw.button_click, 1);
                         break;
                     case DOWN:
+                        final Geometry.Vector CAMERA_MOVEMENT_VECTOR = moveController.getDirection().scale(GAMEPLAY_CAMERA_MOVEMENT_SPEED * deltaTime);
+                        gameplayCamera.translate(new Geometry.Vector(CAMERA_MOVEMENT_VECTOR.x, 0.0f, -CAMERA_MOVEMENT_VECTOR.y));
                         /*if(debugView)
                         {
                             Geometry.Vector velocity = moveController.getDirection().scale(MOVE_SPEED);
@@ -264,22 +290,6 @@ public class DemoMap extends Scene {
         baseAimController = new BaseController(context,200.0f, R.drawable.joy_stick_outer);
         aimController = new MoveController(context, baseAimController, R.drawable.aim_joy_stick_inner);
 
-        uiRenderer.addUI(baseMoveController);
-        uiRenderer.addUI(moveController);
-        uiRenderer.addUI(baseAimController);
-        uiRenderer.addUI(aimController);
-    }
-
-    public void positionUI(int viewWidth, int viewHeight)
-    {
-        // Add the move joystick
-        baseMoveController.setPosition(new Geometry.Point(80.0f, 70.0f, 0.0f));
-        baseAimController.setPosition(new Geometry.Point(viewWidth - 80.0f - 400.0f, 70.0f, 0.0f));
-
-        // Update the controller positions to sit in the middle of the base controllers
-        moveController.updatePosition(baseMoveController);
-        aimController.updatePosition(baseAimController);
-
         aimController.addButtonListener(new TouchListener() {
             @Override
             public void touchEvent(TouchEvent e) {
@@ -287,7 +297,7 @@ public class DemoMap extends Scene {
                 {
                     case CLICK:
                         playSound(context, R.raw.button_click, 1);
-                      //  crosshair.setAlpha(1.0f);
+                        //  crosshair.setAlpha(1.0f);
                         break;
                     case DOWN:
                      /*   // Fetch the direction from the joystick, divide by magnitude to get the
@@ -323,5 +333,17 @@ public class DemoMap extends Scene {
                 }
             }
         });
+
+        uiRenderer.addUI(baseMoveController);
+        uiRenderer.addUI(moveController);
+        uiRenderer.addUI(baseAimController);
+        uiRenderer.addUI(aimController);
+    }
+
+    public void positionUI(int viewWidth, int viewHeight)
+    {
+        // Add the move joystick
+        baseMoveController.setPosition(new Geometry.Point(80.0f, 70.0f, 0.0f), moveController);
+        baseAimController.setPosition(new Geometry.Point(viewWidth - 80.0f - 400.0f, 70.0f, 0.0f), aimController);
     }
 }

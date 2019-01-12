@@ -49,6 +49,12 @@ public class BaseController extends UIBase
         return this.getWidth() / 2.0f;
     }
 
+    public void setPosition(Geometry.Point position, MoveController moveController)
+    {
+        super.setPosition(position);
+        moveController.updatePosition();
+    }
+
     @Override
     public void bindData(ShaderProgram shader) {
         baseVertexArray.setVertexAttribPointer(
