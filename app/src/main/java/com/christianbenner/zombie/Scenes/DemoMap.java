@@ -6,11 +6,18 @@ import android.view.View;
 
 import com.christianbenner.crispinandroid.data.Colour;
 import com.christianbenner.crispinandroid.render.shaders.PerFragLightingTextureShader;
+import com.christianbenner.crispinandroid.render.shaders.TextureShaderProgram;
 import com.christianbenner.crispinandroid.render.util.Camera;
 import com.christianbenner.crispinandroid.render.util.Renderer;
 import com.christianbenner.crispinandroid.render.util.RendererGroup;
 import com.christianbenner.crispinandroid.render.util.TextureHelper;
+import com.christianbenner.crispinandroid.render.util.UIRenderer;
+import com.christianbenner.crispinandroid.ui.BaseController;
+import com.christianbenner.crispinandroid.ui.Button;
+import com.christianbenner.crispinandroid.ui.MoveController;
 import com.christianbenner.crispinandroid.ui.Pointer;
+import com.christianbenner.crispinandroid.ui.TouchEvent;
+import com.christianbenner.crispinandroid.ui.TouchListener;
 import com.christianbenner.crispinandroid.util.Geometry;
 import com.christianbenner.crispinandroid.util.Scene;
 import com.christianbenner.zombie.Map.Cell;
@@ -45,9 +52,21 @@ public class DemoMap extends Scene {
     private PerFragLightingTextureShader gameplayShader;
     private Camera gameplayCamera;
 
+    // UI Renderer
+    private TextureShaderProgram uiShader;
+    private UIRenderer uiRenderer;
+
     // The map
     private Map map;
     private final Cell[][] mapCells;
+
+    // Movement Controller
+    private BaseController baseMoveController;
+    private MoveController moveController;
+
+    // Aim Controller
+    private BaseController baseAimController;
+    private MoveController aimController;
 
     public DemoMap(Context context)
     {
@@ -65,6 +84,13 @@ public class DemoMap extends Scene {
         // Create game-play gameplayRenderer
         gameplayRenderer = new Renderer(gameplayShader, gameplayCamera);
 
+        // Create the ui shader
+        uiShader = new TextureShaderProgram(context);
+
+        // Create the ui renderer
+        uiRenderer = new UIRenderer();
+        uiRenderer.setShader(uiShader);
+
         // Add the map to the gameplayRenderer
         map = new Map(context, R.raw.demo_map4);
 
@@ -78,16 +104,28 @@ public class DemoMap extends Scene {
 
         // Grab the cells to render later
         mapCells = map.getCells();
+
+        initUI();
     }
 
     @Override
-    protected void surfaceCreated() {
+    protected void surfaceCreated()
+    {
         gameplayShader.onSurfaceCreated();
+        uiShader.onSurfaceCreated();
     }
 
     @Override
-    public void surfaceChanged(int width, int height) {
+    public void surfaceChanged(int width, int height)
+    {
+        // Update the gameplay camera (resize the viewport and matrix)
         gameplayCamera.viewChanged(width, height);
+
+        // Update the ui renderer canvas with the new width and height
+        uiRenderer.setCanvasSize(width, height);
+
+        // Reposition the UI using the new width and heights
+        positionUI(width, height);
     }
 
     @Override
@@ -105,6 +143,8 @@ public class DemoMap extends Scene {
 
         glEnable(GL_DEPTH_TEST);
         gameplayRenderer.render();
+
+        uiRenderer.render();
     }
 
     // Draws the 2D map (just the floor tiles, not the models in the map)
@@ -143,7 +183,8 @@ public class DemoMap extends Scene {
 
     @Override
     public void update(float deltaTime) {
-
+        moveController.update(deltaTime);
+        aimController.update(deltaTime);
     }
 
     @Override
@@ -168,6 +209,119 @@ public class DemoMap extends Scene {
 
     @Override
     public void motion(View view, Pointer pointer, PointerMotionEvent pointerMotionEvent) {
+        switch (pointerMotionEvent)
+        {
+            case CLICK:
+                if(handlePointerControl(moveController, pointer)) { return; }
+                if(handlePointerControl(aimController, pointer)) { return; }
+                break;
+        }
+    }
 
+    private boolean handlePointerControl(Button button, Pointer pointer)
+    {
+        if(button.interacts(pointer))
+        {
+            pointer.setControlOver(button);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void initUI()
+    {
+        // Initialise the UI
+        baseMoveController = new BaseController(context, 200.0f, R.drawable.joy_stick_outer);
+        moveController = new MoveController(context, baseMoveController, R.drawable.movement_joystick_inner);
+        moveController.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
+                {
+                    case CLICK:
+                        playSound(context, R.raw.button_click, 1);
+                        break;
+                    case DOWN:
+                        /*if(debugView)
+                        {
+                            Geometry.Vector velocity = moveController.getDirection().scale(MOVE_SPEED);
+                            // debugCamera.translate(new Geometry.Vector(velocity.x, 0.0f, -velocity.y));
+                        }
+                        else
+                        {
+                            Geometry.Vector velocity = moveController.getDirection().scale(MOVE_SPEED);
+                            player.setVelocity(new Geometry.Vector(velocity.x, 0.0f, -velocity.y));
+                        }*/
+                        break;
+                    case RELEASE:
+                        //player.setVelocity(new Geometry.Vector(0.0f, 0.0f, 0.0f));
+                        break;
+                }
+            }
+        });
+
+        baseAimController = new BaseController(context,200.0f, R.drawable.joy_stick_outer);
+        aimController = new MoveController(context, baseAimController, R.drawable.aim_joy_stick_inner);
+
+        uiRenderer.addUI(baseMoveController);
+        uiRenderer.addUI(moveController);
+        uiRenderer.addUI(baseAimController);
+        uiRenderer.addUI(aimController);
+    }
+
+    public void positionUI(int viewWidth, int viewHeight)
+    {
+        // Add the move joystick
+        baseMoveController.setPosition(new Geometry.Point(80.0f, 70.0f, 0.0f));
+        baseAimController.setPosition(new Geometry.Point(viewWidth - 80.0f - 400.0f, 70.0f, 0.0f));
+
+        // Update the controller positions to sit in the middle of the base controllers
+        moveController.updatePosition(baseMoveController);
+        aimController.updatePosition(baseAimController);
+
+        aimController.addButtonListener(new TouchListener() {
+            @Override
+            public void touchEvent(TouchEvent e) {
+                switch (e.getEvent())
+                {
+                    case CLICK:
+                        playSound(context, R.raw.button_click, 1);
+                      //  crosshair.setAlpha(1.0f);
+                        break;
+                    case DOWN:
+                     /*   // Fetch the direction from the joystick, divide by magnitude to get the
+                        // unit vector.
+                        Geometry.Vector unitVectorDirection = aimController.getDirection().
+                                scale(1.0f / aimController.getDirection().length());
+
+                        // Scale the unit vector by the cross-hair offset to set distance from the
+                        // player
+                        Geometry.Vector offset = unitVectorDirection.scale(CROSSHAIR_OFFSET);
+
+                        // Set the cross-hair position
+                        crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25 + offset.x,
+                                (viewHeight/2.0f) - 25 + offset.y, 0.0f));
+
+                        // Tell the player that the user has used the fire action
+                        if(player.fireAction(unitVectorDirection))
+                        {
+                            muzzleFlareProcess = true;
+                            muzzleFlareLight.setAmbienceIntensity(0.02f);
+                            muzzleFlareLight.setMaxAmbience(10.0f);
+                            positionLight(player.getPosition());
+                            muzzleFlareLight.setPosition(new Geometry.Point(mLightPosInEyeSpace[0],
+                                    mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]));
+                        }
+*/
+                        break;
+                    case RELEASE:
+                  /*      crosshair.setPosition(new Geometry.Point((viewWidth/2.0f) - 25,
+                                (viewHeight/2.0f) - 25, 0.0f));
+                        crosshair.setAlpha(0.0f);*/
+                        break;
+                }
+            }
+        });
     }
 }

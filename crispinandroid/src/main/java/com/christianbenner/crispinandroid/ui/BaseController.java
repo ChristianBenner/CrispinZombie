@@ -40,6 +40,10 @@ public class BaseController extends UIBase
         texture = TextureHelper.loadTexture(context, textureResource, true);
     }
 
+    public BaseController(Context context, float radius, int textureResource) {
+        this(context, new Geometry.Point(0.0f, 0.0f, 0.0f), radius, textureResource);
+    }
+
     public float getRadius()
     {
         return this.getWidth() / 2.0f;

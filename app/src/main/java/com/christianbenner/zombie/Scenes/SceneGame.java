@@ -951,8 +951,8 @@ public class SceneGame extends Scene {
                             if(player.checkDoorCollision(door))
                             {
                                 door.setOpen(true);
-                                playSound(context, R.raw.buyitem, 0);
-                                playSound(context, R.raw.doorsound, 0);
+                               // playSound(context, R.raw.buyitem, 0);
+                               // playSound(context, R.raw.doorsound, 0);
                             }
                         }
                         break;
