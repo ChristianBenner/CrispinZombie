@@ -50,6 +50,12 @@ public class DemoMap extends Scene {
     // Movement speed of the gameplay camera
     private static final float GAMEPLAY_CAMERA_MOVEMENT_SPEED = 0.04f;
 
+    // How many cells to render around the center point (in each direction)
+    private static final int RENDER_CHUNKS = 10;
+
+    // The display center point in NDC
+    private static final float[] NDC_CENTER = { 0.0f, 0.0f, 0.0f, 1.0f };
+
     // Game-play Rendering
     private Renderer gameplayRenderer;
     private PerFragLightingTextureShader gameplayShader;
@@ -73,6 +79,15 @@ public class DemoMap extends Scene {
 
     // Delta Time
     private float deltaTime = 1.0f;
+
+    // Matrix Used in Map Rendering
+    private float[] mvMatrix = new float[16];
+    private float[] mvpMatrix = new float[16];
+    private float[] modelMatrix = new float[16];
+
+    // Map Rendering Optimisation Variables
+    private float[] invertedVPMatrix = new float[16];
+    private float[] worldspaceAtCenter = new float[4];
 
     public DemoMap(Context context)
     {
@@ -153,12 +168,6 @@ public class DemoMap extends Scene {
         uiRenderer.render();
     }
 
-    float[] mvMatrix = new float[16];
-    float[] mvpMatrix = new float[16];
-    float[] modelMatrix = new float[16];
-    float[] tilePosBottomLeft = new float[4];
-    float[] tilePosTopRight = new float[4];
-
     // Draws the 2D map (just the floor tiles, not the models in the map)
     private void drawMap()
     {
@@ -167,36 +176,63 @@ public class DemoMap extends Scene {
         gameplayShader.setTextureUniforms(TextureHelper.loadTexture(context,
                 R.drawable.mapatlas, true).getTextureId());
 
-        for(int y = 0; y < map.getMapHeight(); y++)
+        /*
+        The following code is an optimisation for the map rendering piece. It limits the range in
+        the for loop that cycles through the map data to only the cells surrounding the center
+        of the screen. Frustrum culling was used at first to decrease GPU rendering times but then
+        the bottleneck was the CPU so this limits looping in the arrays significantly.
+         */
+        Matrix.invertM(invertedVPMatrix, 0, gameplayCamera.getViewProjectionMatrix(), 0);
+        Matrix.multiplyMV(worldspaceAtCenter, 0, invertedVPMatrix, 0, NDC_CENTER, 0);
+        worldspaceAtCenter[0] /= worldspaceAtCenter[3];
+        worldspaceAtCenter[2] /= worldspaceAtCenter[3];
+        int lowX = (int)(worldspaceAtCenter[0] / map.TILE_SIZE) - RENDER_CHUNKS;
+        int highX = (int)(worldspaceAtCenter[0] / map.TILE_SIZE) + RENDER_CHUNKS;
+        int lowY = (int)(worldspaceAtCenter[2] / map.TILE_SIZE) - RENDER_CHUNKS;
+        int highY = (int)(worldspaceAtCenter[2] / map.TILE_SIZE) + RENDER_CHUNKS;
+
+        // Make sure the values are in the range
+        lowX = lowX < 0 ? 0 : lowX;
+        highX = highX > map.getMapWidth() ? map.getMapWidth() : highX;
+        lowY = lowY < 0 ? 0 : lowY;
+        highY = highY > map.getMapHeight() ? map.getMapHeight() : highY;
+
+        /*
+        // Frustrum culling that didn't really work because it didn't increase CPU efficiency enough
+        // Multiply the MVP by the position of the cell
+        float[] tilePosBottomLeft = new float[4];
+        float[] tilePosTopRight = new float[4];
+        Matrix.multiplyMV(tilePosBottomLeft, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE, 1.0f}, 0);
+        Matrix.multiplyMV(tilePosTopRight, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{(x * map.TILE_SIZE) + map.TILE_SIZE, 0.0f, (y * map.TILE_SIZE) + map.TILE_SIZE, 1.0f}, 0);
+
+        if(tilePosBottomLeft[0] / tilePosBottomLeft[3] <= 1.1f &&
+                tilePosBottomLeft[0] / tilePosBottomLeft[3] >= -1.1f &&
+                tilePosBottomLeft[1] / tilePosBottomLeft[3] <= 1.1f &&
+                tilePosBottomLeft[1] / tilePosBottomLeft[3] >= -1.1f ||
+                tilePosTopRight[0] / tilePosTopRight[3] <= 1.1f &&
+                        tilePosTopRight[0] / tilePosTopRight[3] >= -1.1f &&
+                        tilePosTopRight[1] / tilePosTopRight[3] <= 1.1f &&
+                        tilePosTopRight[1] / tilePosTopRight[3] >= -1.1f)
         {
-            for(int x = 0; x < map.getMapWidth(); x++)
+            // Render
+        }*/
+
+        for(int y = lowY; y < highY; y++)
+        {
+            for(int x = lowX; x < highX; x++)
             {
-                // Multiply the MVP by the position of the cell
-                Matrix.multiplyMV(tilePosBottomLeft, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE, 1.0f}, 0);
-                Matrix.multiplyMV(tilePosTopRight, 0, gameplayCamera.getViewProjectionMatrix(), 0, new float[]{(x * map.TILE_SIZE) + map.TILE_SIZE, 0.0f, (y * map.TILE_SIZE) + map.TILE_SIZE, 1.0f}, 0);
+                Matrix.setIdentityM(modelMatrix, 0);
+                Matrix.translateM(modelMatrix, 0, x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE);
+                multiplyMM(mvMatrix, 0, gameplayCamera.getViewMatrix(), 0,
+                        modelMatrix, 0);
+                multiplyMM(mvpMatrix, 0, gameplayCamera.getProjectionMatrix(), 0,
+                        mvMatrix, 0);
 
-                if(tilePosBottomLeft[0] / tilePosBottomLeft[3] <= 1.1f &&
-                        tilePosBottomLeft[0] / tilePosBottomLeft[3] >= -1.1f &&
-                        tilePosBottomLeft[1] / tilePosBottomLeft[3] <= 1.1f &&
-                        tilePosBottomLeft[1] / tilePosBottomLeft[3] >= -1.1f ||
-                        tilePosTopRight[0] / tilePosTopRight[3] <= 1.1f &&
-                                tilePosTopRight[0] / tilePosTopRight[3] >= -1.1f &&
-                                tilePosTopRight[1] / tilePosTopRight[3] <= 1.1f &&
-                                tilePosTopRight[1] / tilePosTopRight[3] >= -1.1f)
-                {
-                    Matrix.setIdentityM(modelMatrix, 0);
-                    Matrix.translateM(modelMatrix, 0, x * map.TILE_SIZE, 0.0f, y * map.TILE_SIZE);
-                    multiplyMM(mvMatrix, 0, gameplayCamera.getViewMatrix(), 0,
-                            modelMatrix, 0);
-                    multiplyMM(mvpMatrix, 0, gameplayCamera.getProjectionMatrix(), 0,
-                            mvMatrix, 0);
+                gameplayShader.setMVMatrixUniform(mvMatrix);
+                gameplayShader.setMVPMatrixUniform(mvpMatrix);
 
-                    gameplayShader.setMVMatrixUniform(mvMatrix);
-                    gameplayShader.setMVPMatrixUniform(mvpMatrix);
-
-                    mapCells[y][x].bindData(gameplayShader);
-                    mapCells[y][x].draw();
-                }
+                mapCells[y][x].bindData(gameplayShader);
+                mapCells[y][x].draw();
             }
         }
 

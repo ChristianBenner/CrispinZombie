@@ -260,10 +260,10 @@ public class SceneMenuRemake extends Scene {
         switch(MUSIC_SELECTION)
         {
             case 0:
-                audio.playMusic(R.raw.menu_echoes_of_time, audioPos);
+            //    audio.playMusic(R.raw.menu_echoes_of_time, audioPos);
                 break;
             case 1:
-                audio.playMusic(R.raw.menu_gloom_horizon, audioPos);
+            //    audio.playMusic(R.raw.menu_gloom_horizon, audioPos);
                 break;
         }
     }

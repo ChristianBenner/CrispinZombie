@@ -340,10 +340,10 @@ public class SceneGame extends Scene {
         switch(MUSIC_SELECTION)
         {
             case 0:
-                playMusic(context, R.raw.gameplay_decay);
+               // playMusic(context, R.raw.gameplay_decay);
                 break;
             case 1:
-                playMusic(context, R.raw.gameplay_deep_noise);
+               // playMusic(context, R.raw.gameplay_deep_noise);
                 break;
         }
     }
@@ -631,7 +631,7 @@ public class SceneGame extends Scene {
 
                     if(!zombie.isAlive())
                     {
-                        audio.playSound(R.raw.zombie_hit);
+                     //   audio.playSound(R.raw.zombie_hit);
                         zombie.removeFromRenderer(renderer, healthbarsUIGroup);
                     }
                 }
