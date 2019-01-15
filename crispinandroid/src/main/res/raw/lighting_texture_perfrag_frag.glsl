@@ -21,7 +21,7 @@ void main()
 {
     // for each light
     vec4 fcolour = texture2D(u_TextureUnit, v_TextureCoordinates) * u_Colour;
-    vec3 lightColour = vec3(1.0f, 1.0f, 1.0f);
+    vec3 lightColour = vec3(1.0f, 1.0, 1.0);
     for(int i = 0; i < u_LightCount; i++)
     {
             int pos = i * 9;
@@ -35,7 +35,7 @@ void main()
             vec3 lightVector = normalize(position - v_Position);
             float diffuse = max(dot(v_Normal, lightVector) * u_MaxAmbient, 0.1);
             diffuse = diffuse * (1.0 / (1.0 + ((1.0/intensity) * distance * distance)));
-            diffuse = diffuse * 10.0f;
+            diffuse = diffuse * 10.0;
             if(i == 0)
             {
                 lightColour = colour * max(minAmbient, diffuse);

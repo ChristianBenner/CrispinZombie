@@ -319,6 +319,7 @@ public class SceneGame extends Scene {
     @Override
     protected void surfaceCreated()
     {
+        shader.onSurfaceCreated();
       //  cameraText.setColour(new Colour(1.0f, 0.0f, 0.0f, 1.0f));
        // cameraText.setPosition(-1.0f, -1.0f);
 
@@ -358,6 +359,7 @@ public class SceneGame extends Scene {
 
         uiRenderer.setCanvasSize(width, height);
         uiShader = new TextureShaderProgram(context);
+        uiShader.onSurfaceCreated();
         uiRenderer.setShader(uiShader);
 
         colourShader = new ColourShaderProgram(context);
@@ -382,7 +384,7 @@ public class SceneGame extends Scene {
 
         shader = new PerFragMultiLightingShader(context);
         renderer.setShader(shader);
-
+        shader.onSurfaceCreated();
 
         if(debugView)
         {

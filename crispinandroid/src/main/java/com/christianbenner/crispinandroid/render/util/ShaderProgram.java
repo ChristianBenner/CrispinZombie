@@ -59,8 +59,12 @@ public abstract class ShaderProgram {
                 .readTextFileFromResource(context, vertexShaderResourceId);
         fragmentShaderCode = TextResourceReader
                 .readTextFileFromResource(context, fragmentShaderResourceID);
+    }
 
-        onSurfaceCreated();
+    protected ShaderProgram(String vertexShaderCode, String fragmentShaderCode)
+    {
+        this.vertexShaderCode = vertexShaderCode;
+        this.fragmentShaderCode = fragmentShaderCode;
     }
 
     public abstract void getShaderVars();

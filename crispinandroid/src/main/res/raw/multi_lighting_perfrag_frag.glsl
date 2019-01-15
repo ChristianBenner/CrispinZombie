@@ -32,15 +32,15 @@ void main()
             float distance = length(u_LightPositions[i] - modelViewVertex);
             vec3 lightVector = normalize(u_LightPositions[i] - modelViewVertex);
             float diffuse = max(dot(modelViewNormal, lightVector), u_LightAmbientData[i].z);
-            diffuse = diffuse * (1.0 / (1.0f + (u_LightAmbientData[i].y * distance * distance)));
+            diffuse = diffuse * (1.0 / (1.0 + (u_LightAmbientData[i].y * distance * distance)));
 
             if(i == 0)
             {
-                buildColour = vec4(buildColour.rgb * (min(diffuse * u_LightAmbientData[i].x, 1.0f)) * u_LightColours[i], buildColour.a);
+                buildColour = vec4(buildColour.rgb * (min(diffuse * u_LightAmbientData[i].x, 1.0)) * u_LightColours[i], buildColour.a);
             }
             else
             {
-                buildColour += vec4(baseColour.rgb * (min(diffuse * u_LightAmbientData[i].x, 1.0f)) * u_LightColours[i], 0.0f);
+                buildColour += vec4(baseColour.rgb * (min(diffuse * u_LightAmbientData[i].x, 1.0)) * u_LightColours[i], 0.0);
             }
 
         }

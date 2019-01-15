@@ -1,11 +1,8 @@
 package com.christianbenner.crispinandroid.render.util;
 
-import android.util.Log;
-
-import com.christianbenner.crispinandroid.util.LoggerConfig;
-
 import static android.opengl.GLES20.GL_COMPILE_STATUS;
 import static android.opengl.GLES20.GL_FRAGMENT_SHADER;
+import static android.opengl.GLES20.GL_INVALID_OPERATION;
 import static android.opengl.GLES20.GL_LINK_STATUS;
 import static android.opengl.GLES20.GL_VALIDATE_STATUS;
 import static android.opengl.GLES20.GL_VERTEX_SHADER;
@@ -14,6 +11,7 @@ import static android.opengl.GLES20.glCompileShader;
 import static android.opengl.GLES20.glCreateProgram;
 import static android.opengl.GLES20.glCreateShader;
 import static android.opengl.GLES20.glDeleteShader;
+import static android.opengl.GLES20.glGetError;
 import static android.opengl.GLES20.glGetProgramInfoLog;
 import static android.opengl.GLES20.glGetProgramiv;
 import static android.opengl.GLES20.glGetShaderInfoLog;
@@ -27,47 +25,32 @@ import static android.opengl.GLES20.glValidateProgram;
  */
 
 public class ShaderHelper {
-    private static final String TAG = "ShaderHelper";
-
-    public static int compileVertexShader(String shaderCode){
-        return compileShader(GL_VERTEX_SHADER, shaderCode);
-    }
-
-    public static int compileFragmentShader(String shaderCode){
-        return compileShader(GL_FRAGMENT_SHADER, shaderCode);
-    }
-
     public static int compileShader(int type, String shaderCode){
         final int shaderObjectId = glCreateShader(type);
 
+        // Check if the object could be created
         if(shaderObjectId == 0){
-            if(LoggerConfig.ON){
-                Log.w(TAG, "Could not create new shader.");
-            }
-
+            System.out.println("[ShaderHelper] ERROR: Could not create new shader");
             return 0;
         }
 
+        // Point the object to the code
         glShaderSource(shaderObjectId, shaderCode);
+
+        // Compile the code
         glCompileShader(shaderObjectId);
 
+        // Check if the shader compiled
         final int[] compileStatus = new int[1];
         glGetShaderiv(shaderObjectId, GL_COMPILE_STATUS, compileStatus, 0);
 
-        if(LoggerConfig.ON){
-            Log.v(TAG, "Results of compiling source: " + "\n" + shaderCode + "\n:"
-                    + glGetShaderInfoLog(shaderObjectId));
-        }
+        if(compileStatus[0] == 0)
+        {
+            System.out.println("[ShaderHelper] ERROR: shader compilation failed: \n" + shaderCode +
+                    "\n: " + glGetShaderInfoLog(shaderObjectId));
 
-        if(compileStatus[0] == 0){
             // Shader failed
             glDeleteShader(shaderObjectId);
-
-            if(LoggerConfig.ON){
-                Log.v(TAG, "Compilation of shader failed.");
-            }
-
-            return 0;
         }
 
         return shaderObjectId;
@@ -76,30 +59,25 @@ public class ShaderHelper {
     public static int linkProgram(int vertexShaderId, int fragmentShaderId){
         final int programObjectId = glCreateProgram();
 
+        // Check if the program object was created
         if(programObjectId == 0){
-            if(LoggerConfig.ON){
-                Log.v(TAG, "Could not create new shader program");
-            }
-
+            System.out.println("[ShaderHelper] ERROR: Failed to create program object");
             return 0;
         }
 
+        // Attach and link the shaders
         glAttachShader(programObjectId, vertexShaderId);
         glAttachShader(programObjectId, fragmentShaderId);
         glLinkProgram(programObjectId);
 
+        // Check if the shaders linked without failing
         final int[] linkStatus = new int[1];
         glGetProgramiv(programObjectId, GL_LINK_STATUS, linkStatus, 0);
 
-        if(LoggerConfig.ON){
-            Log.v(TAG, "Results of linking program:\n" +
-            glGetProgramInfoLog(programObjectId));
-        }
-
-        if(linkStatus[0] == 0){
-            if(LoggerConfig.ON){
-                Log.v(TAG, "Failed to link shader program.");
-            }
+        if(linkStatus[0] == 0)
+        {
+            System.out.println("[ShaderHelper] ERROR: Failed to link shaders:\n" +
+                    glGetProgramInfoLog(programObjectId));
 
             return 0;
         }
@@ -107,32 +85,34 @@ public class ShaderHelper {
         return programObjectId;
     }
 
-    public static boolean validateProgram(int programObjectId){
-        glValidateProgram(programObjectId);
+    private static void checkValidation(int program)
+    {
+        // Validate the program to check if it built
+        glValidateProgram(program);
 
         final int[] validateStatus = new int[1];
-        glGetProgramiv(programObjectId, GL_VALIDATE_STATUS, validateStatus, 0);
+        glGetProgramiv(program, GL_VALIDATE_STATUS, validateStatus, 0);
 
-        if(LoggerConfig.ON)
+        if(validateStatus[0] == 0)
         {
-            Log.v(TAG, "Results of validating program: " + validateStatus[0]
-                    + "\nLog:" + glGetProgramInfoLog(programObjectId));
+            System.out.println("[ShaderHelper] ERROR: Failed to validate shader program (" +
+                    validateStatus[0] + ")");
+            System.out.println("Shader Info Log: " + glGetProgramInfoLog(program));
         }
-
-        System.out.println("Results of validating program: " + validateStatus[0]
-                + "\nLog:" + glGetProgramInfoLog(programObjectId));
-
-        return validateStatus[0] != 0;
     }
 
     public static void buildProgram(String vertexShaderCode,
                                    String fragmentShaderCode,
-                                   ShaderProgram program){
-
-        program.vertexShader = ShaderHelper.compileVertexShader(vertexShaderCode);
-        program.fragmentShader = ShaderHelper.compileFragmentShader(fragmentShaderCode);
+                                   ShaderProgram program)
+    {
+        System.out.println("BUILDING A SHADER");
+        System.out.println("VERTEX CODE: " + vertexShaderCode);
+        System.out.println("FRAGMENT CODE: " + fragmentShaderCode);
+        program.vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderCode);
+        program.fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderCode);
         program.program = ShaderHelper.linkProgram(program.vertexShader, program.fragmentShader);
 
-        //ShaderHelper.validateProgram(program.program);
+        // Check if the shader program is valid
+        checkValidation(program.program);
     }
 }

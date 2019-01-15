@@ -21,9 +21,9 @@ void main()
     float distance = length(u_LightPos - modelViewVertex);
     vec3 lightVector = normalize(u_LightPos - modelViewVertex);
     float diffuse = max(dot(modelViewNormal, lightVector), 0.1);
-    diffuse = diffuse * (1.0 / (1.0f + (0.25 * distance * distance)));
-    vec3 colour = u_AmbientLightColour * (diffuse * 10.0f);
-    v_Colour = vec4(vec3(1.0f, 1.0f, 1.0f) * colour, 1.0f);
+    diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));
+    vec3 colour = u_AmbientLightColour * (diffuse * 10.0);
+    v_Colour = vec4(vec3(1.0, 1.0, 1.0) * colour, 1.0);
     gl_Position = u_MVPMatrix * a_Position;
 
 /*    vec3 modelViewVertex = vec3(u_MVMatrix * a_Position);
