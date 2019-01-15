@@ -44,7 +44,7 @@ public class GameActivity extends Activity
             final Context APPLICATION_CONTEXT = this;
 
             // Add renderer to the surface view
-            sceneSwitcher = new SceneSwitcher(new SceneMenuRemake(APPLICATION_CONTEXT), new Callable<Integer>() {
+            sceneSwitcher = new SceneSwitcher(new DemoMap(APPLICATION_CONTEXT), new Callable<Integer>() {
                 @Override
                 public Integer call() {
                     // Allocate a new scene

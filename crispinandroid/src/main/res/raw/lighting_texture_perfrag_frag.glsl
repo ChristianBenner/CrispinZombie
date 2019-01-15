@@ -21,7 +21,7 @@ void main()
 {
     // for each light
     vec4 fcolour = texture2D(u_TextureUnit, v_TextureCoordinates) * u_Colour;
-    vec3 lightColour = vec3(1.0f, 1.0, 1.0);
+    vec3 lightColour = vec3(1.0, 1.0, 1.0);
     for(int i = 0; i < u_LightCount; i++)
     {
             int pos = i * 9;
