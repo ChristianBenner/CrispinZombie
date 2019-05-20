@@ -1,4 +1,4 @@
-precision mediump float;
+ precision mediump float;
 
 uniform mat4 u_MVMatrix;
 uniform mat4 u_MVPMatrix;
@@ -17,4 +17,4 @@ void main()
     v_Normal = vec3(u_MVMatrix * vec4(a_Normal, 0.0));
     v_TextureCoordinates = a_TextureCoordinates;
     gl_Position = u_MVPMatrix * a_Position;
-}
+}.

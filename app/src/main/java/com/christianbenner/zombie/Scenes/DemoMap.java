@@ -236,6 +236,10 @@ public class DemoMap extends Scene {
             }
         }
 
+        // Frustrum culling vb#
+
+
+
         gameplayShader.unbindProgram();
     }
 
