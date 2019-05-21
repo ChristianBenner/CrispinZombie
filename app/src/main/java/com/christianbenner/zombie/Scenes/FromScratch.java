@@ -17,16 +17,22 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Random;
 
+import static android.opengl.GLES20.GL_ALPHA;
+import static android.opengl.GLES20.GL_BLEND;
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.GL_FLOAT;
+import static android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA;
+import static android.opengl.GLES20.GL_SRC_ALPHA;
 import static android.opengl.GLES20.GL_TRIANGLES;
+import static android.opengl.GLES20.glBlendFunc;
 import static android.opengl.GLES20.glClear;
 import static android.opengl.GLES20.glClearColor;
 import static android.opengl.GLES20.glCompileShader;
 import static android.opengl.GLES20.glCreateShader;
 import static android.opengl.GLES20.glDisableVertexAttribArray;
 import static android.opengl.GLES20.glDrawArrays;
+import static android.opengl.GLES20.glEnable;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glShaderSource;
 import static android.opengl.GLES20.glUniform1f;
@@ -91,9 +97,15 @@ class ParticleRenderer {
 
     void update(float deltaTime)
     {
-        for(Particle particle : particles)
+        for(int i = 0; i < particles.size(); i++)
         {
-            particleUpdateFunctionality.update(particle, deltaTime);
+            particleUpdateFunctionality.update(particles.get(i), deltaTime);
+            particles.get(i).currentLifeTime -= deltaTime;
+            if(particles.get(i).currentLifeTime <= 0.0f)
+            {
+                particles.remove(particles.get(i));
+                i--;
+            }
         }
     }
 
@@ -159,7 +171,7 @@ class Particle {
         this.velocity = startVelocity;
         this.size = size;
         this.maxLifeTime = life;
-        this.currentLifeTime = 0.0f;
+        this.currentLifeTime = life;
         this.colour = colour;
     }
 };
@@ -271,13 +283,18 @@ public class FromScratch extends Scene {
           return new Particle(new Geometry.Point(0.0f, 0.0f, 0.0f),
                   new Geometry.Vector(velocityX, velocityY,0.0f),
                   0.05f,
-                  10.0f,
+                  45.0f,
                   new Colour(0.5f + random.nextFloat() * (1.0f - 0.5f), 0.0f, 0.0f, 1.0f));
         };
 
         ParticleUpdateFunctionality updateFunctionality = (particle, deltaTime) -> {
             particle.position = particle.position.translate(particle.velocity.scale(deltaTime));
             particle.velocity = particle.velocity.translateY(-0.05f);
+            particle.colour.a = particle.currentLifeTime / particle.maxLifeTime;
+            if(particle.colour.a < 0.0f)
+            {
+                particle.colour.a = 0.0f;
+            }
         };
 
         particleRenderer = new ParticleRenderer(addFunctionality, updateFunctionality);
@@ -350,6 +367,11 @@ public class FromScratch extends Scene {
     @Override
     public void draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Enable alpha blending
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
        // glUseProgram(SHADER_PROGRAM_ID);
