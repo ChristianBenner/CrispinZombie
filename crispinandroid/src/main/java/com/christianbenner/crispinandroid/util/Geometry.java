@@ -238,6 +238,8 @@ public class Geometry {
             return new Vector(x * f, y * f, z * f);
         }
 
+        public Vector translateY(float y) { return new Vector(x, this.y + y, z); }
+
         @Override
         public String toString()
         {
