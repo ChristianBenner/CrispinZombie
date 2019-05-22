@@ -45,12 +45,52 @@ class ParticleRenderer {
     static final float SQUARE_MODEL_VERTICES[] =
     {
             // Front face
-            -1f, -1f, 0.0f,
-            -1f, 1f, 0.0f,
-            1f, 1f, 0.0f,
-            -1f, -1f, 0.0f,
-            1f, 1f, 0.0f,
-            1f, -1f, 0.0f,
+            -1f, -1f, 1.0f, // bl
+            -1f, 1f, 1.0f,  // tl
+            1f, 1f, 1.0f,   // tr
+            -1f, -1f, 1.0f, // bl
+            1f, 1f, 1.0f,   // tr
+            1f, -1f, 1.0f,  // br
+
+            // Left face
+            -1f, -1f, -1f, // back bottom left
+            -1f, 1f, -1f,
+            -1f, 1f, 1f,
+            -1f, -1f, -1f,
+            -1f, 1f, 1f,
+            -1f, -1f, 1f,
+
+            // Back face
+            1f, -1f, -1f,
+            1f, 1f, -1f,
+            -1f, 1f, -1f,
+            1f, -1f, -1f,
+            -1f, 1f, -1f,
+            -1f, -1f, -1f,
+
+            // Right face
+            1f, -1f, 1f,
+            1f, 1f, 1f,
+            1f, 1f, -1f,
+            1f, -1f, 1f,
+            1f, 1f, -1f,
+            1f, -1f, -1f,
+
+            // Top
+            -1f, 1f, 1f,
+            -1f, 1f, -1f,
+            1f, 1f, -1f,
+            -1f, 1f, 1f,
+            -1f, 1f, -1f,
+            1f, 1f, 1f,
+
+            // Bottom
+            -1f, -1f, 1f,
+            -1f, -1f, -1f,
+            1f, -1f, -1f,
+            -1f, -1f, 1f,
+            1f, -1f, -1f,
+            1f, -1f, 1f
     };
 
     private ArrayList<Particle> particles;
@@ -124,6 +164,7 @@ class ParticleRenderer {
             final float size = particle.size;
             Matrix.scaleM(modelMatrix, 0, size, size, size);
             Matrix.translateM(modelMatrix, 0, particle.position.x, particle.position.y, particle.position.z);
+            Matrix.rotateM(modelMatrix, 0, particle.angle, 0.0f, 1.0f, 0.0f);
 
             float[] modelViewMatrix = new float[16];
             Matrix.multiplyMM(modelViewMatrix, 0, viewMatrix, 0, modelMatrix, 0);
@@ -161,11 +202,12 @@ class Particle {
     public float size; // size of the side of the square
     public Geometry.Vector velocity;
     public Colour colour;
+    public float angle;
     // Particle should have a circle texture (square for now though)
 
     // Square
 
-    public Particle(Geometry.Point startPosition, Geometry.Vector startVelocity, float size, float life, Colour colour)
+    public Particle(Geometry.Point startPosition, Geometry.Vector startVelocity, float size, float life, Colour colour, float angle)
     {
         this.position = startPosition;
         this.velocity = startVelocity;
@@ -173,6 +215,7 @@ class Particle {
         this.maxLifeTime = life;
         this.currentLifeTime = life;
         this.colour = colour;
+        this.angle = angle;
     }
 };
 
@@ -284,12 +327,15 @@ public class FromScratch extends Scene {
                   new Geometry.Vector(velocityX, velocityY,0.0f),
                   0.05f,
                   45.0f,
-                  new Colour(0.5f + random.nextFloat() * (1.0f - 0.5f), 0.0f, 0.0f, 1.0f));
+                  new Colour(random.nextFloat(), random.nextFloat(), random.nextFloat(), 1.0f),
+                  //new Colour(0.5f + random.nextFloat() * (1.0f - 0.5f), 0.0f, 0.0f, 1.0f),
+                  random.nextFloat() * 360.0f);
         };
 
         ParticleUpdateFunctionality updateFunctionality = (particle, deltaTime) -> {
             particle.position = particle.position.translate(particle.velocity.scale(deltaTime));
-            particle.velocity = particle.velocity.translateY(-0.05f);
+            particle.velocity = particle.velocity.translateY(-0.025f);
+            particle.angle += 3.0f;
             particle.colour.a = particle.currentLifeTime / particle.maxLifeTime;
             if(particle.colour.a < 0.0f)
             {
@@ -424,14 +470,21 @@ public class FromScratch extends Scene {
         glslShader.disableIt();
     }
 
+    int i = 0;
     @Override
     public void update(float deltaTime) {
         angle += 1.0f * deltaTime;
         utime += 0.1f * deltaTime;
 
+
         particleRenderer.update(deltaTime);
 
-        particleRenderer.add();
+     //   if(i++ > 30)
+        {
+            particleRenderer.add();
+      //      i = 0;
+        }
+
     }
 
     @Override
